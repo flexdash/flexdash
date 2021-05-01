@@ -19,13 +19,8 @@ var App = new Vue({
 
   // Called after the Vue app has been created.
   created: function() {
-    // Need to pass all the details to uibuilder 'cause we use a subdir (d/test).
-    uibuilder.debug(true);
-    uibuilder.start({
-      ioPath: "/uibuilder/vendor/socket.io",
-      namespace: "/d/test",
-      vueApp: this}
-    );
+    //uibuilder.debug(true);
+    uibuilder.start(this); // pass vue app
   },
 
   // Called after vue components loaded and DOM built.
