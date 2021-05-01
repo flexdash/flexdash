@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en"><head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>Node-RED UI Builder - VueJS + Vuetify template</title>
+    <meta name="description" content="Node-RED UI Builder - VueJS + Vuetify template">
+
+    <link rel="icon" href="./images/node-blue.ico">
+
+    <!-- Vuetify -->
+    <link type="text/css" rel="stylesheet"
+          href="/uibuilder/vendor/roboto-fontface/css/roboto/roboto-fontface.css">
+    <link type="text/css" rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/@mdi/font@5.x/css/materialdesignicons.min.css">
+    <link type="text/css" rel="stylesheet"
+          href="/uibuilder/vendor/vuetify/dist/vuetify.css">
+    <!-- Your own CSS -->
+    <link type="text/css" rel="stylesheet" href="./index.css" media="all">
+
+</head><body>
+
+<div style="display: contents" id="app">
+  <template>
+    <v-app>
+      <v-navigation-drawer v-model="sidebar" app>
+      </v-navigation-drawer>
+
+      <v-app-bar dense app>
+        <span class="hidden-sm-and-up">
+          <v-app-bar-nav-icon @click="sidebar = !sidebar"></v-app-bar-nav-icon>
+        </span>
+        <v-app-bar-title>{{ appTitle }}</v-app-bar-title>
+        <v-spacer></v-spacer>
+        <v-tabs>
+          <v-tab>Orchard</v-tab>
+          <v-tab>Veggie</v-tab>
+        </v-tabs>
+      </v-app-bar>
+
+      <v-main>
+        <v-container fluid class="g-grid-small">
+          <stat title="messages" v-bind:value="msgCount"></stat>
+          <stat title="bedroom" unit="°F" v-bind:value="nr.bedroom"></stat>
+          <stat title="garden oak" unit="°F" v-bind:value="nr.garden_oak"></stat>
+          <array v-bind="nr.temp_array">
+            <template v-slot:default="slotProps">
+              <stat v-bind="slotProps"></stat>
+            </template>
+          </array>
+          <gauge title="gh-air" unit="°F" v-bind:value="nr.gh_air"></gauge>
+          <array v-bind="nr.gauge_array">
+            <template v-slot:default="slotProps">
+              <gauge v-bind="slotProps"></gauge>
+            </template>
+          </array>
+        </v-container>
+        <v-container fluid class="g-grid">
+            <!-- Orchard status -->
+          <v-card>
+            <v-card-title>Orchard status</v-card-title>
+            <v-card-text class="d-flex">
+              <span>Status</span>
+              <v-spacer></v-spacer>
+              <v-chip color="green">LIVE Tue 20:24</v-chip>
+            </v-card-text>
+            <v-card-text class="d-flex">
+              <span>Watering</span>
+              <v-spacer></v-spacer>
+              <span>Tomorrow</span>
+            </v-card-text>
+          </v-card>
+          <!-- Orchard valve table -->
+          <v-card class="g-2w-2h">
+            <v-card-title>Orchard valves</v-card-title>
+            <orchard-vtable ref="orchard-state"
+                v-bind:names='["large citrus", "top citrus", "lower citrus", "apricots", "avocado", "old stone", "new stone", "windbreak"]'/>
+          </v-card>
+
+          <v-card><v-card-title>Card 1</v-card-title><v-card-text>Hello there!</v-card-text></v-card>
+          <v-card><v-card-title>Card 2</v-card-title><v-card-text>Hello there!<br>x<br>x<br>x<br>x<br>I
+            am taller...</v-card-text></v-card>
+          <v-card class="g-2w"><v-card-title>Card 3</v-card-title><v-card-text>Hello there!</v-card-text></v-card>
+          <v-card><v-card-title>Card 4</v-card-title><v-card-text>Hello there!</v-card-text></v-card>
+          <v-card><v-card-title>Card 5</v-card-title><v-card-text>Hello there!</v-card-text></v-card>
+          <v-card><v-card-title>Card 6</v-card-title><v-card-text>Hello there!</v-card-text></v-card>
+        </v-container>
+      </v-main>
+
+    </v-app>
+  </template>
+</div>
+
+
+  <!-- These MUST be in the right order. Note no leading / -->
+
+  <!-- REQUIRED: Socket.IO is loaded only once for all instances.
+       Without this, you don't get a websocket connection -->
+  <script src="/uibuilder/vendor/socket.io/socket.io.js"></script>
+
+  <!-- Vendor Libraries - Load in the right order, use minified, production versions for speed -->
+  <script src="/uibuilder/vendor/vue/dist/vue.js"></script> <!-- dev version with component compiler -->
+  <!-- <script src="../uibuilder/vendor/vue/dist/vue.min.js"></script>   prod version with component compiler -->
+  <!-- <script src="../uibuilder/vendor/vue/dist/vue.runtime.min.js"></script>   prod version without component compiler -->
+  <script src="/uibuilder/vendor/vuetify/dist/vuetify.js"></script>
+  <script src="/uibuilder/vendor/http-vue-loader/src/httpVueLoader.js"></script>
+  <script src="/uibuilder/vendor/vue-svg-gauge/dist/vue-svg-gauge.min.js"></script>
+
+  <!-- REQUIRED: Sets up Socket listeners and the msg object -->
+  <script src="./uibuilderfe.js"></script> <!-- dev version -->
+  <!-- <script src="./uibuilderfe.min.js"></script>     prod version -->
+
+  <!-- OPTIONAL: You probably want this. Put your custom code here -->
+  <script src="./helpers.js"></script>
+  <script src="./index.js"></script>
+
+</body></html>
