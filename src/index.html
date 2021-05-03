@@ -16,6 +16,8 @@
           href="https://cdn.jsdelivr.net/npm/@mdi/font@5.x/css/materialdesignicons.min.css">
     <link type="text/css" rel="stylesheet"
           href="/uibuilder/vendor/vuetify/dist/vuetify.css">
+    <link type="text/css" rel="stylesheet"
+          href="/uibuilder/vendor/uplot/dist/uPlot.min.css">
     <!-- Your own CSS -->
     <link type="text/css" rel="stylesheet" href="./index.css" media="all">
 
@@ -57,7 +59,7 @@
           </array>
         </v-container>
         <v-container fluid class="g-grid">
-            <!-- Orchard status -->
+          <!-- Orchard status -->
           <v-card>
             <v-card-title>Orchard status</v-card-title>
             <v-card-text class="d-flex">
@@ -74,10 +76,18 @@
           <!-- Orchard valve table -->
           <v-card class="g-2w-2h">
             <v-card-title>Orchard valves</v-card-title>
-            <orchard-vtable ref="orchard-state"
+            <orchard-vtable
+                v-bind="nr.orchard_state"
                 v-bind:names='["large citrus", "top citrus", "lower citrus", "apricots", "avocado", "old stone", "new stone", "windbreak"]'/>
           </v-card>
+          <!-- uPlot test chart -->
+          <v-card class="g-2w-2h">
+            <v-card-title class="pb-0">Test uPlot</v-card-title>
+            <upv :options="nr.uplot_opts" :data="nr.uplot_data"></upv>
+            <!--UplotVue></UplotVue-->
+          </v-card>
 
+          <!-- empty cards to fill up some space -->
           <v-card><v-card-title>Card 1</v-card-title><v-card-text>Hello there!</v-card-text></v-card>
           <v-card><v-card-title>Card 2</v-card-title><v-card-text>Hello there!<br>x<br>x<br>x<br>x<br>I
             am taller...</v-card-text></v-card>
@@ -106,6 +116,7 @@
   <script src="../uibuilder/vendor/vuetify/dist/vuetify.js"></script>
   <script src="../uibuilder/vendor/http-vue-loader/src/httpVueLoader.js"></script>
   <script src="../uibuilder/vendor/vue-svg-gauge/dist/vue-svg-gauge.min.js"></script>
+  <script src="../uibuilder/vendor/uplot/dist/uPlot.iife.min.js"></script>
 
   <!-- REQUIRED: Sets up Socket listeners and the msg object -->
   <script src="./uibuilderfe.js"></script> <!-- dev version -->

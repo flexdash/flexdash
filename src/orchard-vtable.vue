@@ -29,7 +29,7 @@
     <!-- Dialog box to show: editing a valve -->
     <v-card>
       <v-card-title>
-        <span class="headline">Edit valve {{edit_vnum+1}}</span>
+        <span class="headline">Edit valve {{edit_vnum+1}}: {{names[edit_vnum]}}</span>
         <v-spacer></v-spacer>
         <v-switch class="mr-6" label="enabled" v-model="set_enabled"></v-switch>
       </v-card-title>
@@ -59,13 +59,13 @@
     },
 
     props: {
-      names: Array,
+      names: { type: Array },
+      valves: { default: function() { return []; } },
+      done_today: { default: false },
+      sched_valve: { default: null },
     },
 
     data: function() { return {
-      valves: [],
-      done_today: false,
-      sched_valve: null,
       // variables used for edit pop-up dialog
       dialog: null, // true while pop-up is active, set to false to close it
       set_enabled: null,   // enable switch within dialog
@@ -76,6 +76,7 @@
 
     computed: {
       valves_disp: function() {
+        console.log("valves_disp:", this.valves);
         return this.valves.map((v,i) => {
           v.num = i+1;
           v.intDays = Math.round(v.int/24/3600); // seconds -> days interval
@@ -103,13 +104,6 @@
     },
 
     methods: {
-      // handler for a message from node-red. The msg contains the payload of the node-red message.
-      handle: function(msg) {
-        for (const p in msg) {
-          if (p in this.$data) this.$data[p] = msg[p];
-        }
-      },
-
       // handler for clicking an edit button, receives valve number, the function (of v-dialog) to
       // propagate the event to, and the event itself.
       start_edit: function(vnum, f, ev) {

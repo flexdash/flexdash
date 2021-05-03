@@ -8,6 +8,7 @@ var App = new Vue({
     'stat': httpVueLoader('stat.vue'),
     'gauge': httpVueLoader('gauge.vue'),
     'array': httpVueLoader('array.vue'),
+    'upv': httpVueLoader('upv.vue'),
   },
 
   data: {
@@ -40,12 +41,43 @@ var App = new Vue({
       }
 
       // Stash away the data as long as the message has a topic and a payload.
-      if (msg.topic && typeof msg.payload !== 'undefined') {
-        // Use Vue.set 'cause we will add new props to self.nr.
-        Vue.set(self.nr, msg.topic, msg.payload);
-        console.log("Updating " + msg.topic + " with:", msg.payload);
-        self.msgCount++;
+      if (!('topic' in msg && 'payload' in msg)) return;
+
+      // Interpret the topic string as a hierarchy of object "levels" separated by dots.
+      let tt = msg.topic.split("."); // split levels of hierarchy
+      let nr = self.nr; // start at root
+      let t = tt.pop(); // separate off last level
+      tt.forEach(function(v) {
+        if (!(v in nr)) Vue.set(nr, v, {});
+        if (typeof nr[v] !== Object) {
+          console.log(`Level '${v}' of topic ${msg.topic} is not an object`);
+          return;
+        }
+        nr = nr[v];
+      });
+      // now nr[t] is the field to update
+
+      // perform the update
+      let pIsArray = Array.isArray(msg.payload);
+      if (pIsArray && (!(t in nr) || nr[t] === null)) {
+        Vue.set(nr, t, []);
       }
+      if (pIsArray && Array.isArray(nr[t])) {
+        // We got arrays: append and trim
+        let excess = nr[t].length + msg.payload.length - 1000;
+        if (excess <= 0)
+          nr[t] = nr[t].concat(msg.payload);
+        else
+          nr[t] = nr[t].slice(excess).concat(msg.payload);
+        let l = nr[t].length;
+        console.log(`Appended ${msg.payload.length} to ${t}, now ${l}`, nr[t]);
+      } else {
+        // Use Vue.set 'cause we will add new props to nr.
+        Vue.set(nr, t, msg.payload);
+        console.log("Updating " + t + " with:", msg.payload);
+      }
+
+      self.msgCount++;
     });
   },
 });
