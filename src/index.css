@@ -16,7 +16,9 @@
 
 .width100 { width: 100%; }
 .unit { font-size: 70%; vertical-align: 20%; margin-left: 0.1em; }
-.xgauge { margin: 0.5em; }
+
+.gauge-large .gauge-value { line-height: 3rem; font-size: 2rem; }
+.gauge-large .gauge-title { line-height: 1.5rem; font-size: 1rem; }
 
 .g-grid {
   display: grid;
@@ -26,13 +28,15 @@
 }
 .g-grid-small {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(8em, 1fr));
-  grid-auto-rows: 5em;
+  grid-template-columns: repeat(auto-fill, minmax(7em, 1fr));
+  grid-auto-rows: 4.5em;
   gap: 0.5em;
   grid-auto-flow: dense;
 }
+.g-grid-margin { margin: 0.5em; }
 .g-2w { grid-column: span 2; }
 .g-2w-2h { grid-column: span 2; grid-row: span 2; }
 .g-3w { grid-column: span 3; }
 .g-3w-2h { grid-column: span 3; grid-row: span 2; }
 .g-4w-2h { grid-column: span 4; grid-row: span 2; }
+.g-in-card .v-card { background-color:#eeeeee; }

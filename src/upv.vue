@@ -1,5 +1,7 @@
 <template>
-  <div style="xx-background-color:#eef;"></div>
+  <div class="px-1">
+    <div style="xx-background-color:#eef;"></div>
+  <div>
 </template>
 
 <script scoped>
@@ -61,16 +63,15 @@
       },
 
       _calcSize: function() {
-        let width = this.options.width || this.$el.clientWidth;
+        let width = this.options.width || this.$el.children[0].clientWidth;
         let height = this.options.height || (width / (this.options.aspect || 2));
+        console.log("UPV container sized to", width, "x", height);
         return { width: width, height: height };
       },
 
-      // receive resize event a change the size of the chart if necessary
+      // receive resize event and change the size of the chart if necessary
       _onResize: function() {
         if (!this.chart) return;
-        let rect = this.$el.getBoundingClientRect();
-        console.log("UPV container resized to", rect.width, "x", rect.height);
         this.chart.setSize(this._calcSize());
       },
 
@@ -86,8 +87,7 @@
       },
 
       _create: function() {
-        let rect = this.$el.getBoundingClientRect();
-        console.log("Creating uPlot on ", rect.width, "x", rect.height, "div");
+        console.log("Creating uPlot");
         // provide some reasonable defaults for the options
         let opts = Object.assign({}, this.options);
         Object.assign(opts, this._calcSize());
@@ -96,15 +96,30 @@
         if (!opts.series) opts.series = [];
         while (opts.series.length < tr.length) opts.series.push({});
         opts.series.forEach(function(v, i) {
-          if (!v.label) v.label = i ? "series "+i : "time";
+          if (!v.label) v.label = i ? ("series "+i) : "time";
           if (i) {
             if (!v.stroke) v.stroke = colors[(i-1)%20];
             if (!v.width) v.width = 2;
+            if (v.value && typeof v.value === 'string')
+              v.value = new Function('u', 'v',
+                  `"use strict";return (${v.value})`);
           }
+        });
+        // fix-up some strings needing eval
+        console.log("uPlot options:", opts);
+        (opts.axes||[]).forEach((ax) => {
+          if (ax.values && typeof ax.values === 'string')
+            ax.values = new Function('u', 'vv', 's',
+                `"use strict";return (${ax.values})`);
+        });
+        Object.values(opts.scales||{}).forEach((s) => {
+          if (s.range && typeof s.range === 'string')
+            s.range = new Function('u', 'min', 'max',
+                `"use strict";return (${s.range})`);
         });
         console.log("uPlot options:", opts);
         this.opts = opts;
-        this.chart = new uPlot(opts, tr, this.$el);
+        this.chart = new uPlot(opts, tr, this.$el.children[0]);
       }
     },
   }

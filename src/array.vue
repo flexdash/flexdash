@@ -1,6 +1,6 @@
 <template>
   <div style="display: contents">
-    <stat title="array" unit="" :value="count" ref="me"></stat>
+    <!--stat title="array" unit="" :value="count" ref="me"></stat-->
     <slot v-for="c in array" v-bind="c"></slot>
   </div>
 </template>

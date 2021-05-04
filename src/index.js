@@ -7,6 +7,7 @@ var App = new Vue({
     'orchard-vtable': httpVueLoader('orchard-vtable.vue'),
     'stat': httpVueLoader('stat.vue'),
     'gauge': httpVueLoader('gauge.vue'),
+    'gauge-card': httpVueLoader('gauge-card.vue'),
     'array': httpVueLoader('array.vue'),
     'upv': httpVueLoader('upv.vue'),
   },
@@ -16,6 +17,33 @@ var App = new Vue({
     sidebar: false, // disabled for now
     nr: {}, // data coming in from node-red
     msgCount: 0,
+  },
+
+  computed: {
+    orchardLiveTxt: function() {
+      let os = this.nr.orchard_state;
+      if (!os || !os.at) return "?";
+      let at = new Date(os.at*1000);
+      return at.dow() + " " + at.dom();
+    },
+    orchardWatering: function() {
+      let os = this.nr.orchard_state;
+      if (!os) return "?";
+      if (typeof os.sched_valve === 'number') return `ckt ${os.sched_valve+1} now`;
+      return os.done_today ? "tomorrow" : "today";
+    },
+    orchardGallons: function() {
+      let os = this.nr.orchard_state;
+      if (!os || !os.gallons) return "?";
+      return Math.round(os.gallons);
+    },
+    orchardStartAt: function() {
+      let os = this.nr.orchard_state;
+      if (!os || !os.sched_start_min) return "?";
+      let min = os.sched_start_min % 60;
+      if (min < 10) min = "0"+min;
+      return `${Math.trunc(os.sched_start_min/60)}:${min}`;
+    },
   },
 
   // Called after the Vue app has been created.
