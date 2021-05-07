@@ -27,6 +27,7 @@
 
 <script scoped>
   module.exports = {
+    name: 'Stat',
 
     props: {
       title: String,
