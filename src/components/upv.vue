@@ -15,6 +15,7 @@ import uPlot from 'uplot'
 import 'uplot/dist/uPlot.min.css'
 
 export default {
+  name: "upv",
 
   props: {
     options: {type: Object, default: function() { return {};}},

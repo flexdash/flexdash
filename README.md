@@ -20,7 +20,6 @@ that can be dropped onto any static web server, including node-red's
 static file-serving directory. Note that this project does not use
 the file serving capabilities of the uibuilder nodes at all.
 
-Start the flow and navigate to http://localhost:1880/d-test
 
 ## Project setup
 
@@ -36,6 +35,8 @@ on Ubuntu) and install all the dependencies of this repo locally.
 ```
 npm install
 ```
+
+Open your node-red admin UI and import `flow.js`.
 
 ### Compiles and hot-reloads for development
 Edit `.env.development` to reflect where you point your browser to get the

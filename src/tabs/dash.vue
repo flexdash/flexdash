@@ -40,9 +40,9 @@
 
 <script scoped>
 
-import Stat from '/src/components/stat'
-import Gauge from '/src/components/gauge'
-import GaugeCard from '/src/components/gauge-card'
+import Stat from '/src/widgets/stat'
+import Gauge from '/src/components/svg-gauge'
+import GaugeCard from '/src/widgets/gauge'
 import ComponentArray from '/src/components/component-array'
 
 export default {

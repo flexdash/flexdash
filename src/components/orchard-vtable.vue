@@ -53,7 +53,7 @@
 </template>
 
 <script>
-import EditPlusMinus from './edit-plus-minus';
+import EditPlusMinus from './edit-plus-minus'
 
 export default {
   name: 'OrchardVtable',
@@ -64,12 +64,12 @@ export default {
 
   props: {
     names: { type: Array },
-    valves: { default: function() { return []; } },
+    valves: { default() { return [] } },
     done_today: { default: false },
     sched_valve: { default: null },
   },
 
-  data: function() { return {
+  data() { return {
     // variables used for edit pop-up dialog
     dialog: null, // true while pop-up is active, set to false to close it
     set_enabled: null,   // enable switch within dialog
@@ -79,55 +79,55 @@ export default {
   }},
 
   computed: {
-    valves_disp: function() {
-      console.log("valves_disp:", this.valves);
+    valves_disp() {
+      console.log("valves_disp:", this.valves)
       return this.valves.map((v,i) => {
-        v.num = i+1;
-        v.intDays = Math.round(v.int/24/3600); // seconds -> days interval
-        v.srcName = v.src ? "grey" : "well";
-        v.durMin = Math.round(v.dur/60); // seconds -> minutes
-        v.last = new Date(v.last_at*1000); // unix time -> JS Date
+        v.num = i+1
+        v.intDays = Math.round(v.int/24/3600) // seconds -> days interval
+        v.srcName = v.src ? "grey" : "well"
+        v.durMin = Math.round(v.dur/60) // seconds -> minutes
+        v.last = new Date(v.last_at*1000) // unix time -> JS Date
 
         // figure out when the valve waters next
-        let nxt = v.last_at + v.int;
-        let eod = new Date();
-        eod.setHours(23, 59, 59);
-        eod = eod.valueOf() / 1000;
+        let nxt = v.last_at + v.int
+        let eod = new Date()
+        eod.setHours(23, 59, 59)
+        eod = eod.valueOf() / 1000
         if (!v.en) {
-          v.next = "OFF";
+          v.next = "OFF"
         } else if (nxt < eod) {
-          v.next = this.done_today || this.sched_valve > i ? "tomorrow" : "today";
+          v.next = this.done_today || this.sched_valve > i ? "tomorrow" : "today"
         } else {
-          nxt = new Date(nxt*1000);
-          v.next = nxt.dow() + " " + nxt.dom();
+          nxt = new Date(nxt*1000)
+          v.next = nxt.dow() + " " + nxt.dom()
         }
 
-        return v;
-      });
+        return v
+      })
     },
   },
 
   methods: {
     // handler for clicking an edit button, receives valve number, the function (of v-dialog) to
     // propagate the event to, and the event itself.
-    start_edit: function(vnum, f, ev) {
+    start_edit(vnum, f, ev) {
       //console.log("Start edit valve ", vnum, " event:", ev);
-      this.edit_vnum = vnum;
-      this.set_enabled  = this.valves_disp[vnum].en;
-      this.set_duration = this.valves_disp[vnum].durMin;
-      this.set_interval = this.valves_disp[vnum].intDays;
+      this.edit_vnum = vnum
+      this.set_enabled  = this.valves_disp[vnum].en
+      this.set_duration = this.valves_disp[vnum].durMin
+      this.set_interval = this.valves_disp[vnum].intDays
       f(ev);
     },
 
-    save_edit: function(/*f, ev*/) {
-      console.log("Save edit!", "vnum="+this.edit_vnum, "intv="+this.set_interval, "dur="+this.set_duration);
+    save_edit(/*f, ev*/) {
+      console.log("Save edit!", "vnum="+this.edit_vnum, "intv="+this.set_interval, "dur="+this.set_duration)
       this.dialog = false;
       if (typeof this.edit_vnum === 'number') {
-        let vnum = this.edit_vnum;
+        let vnum = this.edit_vnum
         // update values!!!
-        this.valves[vnum].en  = !!this.set_enabled;
-        this.valves[vnum].dur = this.set_duration * 60; // minutes -> seconds
-        this.valves[vnum].int = this.set_interval * 24 * 3600; // days -> seconds
+        this.valves[vnum].en  = !!this.set_enabled
+        this.valves[vnum].dur = this.set_duration * 60 // minutes -> seconds
+        this.valves[vnum].int = this.set_interval * 24 * 3600 // days -> seconds
       }
       this.edit_vnum = null;
     },

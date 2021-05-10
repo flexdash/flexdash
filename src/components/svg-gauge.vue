@@ -19,7 +19,7 @@
 
 <script>
 export default {
-  name: 'Gauge',
+  name: 'SvgGauge',
 
   props: {
     min: { type: Number, default: 0 }, // minimum value
@@ -34,36 +34,36 @@ export default {
   },
 
   computed: {
-    frac: function() {
-      let frac = (this.value-this.min) / (this.max-this.min);
-      return Math.min(1, Math.max(0, frac));
+    frac() {
+      let frac = (this.value-this.min) / (this.max-this.min)
+      return Math.min(1, Math.max(0, frac))
     },
-    stroke_width : function() { return 100 - this.radius },
-    stroke_radius: function() { return 100 - this.stroke_width/2 },
-    needle_start: function() { return 100 - 1.25 * this.stroke_width },
-    circumference: function() { return this.stroke_radius * 2 * Math.PI },
-    stroke_bdash: function() {
-      let arc_length = this.arc * this.circumference / 360;
-      return `${arc_length} ${this.circumference}`;
+    stroke_width() { return 100 - this.radius },
+    stroke_radius() { return 100 - this.stroke_width/2 },
+    needle_start() { return 100 - 1.25 * this.stroke_width },
+    circumference() { return this.stroke_radius * 2 * Math.PI },
+    stroke_bdash() {
+      let arc_length = this.arc * this.circumference / 360
+      return `${arc_length} ${this.circumference}`
     },
-    stroke_sdash: function() {
-      let arc_length = this.arc * this.frac * this.circumference / 360;
-      return `${arc_length} ${this.circumference}`;
+    stroke_sdash() {
+      let arc_length = this.arc * this.frac * this.circumference / 360
+      return `${arc_length} ${this.circumference}`
     },
-    xform : function() { return `rotate(${270 - this.arc/2}, 0, 0)`; },
-    nform : function() { return `rotate(${270 - this.arc/2 + this.arc*this.frac}, 0, 0)`; },
-    ar: function() { return this.stretch ? 'none' : 'xMidYMid' },
-    vbox: function() {
-      let r = this.arc >= 180 ? 100 : this.needle_start;
-      let a = (this.arc-180)/2*Math.PI/180;
-      let ysz = 100 + r * Math.sin(a);
-      let xsz = this.arc >= 180 ? 200 : 200 * Math.cos(a);
-      return `-${xsz/2} -100 ${xsz} ${ysz}`;
+    xform() { return `rotate(${270 - this.arc/2}, 0, 0)` },
+    nform() { return `rotate(${270 - this.arc/2 + this.arc*this.frac}, 0, 0)` },
+    ar() { return this.stretch ? 'none' : 'xMidYMid' },
+    vbox() {
+      let r = this.arc >= 180 ? 100 : this.needle_start
+      let a = (this.arc-180)/2*Math.PI/180
+      let ysz = 100 + r * Math.sin(a)
+      let xsz = this.arc >= 180 ? 200 : 200 * Math.cos(a)
+      return `-${xsz/2} -100 ${xsz} ${ysz}`
     },
   },
 }
 </script>
 
 <style scoped>
-  svg.gauge { padding: 0.5ex; width:100%; height: 100%; }
+  /* svg.gauge { padding: 0.5ex; width:100%; height: 100%; }*/
 </style>

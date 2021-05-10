@@ -10,13 +10,13 @@ module.exports = {
     'vuetify'
   ],
 
-  publicPath: process.env.NODE_ENV === 'production' ? '/d/' : '/',
+  publicPath: process.env.NODE_ENV === 'production' ? '/flexdash/' : '/',
 
   // see https://cli.vuejs.org/guide/webpack.html#modifying-options-of-a-plugin
   chainWebpack: config => {
     config.plugin('html').tap(args => {
       args[0].title = process.env.NODE_ENV == 'production' ?
-          'Dash' : 'Test Dash'  // htmlWebpackPlugin.options.title
+          'FlexDash' : 'Test FlexDash'  // htmlWebpackPlugin.options.title
       return args
       })
   },

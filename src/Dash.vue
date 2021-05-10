@@ -8,19 +8,22 @@
       <span class="hidden-sm-and-up">
         <v-app-bar-nav-icon @click="sidebar = !sidebar"></v-app-bar-nav-icon>
       </span>
-      <v-app-bar-title>{{ appTitle }}</v-app-bar-title>
-      <v-spacer></v-spacer>
+      <v-toolbar-title style="width:10ex">{{ appTitle }}</v-toolbar-title>
       <v-tabs v-model=tab>
-        <v-tab v-for="t in tabs" :key="t.key"><v-icon large>mdi-{{t.icon}}</v-icon></v-tab>
+        <v-tab v-for="t in tabs" :key="t.id"><v-icon large>mdi-{{t.icon}}</v-icon></v-tab>
       </v-tabs>
     </v-app-bar>
 
     <v-main>
-      <v-tabs-items v-model="tab">
-        <v-tab-item v-for="t in tabs" :key="t.key">
-          <component v-bind:is="t.component" :nr="nr"></component>
+      <v-tabs-items v-if="gotConfig" v-model="tab">
+        <v-tab-item v-for="(t, ix) in tabs" :key="t.id">
+          <component v-bind:is="t.kind" :sd="sd" :config="t"
+                     @reconfig="reconfig(ix, $event)"></component>
         </v-tab-item>
       </v-tabs-items>
+      <div v-else>
+        LOADING...
+      </div>
     </v-main>
 
   </v-app>
@@ -29,62 +32,105 @@
 <script scoped>
 import uibuilder from '../public/uibuilderfe.js'
 
-import EmptyTab from './tabs/empty'
-import DashTab from './tabs/dash'
-import OrchardTab from './tabs/orchard'
-import PlotTab from './tabs/plot'
-
 export default {
   name: 'Dash',
 
-  components: {
-    EmptyTab,
-    DashTab,
-    OrchardTab,
-    PlotTab,
-  },
-
   data: () => ({
-    appTitle: 'DashTest',
+    appTitle: 'FlexDash',
     sidebar: false, // disabled for now
-    nr: {}, // data coming in from node-red
+    sd: {}, // server data coming in through the websocket
+    gotConfig: false, // set to true when we've received the initial config
     msgCount: 0,
     tab: null, // which tab we're on
-    tabs: [
-      { key:'dash', icon:'tablet-dashboard', component: DashTab },
-      { key:'plot', icon:'chart-line', component: PlotTab },
-      { key:'orchard', icon:'tree', component: OrchardTab },
-      { key:'empty', icon:'flask-empty', component: EmptyTab },
-    ],
+    freshSocket: false, // did we create a fresh socket.io connection?
   }),
 
-  // Called after the Vue app has been created.
-  created() {
-    //let self = this;
-    let nodered = process.env.VUE_APP_NR_SERVER + "/" + process.env.VUE_APP_UIB_NAME
-    // start uibuilder loaded from installed npm package
-    uibuilder.debug(true)
-    uibuilder.start({
-      namespace: nodered, ioPath: "/uibuilder/vendor/socket.io", vueApp: self,
-    })
+  computed: {
+    // config extracted from the server data, really just this.sd['$config'] except that
+    // it handles the initialization case where the config is missing
+    config() {
+      if (this.gotConfig) return this.sd['$config']
+      else return { tabs: [] } // FIXME: return a special "loading..." tab
+    },
 
-    /* // load uibuilder dynamically from server
-    let uibuilderfe = nodered + "/uibuilderfe.js"
-    console.log("Loading uibuilder from", uibuilderfe, "(env=", process.env.NODE_ENV, ")")
-    this.$loadScript(uibuilderfe)
-      .then(() => {
-        window.uibuilder.debug(true)
-        window.uibuilder.start({
-          //namespace: "https://core2.voneicken.com:1880/d-test",
-          namespace: nodered,
-          ioPath: "/uibuilder/vendor/socket.io",
-          vueApp: self,
+    // tabs extracted from config, really just config.tabs but handles init case
+    tabs() {
+      if (this.gotConfig) {
+        if (Array.isArray(this.config.tabs) && this.config.tabs.length)
+          return this.config.tabs
+        uibuilder.send({
+            topic: "$config.tabs",
+            payload: [ { id: 0, kind: 'small-fixed-grid', icon:'view-dashboard', widgets: [] } ]
         })
+      }
+      return []
+    },
+  },
+
+  provide: {
+    // send a "raw" message to the server, should be used primarily to send user input, which
+    // gets mapped into server-data (self.sd) and thus where the nested component knows which
+    // key of self.sd is to be updated.
+    sendSrv(topic, payload) {
+      uibuilder.send({topic: topic, payload: payload})
+    },
+  },
+
+  // called after the Vue app has been created, this is a good place to start connecting to the
+  // server, unless we got hot-reloaded and already have a connection.
+  created() {
+    console.log("uibuilder.ioConnected=", uibuilder.get('ioConnected'))
+    this.freshSocket = !uibuilder.get('ioConnected')
+    if (this.freshSocket) {
+      // there's no way to stop uibuilder, so for now we accept that it's active for the
+      // duration of hte page, though hot-reloads in development.
+      let nodered = process.env.VUE_APP_NR_SERVER + "/" + process.env.VUE_APP_UIB_NAME
+      // start uibuilder loaded from installed npm package
+      uibuilder.debug(true)
+      uibuilder.start({
+        namespace: nodered, ioPath: "/uibuilder/vendor/socket.io", vueApp: null,
       })
-      .catch((err) => {
-        console.log("Loading uibuilderfe.js failed:", err)
-      })
-      */
+    }
+  },
+
+  methods: {
+    // walkTree takes the root of an object hierarchy and a dot-separated path, then walks
+    // down the tree along the path and returns the final node in the tree.
+    walkTree(root, path) {
+      let self = this
+      let node = root
+      path.forEach(function(d) {
+        // handle traversing an array, need to parse index into an int
+        if (Array.isArray(node)) {
+            const ix = parseInt(d, 10)
+            if (Number.isNaN(ix)) {
+                console.log(`Array index '${d}' in '${path}' is not an int`)
+                return undefined
+            } else if (ix < 0 || ix >= node.length) {
+                console.log(`Array index '${d}' in '${path}' > ${node.length}`)
+                return undefined
+            }
+            node = node[ix]
+        } else if (typeof node === 'object') {
+            if (!(d in node)) self.$set(node, d, {}) // allow new subtrees to be created
+            node = node[d]
+        } else {
+          console.log(`Level '${d}' of '${path}'' is not traversable: ${typeof node[d]}`);
+          return undefined;
+        }
+      });
+      return node
+    },
+
+    // reconfig handles a child reconfig event, this is how config changes propagate up
+    // and get sent back to the server for persistence.
+    // msg must have topic and payload, topic is relative to the child's root and if null/""
+    // the entire child's config gets updated
+    reconfig(ix, msg) {
+      console.log(`tab reconfig(${ix}, ${msg})`)
+      msg.topic = msg.topic ? `$config.tabs.${ix}.${msg.topic}` : `$config.tabs.${ix}`
+      uibuilder.send(msg)
+    },
   },
 
   // Called after vue components are loaded and DOM built.
@@ -92,93 +138,61 @@ export default {
     const self = this;
 
     // Register to process messages from node-red.
-    uibuilder.onChange('msg', function(msg) {
-      // Process hot reload messages to automatically reload the page on source file change.
-      if (msg.topic === "hot-reload") {
-        console.log("HOT RELOAD");
-        window.location.reload(true);
-        return;
-      }
+    if (this.freshSocket) {
+      uibuilder.onChange('msg', function(msg) {
+        // Stash away the data as long as the message has a topic and a payload.
+        if (!('topic' in msg && 'payload' in msg)) return;
+        self.msgCount++;
 
-      // Stash away the data as long as the message has a topic and a payload.
-      if (!('topic' in msg && 'payload' in msg)) return;
-
-      let t0 = Date.now();
-
-      // Interpret the topic string as a hierarchy of object "levels" separated by dots.
-      let tt = msg.topic.split("."); // split levels of hierarchy
-      let nr = self.nr; // start at root
-      let t = tt.pop(); // separate off last level
-      tt.forEach(function(v) {
-        if (!(v in nr)) self.$set(nr, v, {});
-        if (typeof nr[v] !== Object) {
-          console.log(`Level '${v}' of topic ${msg.topic} is not an object`);
-          return;
+        if (msg.topic === "$config") {
+          console.log("*** config received")
+          self.gotConfig = true;
         }
-        nr = nr[v];
+
+        // Interpret the topic string as a hierarchy of object "levels" separated by dots.
+        let tt = msg.topic.split("."); // split levels of hierarchy
+        let t = tt.pop(); // separate off last level
+        let dir = self.walkTree(self.sd, tt); // start at root
+        if (!dir) return
+        // now sd[t] is the field to update
+
+        // perform the update
+        if (Array.isArray(dir)) {
+          const ix = parseInt(t, 10)
+          if (!Number.isNaN(ix)) {
+            if (ix >= 0 && ix < dir.length) {
+              self.$set(dir, ix, msg.payload)
+              console.log(`Updated array elt ${msg.topic} with`, msg.payload)
+            } else if (ix == dir.length) {
+              dir[ix].push(msg.payload)
+              console.log(`Appended array elt ${msg.topic} with`, msg.payload)
+            } else {
+              console.log(`Array index '${ix}' in '${msg.topic}' > ${dir.length}`)
+            }
+          }
+        } else if (typeof(dir) === 'object') {
+          self.$set(dir, t, msg.payload) // $set 'cause we may add new props to dir
+          console.log(`Updated ${msg.topic} with:`, msg.payload)
+          //console.log(self.sd)
+        } else {
+          console.log(`${msg.topic} is neither Array nor Object in server state`)
+          return
+        }
+
       });
-      // now nr[t] is the field to update
-
-      // perform the update
-      let pIsArray = Array.isArray(msg.payload);
-      if (pIsArray && (!(t in nr) || nr[t] === null)) {
-        self.$set(nr, t, []);
-      }
-      if (pIsArray && Array.isArray(nr[t])) {
-        // We got arrays: append and trim
-        let excess = nr[t].length + msg.payload.length - 1000;
-        if (excess <= 0)
-          nr[t] = nr[t].concat(msg.payload);
-        else
-          nr[t] = nr[t].slice(excess).concat(msg.payload);
-        let l = nr[t].length;
-        let dt = Date.now() - t0
-        console.log(`Appended ${msg.payload.length} to ${t}, now ${l}, took ${dt}ms`) // , nr[t])
-      } else {
-        // Use Vue.set 'cause we will add new props to nr.
-        self.$set(nr, t, msg.payload);
-        let dt = Date.now() - t0
-        console.log(`Updating ${t} with: ${msg.payload}, took ${dt}ms`);
-      }
-
-      self.msgCount++;
-    });
+    }
   },
 };
 </script>
 
 <style>
-/* Cloak elements on initial load to hide the possible display of {{ ... }} 
- * Add to the app tag or to specific tags
- * To display "loading...", change to the following:
- *    [v-cloak] > * { display:none }
- *    [v-cloak]::before { content: "loading…" }
- */
-[v-cloak] { display: none; }
+[v-cloak] > * { display:none }
+[v-cloak]::before { content: "loading…" }
+ 
 .v-main { background-color: #eee; }
 
+/* this is probably the wrong place for these little utility classes... */
 .width100 { width: 100%; }
 .unit { font-size: 70%; vertical-align: 20%; margin-left: 0.1em; }
-
-.g-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(18em, 1fr));
-  gap: 0.5em;
-  grid-auto-flow: dense;
-}
-.g-grid-small {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(7em, 1fr));
-  grid-auto-rows: 4.5em;
-  gap: 0.5em;
-  grid-auto-flow: dense;
-}
-.g-grid-margin { margin: 0.5em; }
-.g-2w { grid-column: span 2; }
-.g-2w-2h { grid-column: span 2; grid-row: span 2; }
-.g-3w { grid-column: span 3; }
-.g-3w-2h { grid-column: span 3; grid-row: span 2; }
-.g-4w-2h { grid-column: span 4; grid-row: span 2; }
-.g-in-card .v-card { background-color:#eeeeee; }
 
 </style>

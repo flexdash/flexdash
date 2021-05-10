@@ -22,7 +22,7 @@
 
 <script scoped>
 
-import Stat from '/src/components/stat'
+import Stat from '/src/widgets/stat'
 import OrchardVtable from '/src/components/orchard-vtable'
 
 export default {
@@ -38,24 +38,24 @@ export default {
   },
 
   computed: {
-    orchardLiveTxt: function() {
+    orchardLiveTxt() {
       let os = this.nr.orchard_state;
       if (!os || !os.at) return "?";
       let at = new Date(os.at*1000);
       return at.dow() + " " + at.dom();
     },
-    orchardWatering: function() {
+    orchardWatering() {
       let os = this.nr.orchard_state;
       if (!os) return "?";
       if (typeof os.sched_valve === 'number') return `ckt ${os.sched_valve+1} now`;
       return os.done_today ? "tomorrow" : "today";
     },
-    orchardGallons: function() {
+    orchardGallons() {
       let os = this.nr.orchard_state;
       if (!os || !os.gallons) return "?";
       return Math.round(os.gallons);
     },
-    orchardStartAt: function() {
+    orchardStartAt() {
       let os = this.nr.orchard_state;
       if (!os || !os.sched_start_min) return "?";
       let min = os.sched_start_min % 60;
