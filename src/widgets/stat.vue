@@ -1,3 +1,7 @@
+<!-- Stat - Simple status widget that can display a numeric or text value. An unit string can
+     optionally be appended and is rendered as a superscript.
+     Copyright ©2021 Thorsten von Eicken, MIT license, see LICENSE file
+-->
 <template>
   <v-card-title class="headline pa-0">
     <span class="ma-auto">{{valTxt}}<span class="unit">{{unitTxt}}</span></span>

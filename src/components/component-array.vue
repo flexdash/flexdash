@@ -1,3 +1,8 @@
+<!-- ComponentArray - creates an array of widgets.
+     No longer functional...
+     Copyright ©2021 Thorsten von Eicken, MIT license, see LICENSE file
+-->
+
 <template>
   <div style="display: contents">
     <!--stat title="array" unit="" :value="count" ref="me"></stat-->

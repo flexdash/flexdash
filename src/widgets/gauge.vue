@@ -1,6 +1,10 @@
+<!-- Gauge is a simple wrapper around the svg-gauge component.
+     Copyright ©2021 Thorsten von Eicken, MIT license, see LICENSE file
+-->
+
 <template>
   <div class="gauge-card d-flex">
-    <svg-gauge v-bind="$attrs" :value="value" :style="gauge_valign"></svg-gauge>
+    <svg-gauge v-bind="$props" :value="value" :style="gauge_valign"></svg-gauge>
     <div class="gauge-card--label d-flex flex-column mx-auto" :class="txt_valign">
       <v-card-text class="gauge-value d-flex pa-0 width100">
         <span class="mx-auto">{{valTxt}}<span class="unit">{{unitTxt}}</span></span>
@@ -27,11 +31,11 @@ export default {
     unit: { type: String, default: "" },
     title: { type: String, default: "Gauge" },
     arc: { type: Number, default: 90 },
-    center: { type: Boolean, default: false }, // center the text in the gauge, else bottom
+    center: { type: Number, default: 0 }, // center the text in the gauge, else bottom FIXME:bool
     //
     min: { type: Number, default: 0 }, // minimum value
     max: { type: Number, default: 100 }, // maximum value
-    color: { type: String, default: '#00b500' },  // color of filled segment
+    color: { type: String, default: 'green' },  // color of filled segment
     base_color: { type: String, default: 'lightgrey' },  // color of unfilled segment
     needle_color: { type: String, default: 'white' },  // color of needle
     radius: { type: Number, default: 70 },  // inner radius, outer being 100

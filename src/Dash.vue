@@ -1,25 +1,46 @@
+<!-- Dash - Main Vue component for the entire page.
+     Copyright ©2021 Thorsten von Eicken, MIT license, see LICENSE file
+-->
+
 <template>
   <v-app>
 
     <v-navigation-drawer v-model="sidebar" app>
     </v-navigation-drawer>
 
-    <v-app-bar dense app>
+    <v-app-bar dense app color="surface">
       <span class="hidden-sm-and-up">
         <v-app-bar-nav-icon @click="sidebar = !sidebar"></v-app-bar-nav-icon>
       </span>
-      <v-toolbar-title style="width:10ex">{{ appTitle }}</v-toolbar-title>
+      <v-toolbar-title style="width:10ex"><b>{{ appTitle }}</b></v-toolbar-title>
       <v-tabs v-model=tab>
         <v-tab v-for="t in tabs" :key="t.id"><v-icon large>mdi-{{t.icon}}</v-icon></v-tab>
       </v-tabs>
+      <v-menu offset-x min-width="10em" v-model="settings_menu">
+        <!-- Menu activator, i.e. the button -->
+        <template v-slot:activator="{ on, attrs }">
+          <v-btn icon v-bind="attrs" v-on="on"><v-icon>mdi-cog</v-icon></v-btn>
+        </template>
+        <!-- Settings Menu -->
+        <v-list dense>
+          <v-list-item>
+            <v-switch v-model="$root.editMode" inset label="Edit mode"></v-switch>
+          </v-list-item>
+          <v-list-item>
+            <v-switch v-model="$vuetify.theme.dark" inset label="Dark theme"></v-switch>
+          </v-list-item>
+        </v-list>
+      </v-menu>
     </v-app-bar>
 
     <v-main>
       <v-tabs-items v-if="gotConfig" v-model="tab">
-        <v-tab-item v-for="(t, ix) in tabs" :key="t.id">
-          <component v-bind:is="t.kind" :sd="sd" :config="t"
-                     @reconfig="reconfig(ix, $event)"></component>
-        </v-tab-item>
+        <div :style="{ backgroundColor: $vuetify.theme.themes[theme].background}">
+          <v-tab-item v-for="(t, ix) in tabs" :key="t.id">
+            <component v-bind:is="t.kind" :sd="sd" :config="t"
+                       @reconfig="reconfig(ix, $event)"></component>
+          </v-tab-item>
+        </div>
       </v-tabs-items>
       <div v-else>
         LOADING...
@@ -43,6 +64,10 @@ export default {
     msgCount: 0,
     tab: null, // which tab we're on
     freshSocket: false, // did we create a fresh socket.io connection?
+
+    //editMode: false, // global turn on/off editing controls
+    settings_menu: null, // whether settings menu is open or not
+    settings: { edit: 'Edit mode', theme: 'Toggle theme' }, // options in the settings menu
   }),
 
   computed: {
@@ -64,6 +89,10 @@ export default {
         })
       }
       return []
+    },
+
+    theme() {
+      return (this.$vuetify.theme.dark) ? 'dark' : 'light'
     },
   },
 
@@ -131,22 +160,26 @@ export default {
       msg.topic = msg.topic ? `$config.tabs.${ix}.${msg.topic}` : `$config.tabs.${ix}`
       uibuilder.send(msg)
     },
+
   },
 
   // Called after vue components are loaded and DOM built.
   mounted: function() {
-    const self = this;
+    const self = this
 
     // Register to process messages from node-red.
     if (this.freshSocket) {
       uibuilder.onChange('msg', function(msg) {
         // Stash away the data as long as the message has a topic and a payload.
-        if (!('topic' in msg && 'payload' in msg)) return;
-        self.msgCount++;
+        if (!('topic' in msg && 'payload' in msg)) {
+          console.log("Message w/out topic/payload:", msg)
+          return
+        }
+        self.msgCount++
 
         if (msg.topic === "$config") {
           console.log("*** config received")
-          self.gotConfig = true;
+          self.gotConfig = true
         }
 
         // Interpret the topic string as a hierarchy of object "levels" separated by dots.
@@ -182,14 +215,14 @@ export default {
       });
     }
   },
-};
+}
 </script>
 
 <style>
 [v-cloak] > * { display:none }
 [v-cloak]::before { content: "loading…" }
  
-.v-main { background-color: #eee; }
+.v-main { background-color: #888888; }
 
 /* this is probably the wrong place for these little utility classes... */
 .width100 { width: 100%; }

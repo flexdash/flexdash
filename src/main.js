@@ -1,3 +1,7 @@
+// main -- A pile of mess that needs to go somewhere.
+// Perhaps notable is the fact that we load grid and widget components globally here for now.
+// Copyright ©2021 Thorsten von Eicken, MIT license, see LICENSE file
+
 import Vue from 'vue'
 import vuetify from '@/plugins/vuetify'
 import Dash from './Dash.vue'
@@ -9,7 +13,6 @@ window.io = require('socket.io-client')
 
 Vue.use(LoadScript)
 Vue.config.productionTip = false
-
 Vue.loadScript('./date_helpers.js')
 
 // loadComponentsFromDir loads all .vue files in a specific directory and returns an array of

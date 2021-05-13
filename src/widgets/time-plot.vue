@@ -1,6 +1,11 @@
+<!-- TimePlot shows a time-series plot based on uPlot.
+     Copyright ©2021 Thorsten von Eicken, MIT license, see LICENSE file
+-->
 <template>
   <div class="px-1">
-    <div style="xx-background-color:#eef;"></div>
+    <div style="xx-background-color:#eef;">
+      <!-- uPlot is injected here -->
+    </div>
   </div>
 </template>
 
@@ -15,7 +20,7 @@ import uPlot from 'uplot'
 import 'uplot/dist/uPlot.min.css'
 
 export default {
-  name: "upv",
+  name: "TimePlot",
 
   props: {
     options: {type: Object, default: function() { return {};}},

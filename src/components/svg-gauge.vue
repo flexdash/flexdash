@@ -1,3 +1,9 @@
+<!-- SvgGauge - very simple purse SVG gauge without any external dependencies (looking at you,
+     vue-svg-gauge...). The way the gauge is drawn is adapted from
+     https://www.fullstacklabs.co/blog/creating-an-svg-gauge-component-from-scratch
+     Copyright ©2021 Thorsten von Eicken, MIT license, see LICENSE file
+-->
+
 <template>
   <svg class="gauge" :view-box.camel="vbox" :preserve-aspect-ratio.camel=ar>
     <circle class="gauge-base" cx=0 cy=0 fill="transparent"
@@ -14,9 +20,6 @@
   </svg>
 </template>
 
-<!-- The way the gauge is drawn is adapted from
-     https://www.fullstacklabs.co/blog/creating-an-svg-gauge-component-from-scratch -->
-
 <script>
 export default {
   name: 'SvgGauge',
@@ -25,7 +28,7 @@ export default {
     min: { type: Number, default: 0 }, // minimum value
     max: { type: Number, default: 100 }, // maximum value
     value: { type: Number, default: 30 }, // current value to show
-    color: { type: String, default: '#00b500' },  // color of filled segment
+    color: { type: String, default: '--v-purple-base' },  // color of filled segment
     base_color: { type: String, default: 'lightgrey' },  // color of unfilled segment
     needle_color: { type: String, default: 'white' },  // color of needle
     radius: { type: Number, default: 70 },  // inner radius, outer being 100
@@ -64,6 +67,8 @@ export default {
 }
 </script>
 
+<!-- Style commented out: it's better done in the wrapper. Left as comment as a reminder.
 <style scoped>
-  /* svg.gauge { padding: 0.5ex; width:100%; height: 100%; }*/
+  svg.gauge { padding: 0.5ex; width:100%; height: 100%; }
 </style>
+-->
