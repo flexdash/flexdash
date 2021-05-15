@@ -107,13 +107,7 @@ export default {
   name: 'Widget',
 
   props: {
-    // config specifies how each prop of the inner component gets set. It has "static bindings"
-    // to literal values and it has "dynamic bindings" to server data fields, i.e. to
-    // this.sd[some_var] (some_var can actually be a path so it's not quite as simple).
-    config: { type: Object, default() {
-      return { kind: "stat", id: 0, static: {title: "--" }, dynamic: {}}}, },
-    // server data (one big json tree)
-    sd: { type: Object, default() { return {} } },
+    id: { type: String }, // widget ID
   },
 
   data() { return {
@@ -133,21 +127,26 @@ export default {
   computed: {
     // title shown by widget wrapper
     title() { return this.bindings.title || "--" },
+    // config specifies how each prop of the inner component gets set. It has "static bindings"
+    // to literal values and it has "dynamic bindings" to server data fields, i.e. to
+    // this.$sd[some_var] (some_var can actually be a path so it's not quite as simple).
+    // { kind, id, rows, cols, static, dynamic }
+    config() { return this.$config.widgets[this.id] },
     // actual bindings depending on whether we're editing or not
     // Due to problems with reactivity, trying to go ->bindings1->bindings using a watcher...
     bindings1() { return this.edit_active ? this.edited_bindings : this.saved_bindings },
     // kind of inner component, really name of html element
-    kind() { return this.config.kind },
-    // list of keys from this.sd to show in editing combobox
-    sdKeys() { return this.propNames(this.sd).sort() },
+    kind() { return this.$config.kind },
+    // list of keys from this.$sd to show in editing combobox
+    sdKeys() { return this.propNames(this.$sd).sort() },
     // output binding, well, really just the topic for messages sent to the server
     outputBinding() {
       if (this.edit_active) {
         if ('_output' in this.edited_config.dynamic) return this.edited_config.dynamic._output
         if ('_output' in this.edited_config.static) return this.edited_config.static._output
       } else {
-        if ('_output' in this.config.dynamic) return this.config.dynamic._output
-        if ('_output' in this.config.static) return this.config.static._output
+        if ('_output' in this.$config.dynamic) return this.$config.dynamic._output
+        if ('_output' in this.$config.static) return this.$config.static._output
       }
       return undefined
     },
@@ -169,14 +168,19 @@ export default {
       let cp = []
       if (this.$refs.comp && this.$refs.comp._isVue)
         cp = self.propNames(this.$refs.comp.$props)
-      self.childProps = cp.sort()
+      cp = cp.sort()
+      self.childProps = cp
       //console.log(`childProps: ${self.childProps.join(",")}`)
+
+      // giant hack to get at the type definitions of the properties
+      //const propDef = Object.getPrototypeOf(this.$refs.comp.$options).props
+      //self.childProps = Object.fromEntries(cp.map(p => [p, p in propDef ? propDef[p] : {}]))
     })
     //console.log("$root:", this.$root)
   },
   
   watch: {
-    // Generate bindings from this.sd[some_var] -> this.saved_bindings and -> this.edited_bindings
+    // Generate bindings from this.$sd[some_var] -> this.saved_bindings and -> this.edited_bindings
     // This is how data flows from the server data to the inner component.
     // It would be nice if we could make this.saved_bindings and this.edited_bindings computed
     // properties but this is not possible because it updates watchers as a side-effect.
@@ -217,13 +221,13 @@ export default {
       })
     },
 
-    // addDynBinding adds a dynamic binding of this.sd[var_name] -> bindings[key]
+    // addDynBinding adds a dynamic binding of this.$sd[var_name] -> bindings[key]
     addDynBinding(bindings, key, var_name) {
       const self = this
       //console.log(`dynamic binding from ${var_name} to ${key}`)
-      self.$set(bindings, key, self.sd[var_name])
+      self.$set(bindings, key, self.$sd[var_name])
       return this.$watch(
-          () => { return self.sd[var_name] },
+          () => { return self.$sd[var_name] },
           (newVal) => { self.$set(bindings, key, newVal) },
           {deep: true, immediate: true})
     },
@@ -233,7 +237,7 @@ export default {
       watchers.length = 0
     },
 
-    // Generate bindings from this.sd -> bindings according to config. Collect watchers created.
+    // Generate bindings from this.$sd -> bindings according to config. Collect watchers created.
     genBindings(config, bindings, watchers) {
       console.log("Generating bindings, config:", config)
       this.removeWatchers(watchers)
@@ -254,11 +258,11 @@ export default {
 
       console.log("Starting edit")
       const self = this
-      // clone this.config to this.edited_config 2-levels deep
+      // clone this.$config to this.edited_config 2-levels deep
       this.edited_config = {}
-      this.propNames(this.config).forEach(p => {
-        self.$set(self.edited_config, p, typeof self.config[p] === 'object' ?
-            Object.assign({}, self.config[p]) : self.config[p])
+      this.propNames(this.$config).forEach(p => {
+        self.$set(self.edited_config, p, typeof self.$config[p] === 'object' ?
+            Object.assign({}, self.$config[p]) : self.$config[p])
       })
       // show the editing card
       this.edit_active = true
