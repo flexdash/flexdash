@@ -73,8 +73,8 @@ const demo_config = {
              "static": { "title": "Guest Room", "unit": "F" },
              "dynamic": { "value": "guest room" }, "rows": 1, "cols": 1 },
       "3": { "kind": "Gauge", "id": "3",
-             "static": { "title": "Living Room", "value": 50, "arc": 270, "center": 1, "unit": "F",
-                         "needle_color": "red", "min": 30 },
+             "static": { "title": "Living Room", "value": 50, "arc": 270, "center": true,
+                         "unit": "F", "needle_color": "red", "min": 30 },
              "dynamic": { "value": "living room" }, "rows": 2, "cols": 2 },
       "6": { "kind": "Gauge", "id": "6",
              "static": { "title": "Kitchen", "color": "lightblue", "arc": 90, "unit":"F", "min":0},
@@ -109,12 +109,31 @@ const demo_config = {
     }
 }
 
+const plot_opts = {
+    series: [
+        { label: "time" },
+        { label: "Sensor 1", scale: "C", value: "v.toFixed(1) + '°C'"},
+        { label: "Sensor 2", scale: "C", value: "v.toFixed(1) + '°C'"},
+        { label: "Sensor 3", scale: "C", value: "v.toFixed(1) + '°C'"}, ],
+    axes: [ {}, {
+            scale: "F",
+            values: /*(u, vv, s) =>*/ 'vv.map(v => v + "°F")',
+        }, {
+            scale: "C",
+            values: /*(u, vv, s) =>*/ 'vv.map(v => v + "°C")',
+            side: 1,
+            grid: {show: false},
+        } ],
+    scales: {
+        "F": { from: "C", range: /*(u, min, max) =>*/ '[ min*9/5+32, max*9/5+32 ]' }, },
+}
+
 export default {
   name: 'Demo',
 
   data: () => ({
     enable: true,
-    timer: null,
+    timers: [],
   }),
 
   computed: {
@@ -124,31 +143,44 @@ export default {
   // Called after vue components are loaded and DOM built.
   mounted() {
     if (this.enable) {
+      // if the demo stuff is enabled at mount time we kick everything off here
       this.enable = false
       this.handleChange()
-      this.timer = window.setTimeout(this.tick, 3000)
+      window.setTimeout(this.tick, 3000)
     }
   },
 
   methods: {
+    // handle a demo switch toggle
     handleChange() {
       this.enable = !this.enable
       console.log("Demo switch changed to", this.enable)
       if (this.enable) {
+        // send dashboard configuration
         this.$emit('msg', {topic: '$config', payload: demo_config})
-        this.timer = window.setInterval(this.tick, 10000)
+        // start interval timers to send data for stats, gauges, etc
+        for (let i=0; i<series.length; i++)
+          this.timers.push(window.setInterval(()=>this.tick(series[i]), 5000+i*1000))
+        // send time plot config and start interval timer for plot
+        this.$emit('msg', {topic: 'temp_opts', payload: plot_opts})
+        this.timers.push(window.setInterval(this.plot, 1000))
       } else {
-        if (this.timer) window.clrInterval(this.timer)
-        this.timer = null
+        // kill all the timers
+        this.timers.map((t) => window.clrInterval(t))
+        this.timer = []
       }
     },
 
-    tick() {
-      series.forEach((s) => {
-        const t = Math.round(10*randomStepper(s))/10
-        //console.log(`Demo: demo_${s}=${t}`)
-        this.$emit('msg', {topic: `${s}`, payload: t})
-      })
+    tick(s) {
+      const t = Math.round(10*randomStepper(s))/10
+      //console.log(`Demo: demo_${s}=${t}`)
+      this.$emit('msg', {topic: `${s}`, payload: t})
+    },
+
+    plot() {
+      let data = [ Date.now()/1000, Math.round(10*randomStepper("p1"))/10,
+          Math.round(10*randomStepper("p2"))/10, Math.round(10*randomStepper("p3"))/10 ]
+      this.$emit('msg', {topic: 'temp_data', payload: data})
     },
   },
 
