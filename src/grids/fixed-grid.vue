@@ -95,7 +95,7 @@
       <widget-edit v-for="w in widgets" :key="w"
                    :config="w==edit_id ? edit_config : _config.widgets[w]"
                    :edit_active="w==edit_id"
-                   @change="handleChange($event)"
+                   @change="handleChange(...$event)"
                    @edit="handleEdit(w, $event)">
       </widget-edit>
     </v-container>
@@ -179,14 +179,15 @@ export default {
       //this.handleEdit(c.id, 'toggle')
     },
 
-    handleChange(ev) {
-      console.log(`handleEdit(${ev}) in fixed-grid`)
-      if (ev.length != 3) return
-      const [ kind, prop, value ] = ev // kind is static/dynamic
-      this.$set(this.edit_config[kind], prop, value)
+    // handleChange handles change events from the widget edit panel, these change the
+    // value passed to a prop of the widget.
+    handleChange(what, prop, value) { // what:dynamic/static
+      console.log(`handleChange(${what},${prop},${value}) in fixed-grid`)
+      this.$set(this.edit_config[what], prop, value)
     },
 
-    // handleEdit handles edit events from widgets, what may be 'toggle' or 'cancel'
+    // handleEdit handles edit events from widgets that toggle editing of a widget on/off.
+    // 'what' may be 'toggle' or 'cancel'
     handleEdit(id, what) {
       console.log(`handleEdit(${id},${what}) in fixed-grid`)
       if (what == 'cancel' || what == 'toggle' && this.edit_id == id) {

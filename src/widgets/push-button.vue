@@ -5,7 +5,7 @@
   <div class="pushbutton d-flex">
     <v-tooltip top :open-on-hover="!!tooltip">
       <template v-slot:activator="{ on, attrs }">
-        <v-btn large dense class="ma-auto" max-width="100%"
+        <v-btn large dense class="ma-auto" max-width="95%"
                v-bind="Object.assign(bindings, attrs)" v-on="on" @click="clickEv($event)">
           <v-icon :large="!title"  v-if="icon">mdi-{{icon}}</v-icon> <span>{{ title }}</span>
         </v-btn>

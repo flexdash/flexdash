@@ -89,7 +89,7 @@ export default {
   methods: {
     // addDynBinding adds a dynamic binding of store.sd[var_name] -> bindings[key]
     // TODO: perform type conversion and precision adjustment when assigning
-    addDynBinding(bindings, key, var_name) {
+    addDynBinding(key, var_name) {
       const self = this
       if (!(var_name in store.sd)) {
         // in vue2 we can't add a watcher to something that doesn't exist
@@ -99,7 +99,7 @@ export default {
       }
       const w = this.$watch(
           () => store.sd[var_name],
-          (newVal) => { self.$set(self.bindings, key, newVal) },
+          (newVal) => { self.updateBindingValue(key, newVal) },
           {deep: true, immediate: true})
       return w
     },
@@ -122,9 +122,58 @@ export default {
         })
         Object.keys(config.dynamic||{}).forEach(p => {
           if (config.dynamic[p] !== undefined)
-            this.watchers.push( this.addDynBinding(this.bindings, p, config.dynamic[p]) )
+            this.watchers.push( this.addDynBinding(p, config.dynamic[p]) )
         })
       }
+    },
+
+    // Update the value of a dynamic binding, perform some type conversion in the process
+    // so we match the type declaration.
+    // FIXME: need to have some warning show up in UI if the validation will fail 'cause otherwise
+    // it's very difficult to locate such issues
+    updateBindingValue(prop, val) {
+      if (!(prop in this.child_props)) {
+        console.log(`Warning: updating value for ${prop}, but ${this.config.kind} has no ${prop}:`,
+          JSON.stringify(this.child_props))
+        return
+      }
+      let type = this.child_props[prop].type // note: may be undefined...
+
+      if (type === Boolean) {
+        if (typeof val === 'number') {
+          val = !!val
+        } else if (typeof val === 'string') {
+          val = val.toLowerCase()
+          val = ['true','ok','1','yes'].includes(val)
+        } else if (typeof val !== 'boolean') {
+          val = undefined
+        }
+
+      } else if (type === Number) {
+        if (typeof val === 'string') val = parseFloat(val)
+        else if (typeof val === 'boolean') val = val ? 1 : 0
+        else if (typeof val !== 'number') val = undefined
+        if (val !== undefined)
+          val = Number.parseFloat(val.toPrecision(4)) // FIXME: let the user specify precision
+
+      } else if (type === String) {
+        if (typeof val === Number) val = val.toString()
+        else if (typeof val !== String) val = JSON.stringify(val)
+
+      } else if ((type === Array || type === Object) && typeof val === 'string') {
+        try {
+          val = JSON.parse(val)
+        } catch (exc) {
+          val = undefined
+          // FIXME: should have a warning show in the UI while in edit mode
+          console.log(`Cannot convert string value for ${prop} to ${type.name}`)
+        }
+      }
+
+      //console.log(`Updating ${this.config.kind}.${prop} as ${type&&type.name}`,
+      //    `with ${typeof val} ${val}`)
+
+      this.$set(this.bindings, prop, val)
     },
 
     handleEdit() { console.log(`handleEdit() in widget-wrap`); this.$emit('edit', 'toggle') },

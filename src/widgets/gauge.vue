@@ -31,7 +31,7 @@ export default {
     unit: { type: String, default: "" },
     title: { type: String, default: "Gauge" },
     arc: { type: Number, default: 90 },
-    center: { type: Number, default: 0 }, // center the text in the gauge, else bottom FIXME:bool
+    center: { type: Boolean, default: false }, // center the text in the gauge, else bottom
     //
     min: { type: Number, default: 0 }, // minimum value
     max: { type: Number, default: 100 }, // maximum value

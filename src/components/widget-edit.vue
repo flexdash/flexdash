@@ -8,6 +8,12 @@
 
      Currently editing is a bit spread out over the grid, widget-wrapper and this component.
      The widget-wrapper has the edit button and the grid has the ultimate control.
+
+     FIXME: This component should be refactored. Each type of input should become its own
+     component that gets plopped down into the grid and fed its specific config as a model.
+     This way the long validation and type switcharoo gets broken up. Maybe in the end the two
+     widget-xxx components can be merged again... All this would also allow the editing components
+     to be reused in other parts of the dashboard.
 -->
 
 <template>
@@ -61,44 +67,44 @@
                 <!-- dynamic link -->
                 <v-combobox v-if="!prop_static[prop]"
                     :label="prop" clearable dense persistent-hint
-                    hint='server state variable path (/-separated)'
+                    hint='variable pathname (/-sep)'
                     :items="sdKeys"
                     :value="config.dynamic[prop]"
-                    @input="$emit('change', ['dynamic', prop, $event])">
+                    @input="handleEdit('dynamic', prop, $event)">
                 </v-combobox>
                 <!-- number -->
                 <v-text-field v-else-if="prop_info[prop].type === Number"
                     :label="prop" type="number" dense
                     :hint="prop_info[prop].hint"
                     :value="config.static[prop]||prop_info[prop].default"
-                    @input="$emit('change', ['static', prop, $event])">
+                    @input="handleEdit('static', prop, $event)">
                 </v-text-field>
                 <!-- boolean -->
                 <v-switch v-else-if="prop_info[prop].type === Boolean"
                     :label="prop" class="mt-0 ml-2"
                     :hint="prop_info[prop].hint"
                     :value="config.static[prop]||prop_info[prop].default"
-                    @input="$emit('change', ['static', prop, $event])">
+                    @input="handleEdit('static', prop, $event)">
                 </v-switch>
                 <!-- array -->
                 <v-text-field v-else-if="prop_info[prop].type === Array"
                     :label="prop" dense
                     :value="config.static[prop]||prop_info[prop].default"
-                    @input="$emit('change', ['static', prop, $event])">
+                    @input="handleEdit('static', prop, $event)">
                 </v-text-field>
                 <!-- object -->
                 <v-text-field v-else-if="prop_info[prop].type === Object"
                     :label="prop" dense
                     :hint="prop_info[prop].hint"
                     :value="config.static[prop]||prop_info[prop].default"
-                    @input="$emit('change', ['static', prop, $event])">
+                    @input="handleEdit('static', prop, $event)">
                 </v-text-field>
                 <!-- string -->
                 <v-text-field v-else
                     :label="prop" dense
                     :hint="prop_info[prop].hint"
                     :value="config.static[prop]||prop_info[prop].default"
-                    @input="$emit('change', ['static', prop, $event])">
+                    @input="handleEdit('static', prop, $event)">
                 </v-text-field>
               </v-col>
             </v-row>
@@ -146,7 +152,7 @@ export default {
     // prop types: String, Number, Boolean, Array, Object, Date //, Function, Symbol
     prop_info() {
       const icons = { String: 'mdi-format-quote-close', Number: 'mdi-numeric',
-          Boolean: 'mdi-yin-yang', Array: "mdi-code-array", Object: "mdi-code-braces-box" }
+          Boolean: 'mdi-yin-yang', Array: "mdi-code-brackets", Object: "mdi-code-braces" }
       let pi = {}
       const cp = this.child_props
       for (let name in cp) {
@@ -192,6 +198,21 @@ export default {
           // if prop in config.dynamic then 0 (not static) else 1 (static)
           Object.keys(self.child_props).map(p => [p, 1 - (p in self.config.dynamic)]))
       }
+    },
+  },
+
+  methods: {
+    handleEdit(which, prop, value) {
+      //console.log("edit:", which, prop, value)
+      if (!(which in this.config)) return
+      if (!(prop in this.child_props) || prop == 'title') return
+
+      // handle Number coming in as String
+      if (this.child_props[prop].type === Number && typeof value === 'string') {
+        value = Number.parseFloat(value)
+      }
+
+      this.$emit('change', [which, prop, value])
     },
   },
 
