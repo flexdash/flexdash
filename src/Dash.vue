@@ -16,6 +16,7 @@
       <v-tabs v-model=tab>
         <v-tab v-for="t in tabs" :key="t.id"><v-icon large>mdi-{{t.icon}}</v-icon></v-tab>
       </v-tabs>
+      <demo @msg="handleMsg"></demo>
       <uib ref="uib" @msg="handleMsg"></uib>
       <v-menu offset-x min-width="10em" v-model="settings_menu">
         <!-- Menu activator, i.e. the button -->
@@ -39,7 +40,7 @@
         <div :style="{ backgroundColor: $vuetify.theme.themes[theme].background}">
           <v-tab-item v-for="t in tabs" :key="t.id">
             <component v-for="g in t.grids" :key="g.id"
-                       v-bind:is="$config.grids[g].kind" :id="g"
+                       v-bind:is="grids[g].kind" :id="g"
                        @reconfig="reconfig(g, $event)">
             </component>
           </v-tab-item>
@@ -55,12 +56,14 @@
 
 <script scoped>
 import Uib from '@/components/uib'
+import Demo from '@/components/demo'
+import store from '@/store.js'
 
 export default {
   name: 'Dash',
 
   components: {
-    Uib,
+    Uib, Demo,
   },
 
   data: () => ({
@@ -78,20 +81,22 @@ export default {
     // tabs extracted from config, really just config.tabs but handles init case
     // Each tab has: id, icon, grids[]
     tabs() {
-      if (this.gotConfig && Array.isArray(this.$config.tabs) && this.$config.tabs.length) {
-        console.log("Recalculating tabs", this.$config.tabs)
-        return this.$config.tabs
+      if (this.gotConfig && Array.isArray(store.config.tabs) && store.config.tabs.length) {
+        return store.config.tabs
       }
+      console.log("No tabs yet")
       return []
     },
+
+    grids() { return store.config.grids }, // make accessible in template
 
     theme() {
       return (this.$vuetify.theme.dark) ? 'dark' : 'light'
     },
 
     // for debugging purposes, these show up in the vue devtools
-    _sd() { return this.$sd },
-    _config() { return this.$config },
+    _sd() { return store.sd },
+    _config() { return store.config },
   },
 
   provide() {
@@ -143,12 +148,10 @@ export default {
         }
       }
 
-      this.$store.insertData(msg)
+      store.insertData(msg)
     },
 
   },
-
-  created() { console.log("Dash created") },
 
 }
 </script>

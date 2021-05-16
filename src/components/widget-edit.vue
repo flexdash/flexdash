@@ -28,10 +28,11 @@
 
       <!-- Editing panel shown floating below widget -->
       <v-card color="panel">
-        <v-card-title>
+        <v-card-title class="d-flex align-baseline">
           <span>Edit {{config.kind}} widget</span>
-          <v-text-field label="title" dense prefix='"' suffix='"' class="ml-3"
-                        :value="config.static['title']">
+          <v-text-field dense prefix='"' suffix='"' class="ml-3 mt-0 text-h6 flex-grow-0"
+                        :value="config.static['title']" :hide-details="true"
+                        @input="$emit('change', ['static', 'title', $event])">
           </v-text-field>
           <v-spacer></v-spacer>
           <v-btn elevation=0 icon @click="$emit('edit','cancel')">
@@ -43,31 +44,62 @@
           <v-container fluid>
             <!-- Display component properties for editing -->
             <v-row align="center">
-              <!--v-col class="d-flex" cols="12">
-                Widget properties: {{editProps.join(", ")}}
-              </v-col-->
               <!-- For each property of the component, show a combobox to select what gets bound -->
               <v-col class="d-flex" cols="12" sm="6" md="4" v-for="prop in edit_props" :key=prop>
-                <v-text-field v-if="prop_types[prop]==0"
-                    :label="prop" dense prefix='"' suffix='"'
-                    :value="config.static[prop]">
-                </v-text-field>
-                <v-text-field v-if="prop_types[prop]==1"
-                    :label="prop" type="number" dense
-                    :value="config.static[prop]">
-                </v-text-field>
-                <v-combobox v-if="prop_types[prop]==2"
+                <v-tooltip bottom>
+                  <template v-slot:activator="{ on, attrs }">
+                    <v-btn-toggle mandatory dense v-model="prop_static[prop]" class="mt-2 mr-1"
+                                  background-color="rgba(0,0,0,0)" color="primary">
+                      <v-btn x-small icon v-bind="attrs" v-on="on">
+                        <v-icon>mdi-link-variant</v-icon></v-btn>
+                      <v-btn x-small icon v-bind="attrs" v-on="on">
+                        <v-icon>{{prop_info[prop].icon}}</v-icon></v-btn>
+                    </v-btn-toggle>
+                  </template>
+                  <span>Toggle dynamic link vs. literal value</span>
+                </v-tooltip>
+                <!-- dynamic link -->
+                <v-combobox v-if="!prop_static[prop]"
                     :label="prop" clearable dense persistent-hint
-                    hint='server state variable name or dot-separated path'
+                    hint='server state variable path (/-separated)'
                     :items="sdKeys"
-                    :value="config.dynamic[prop]">
+                    :value="config.dynamic[prop]"
+                    @input="$emit('change', ['dynamic', prop, $event])">
                 </v-combobox>
-                <v-btn-toggle mandatory class="ml-2 mt-3"
-                              v-model="prop_types[prop]">
-                  <v-btn x-small icon class="pa-0"><v-icon>mdi-format-color-text</v-icon></v-btn>
-                  <v-btn x-small icon class="pa-0"><v-icon>mdi-numeric</v-icon></v-btn>
-                  <v-btn x-small icon class="pa-0"><v-icon>mdi-link-variant</v-icon></v-btn>
-                </v-btn-toggle>
+                <!-- number -->
+                <v-text-field v-else-if="prop_info[prop].type === Number"
+                    :label="prop" type="number" dense
+                    :hint="prop_info[prop].hint"
+                    :value="config.static[prop]||prop_info[prop].default"
+                    @input="$emit('change', ['static', prop, $event])">
+                </v-text-field>
+                <!-- boolean -->
+                <v-switch v-else-if="prop_info[prop].type === Boolean"
+                    :label="prop" class="mt-0 ml-2"
+                    :hint="prop_info[prop].hint"
+                    :value="config.static[prop]||prop_info[prop].default"
+                    @input="$emit('change', ['static', prop, $event])">
+                </v-switch>
+                <!-- array -->
+                <v-text-field v-else-if="prop_info[prop].type === Array"
+                    :label="prop" dense
+                    :value="config.static[prop]||prop_info[prop].default"
+                    @input="$emit('change', ['static', prop, $event])">
+                </v-text-field>
+                <!-- object -->
+                <v-text-field v-else-if="prop_info[prop].type === Object"
+                    :label="prop" dense
+                    :hint="prop_info[prop].hint"
+                    :value="config.static[prop]||prop_info[prop].default"
+                    @input="$emit('change', ['static', prop, $event])">
+                </v-text-field>
+                <!-- string -->
+                <v-text-field v-else
+                    :label="prop" dense
+                    :hint="prop_info[prop].hint"
+                    :value="config.static[prop]||prop_info[prop].default"
+                    @input="$emit('change', ['static', prop, $event])">
+                </v-text-field>
               </v-col>
             </v-row>
           </v-container>
@@ -81,6 +113,7 @@
 <script scoped>
 
 import WidgetWrap from '/src/components/widget-wrap'
+import store from '@/store.js'
 
 export default {
   name: 'WidgetEdit',
@@ -95,13 +128,13 @@ export default {
   },
 
   data() { return {
-    watchers: [], // list of watchers used in bindings so we can remove them
     suppressOutput: true,
+    prop_static: {}, // manual toggle between static and dynamic binding
   }},
 
   computed: {
-    // list of keys from this.$sd to show in editing combobox
-    sdKeys() { return Object.keys(this.$sd).sort() },
+    // list of keys from store.sd to show in editing combobox
+    sdKeys() { return Object.keys(store.sd).sort() },
 
     // list of child prop names for editing, excluding title
     edit_props() {
@@ -109,9 +142,23 @@ export default {
       return cp.filter(p => p !== 'title').sort()
     },
 
-    // type of all the props, 0=text, 1=number, 2=dynamic
-    prop_types() {
-      return Object.fromEntries(this.edit_props.map(p => [p, 0]))
+    // returns {name:{type, default, validator, hint, icon},...}
+    // prop types: String, Number, Boolean, Array, Object, Date //, Function, Symbol
+    prop_info() {
+      const icons = { String: 'mdi-format-quote-close', Number: 'mdi-numeric',
+          Boolean: 'mdi-yin-yang', Array: "mdi-code-array", Object: "mdi-code-braces-box" }
+      let pi = {}
+      const cp = this.child_props
+      for (let name in cp) {
+        let type = cp[name].type || String
+        if (![String, Number, Boolean, Array, Object].includes(type)) type = String
+        let hint = type.name
+        if (cp[name].default !== undefined) hint += `, default: ${cp[name].default}`
+        let icon = icons[type.name]
+        pi[name] = {type, default: cp[name].default, validator: cp[name].validator,
+                    hint, icon}
+      }
+      return pi
     },
 
     // child_props holds a description of the properties of the child component, this is used to
@@ -123,13 +170,29 @@ export default {
       return {}
     },
 
-    // style attribute for widget
+    // style attribute for widget to determine size
     widgetStyle() {
       const row = `grid-row-start: span ${this.config.rows||1}`
       const col = `grid-column-start: span ${this.config.cols||1}`
       return `${row}; ${col};`
     },
 
+  },
+
+  watch: {
+    // when editing starts, set the dynamic/static toggles according to what's in the config.
+    // Afterwards they're controlled by the user. The edit_active and config props are switched
+    // "at the same time" in the parent container, let's hope there's no race condition, otherwise
+    // may have to do a nextTick workaround...
+    edit_active(nv) {
+      let self = this
+      console.log("edit_active", nv)
+      if (nv) {
+        this.prop_static = Object.fromEntries(
+          // if prop in config.dynamic then 0 (not static) else 1 (static)
+          Object.keys(self.child_props).map(p => [p, 1 - (p in self.config.dynamic)]))
+      }
+    },
   },
 
 }

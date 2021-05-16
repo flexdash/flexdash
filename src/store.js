@@ -13,18 +13,21 @@ function walkTree(root, path) {
   path.forEach(function(d) {
     // handle traversing an array, need to parse index into an int
     if (Array.isArray(node)) {
-        const ix = parseInt(d, 10)
-        if (Number.isNaN(ix)) {
-            console.log(`Array index '${d}' in '${path}' is not an int`)
-            return undefined
-        } else if (ix < 0 || ix >= node.length) {
-            console.log(`Array index '${d}' in '${path}' > ${node.length}`)
-            return undefined
-        }
-        node = node[ix]
+      const ix = parseInt(d, 10)
+      if (Number.isNaN(ix)) {
+        console.log(`Array index '${d}' in '${path}' is not an int`)
+        return undefined
+      } else if (ix < 0 || ix >= node.length) {
+        console.log(`Array index '${d}' in '${path}' > ${node.length}`)
+        return undefined
+      }
+      node = node[ix]
     } else if (typeof node === 'object') {
-        if (!(d in node)) Vue.$set(node, d, {}) // allow new subtrees to be created
-        node = node[d]
+      // need to handle undefined here because we explicitly set properties to undefined if
+      // we need to attach a watcher to a property that doesn't exist
+      if (!(d in node) || typeof node[d] === 'undefined')
+        Vue.$set(node, d, {}) // allow new subtrees to be created
+      node = node[d]
     } else {
       console.log(`Level '${d}' of '${path}'' is not traversable: ${typeof node[d]}`)
       return undefined
@@ -40,8 +43,9 @@ export const functions = {walkTree}
 
 class Store {
   constructor () {
-    this.sd = Vue.observable({}) // server data, i.e. the data being visualized by the dashboard
-    this.config = Vue.observable({}) // the dashboard's configuration
+    this.root = Vue.observable({sd:{}, config: {}})
+    this.sd = this.root.sd // server data, i.e. the data being visualized by the dashboard
+    this.config = this.root.config // the dashboard's configuration
     return this
   }
 
@@ -55,13 +59,15 @@ class Store {
     }
 
     if (msg.topic === "$config") {
-      Object.keys(msg.payload).forEach(k => { Vue.set(this.config, k, msg.payload[k]) })
+      Vue.set(this.root, 'config', msg.payload)
+      this.config = this.root.config
+      //Object.keys(msg.payload).forEach(k => { Vue.set(this.root.config, k, msg.payload[k]) })
       console.log("Replaced $config with:", msg.payload)
       return
     }
 
     const t = tt.pop() // separate off last level
-    const root = tt[0] == '$config' ? this.config : this.sd
+    const root = tt[0] === '$config' ? this.root.config : this.root.sd
     const dir = walkTree(root, tt) // start at root
     if (!dir) return
     // now dir[t] is the field to update
@@ -82,8 +88,7 @@ class Store {
       }
     } else if (typeof(dir) === 'object') {
       Vue.set(dir, t, msg.payload) // $set 'cause we may add new props to dir
-      console.log(`Updated ${msg.topic} with:`, msg.payload)
-      //console.log(self.sd)
+      //console.log(`Updated ${msg.topic} with:`, msg.payload)
     } else {
       console.log(`${msg.topic} is neither Array nor Object in server state`)
       return
@@ -93,6 +98,6 @@ class Store {
 }
 
 const instance = new Store()
-Object.freeze(instance)
+//Object.freeze(instance)
 
 export default instance

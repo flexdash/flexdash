@@ -36,17 +36,18 @@
 </template>
 
 <script scoped>
+import store from '@/store.js'
 
 export default {
   name: 'WidgetWrap',
 
   props: {
-    suppressOutput: { type: Boolean, default: true }, // suppress child output reaching this.$sd
+    suppressOutput: { type: Boolean, default: true }, // suppress child output reaching store.sd
     color: { type: String, default: undefined }, // background color to highlight the card
 
     // config specifies how each prop of the inner component gets set. It has "static bindings"
     // to literal values and it has "dynamic bindings" to server data fields, i.e. to
-    // this.$sd[some_var] (some_var can actually be a path so it's not quite as simple).
+    // store.sd[some_var] (some_var can actually be a path so it's not quite as simple).
     // { kind, id, rows, cols, static, dynamic } (rows & cols are managed by the grid)
     // TODO: should sanity-check the config and show a broken-widget widget if it's not OK
     config: { type: Object, required: true },
@@ -72,7 +73,7 @@ export default {
   },
 
   watch: {
-    // Generate bindings from this.$sd[some_var] -> this.bindings
+    // Generate bindings from store.sd[some_var] -> this.bindings
     // This is how data flows from the server data to the inner component.
     // It would be nice if we could make this.bindings computed properties but this is not
     // possible because we have to update this.watchers as a side-effect.
@@ -86,16 +87,21 @@ export default {
   inject: [ 'sendSrv' ],
 
   methods: {
-    // addDynBinding adds a dynamic binding of this.$sd[var_name] -> bindings[key]
+    // addDynBinding adds a dynamic binding of store.sd[var_name] -> bindings[key]
     // TODO: perform type conversion and precision adjustment when assigning
     addDynBinding(bindings, key, var_name) {
       const self = this
-      console.log(`New dynamic binding from ${var_name} to ${key}, currently: ${self.$sd[var_name]}`)
-      self.$set(bindings, key, self.$sd[var_name])
-      return this.$watch(
-          () => { return self.$sd[var_name] },
-          (newVal) => { self.$set(bindings, key, newVal) },
+      if (!(var_name in store.sd)) {
+        // in vue2 we can't add a watcher to something that doesn't exist
+        // so we create it as undefined and handle that properly when we eventually insert
+        // something *it's a hack*
+        self.$set(store.sd, var_name, undefined)
+      }
+      const w = this.$watch(
+          () => store.sd[var_name],
+          (newVal) => { self.$set(self.bindings, key, newVal) },
           {deep: true, immediate: true})
+      return w
     },
 
     removeWatchers() {
@@ -103,7 +109,7 @@ export default {
       this.watchers.length = 0
     },
 
-    // Generate bindings from this.$sd -> bindings according to config. Collect watchers created.
+    // Generate bindings from store.sd -> bindings according to config. Collect watchers created.
     genBindings(config) {
       //console.log("Generating bindings, config:", config)
       this.removeWatchers()

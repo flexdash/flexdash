@@ -15,7 +15,7 @@ export default new Vuetify({
       light: {
         background: '#f7f5f5', // page background
         surface: '#fffdfd', // widget surfaces
-        panel: '#eceaea', // editing panel
+        panel: '#f4f2f2', // editing panel
         primary: '#ad1625', // node-red red
         primary_light: '#e5504d',
         primary_dark: '#760000',

@@ -1,6 +1,7 @@
 import Vue from 'vue'
 import { myMount } from './mounts.js'
 import WidgetWrap from "@/components/widget-wrap.vue"
+import sinon from 'sinon'
 
 import Stat from "@/widgets/stat.vue"
 import Gauge from "@/widgets/gauge.vue"

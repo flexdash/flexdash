@@ -6,20 +6,16 @@ import Vue from 'vue'
 import vuetify from '@/plugins/vuetify'
 import Dash from './Dash.vue'
 import LoadScript from 'vue-plugin-load-script'
-import store from './store'
+//import store from './store'
 
 // Load socket.io from the local npm package (i.e. tell webpack to include it) and stick it into
 // a global var so uibuilder finds it.
 window.io = require('socket.io-client')
 
-Vue.use(LoadScript)
 Vue.config.productionTip = false
-Vue.loadScript('./date_helpers.js')
 
-// Hack the store into Vue so we can use this.$store, this.$sd, etc.
-Vue.prototype.$store = store
-Vue.prototype.$sd = store.sd
-Vue.prototype.$config = store.config
+Vue.use(LoadScript)
+Vue.loadScript('./date_helpers.js')
 
 // loadComponentsFromDir loads all .vue files in a specific directory and returns a map of
 // their PascalCased names to their component definition (the default object being exported).

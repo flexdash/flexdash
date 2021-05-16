@@ -93,9 +93,9 @@
     <v-container fluid class="g-grid-small">
       <widget-wrap :config="statConfig"></widget-wrap>
       <widget-edit v-for="w in widgets" :key="w"
-                   :config="w==edit_id ? edit_config : $config.widgets[w]"
+                   :config="w==edit_id ? edit_config : _config.widgets[w]"
                    :edit_active="w==edit_id"
-                   @reconfig="reconfig(w, $event)"
+                   @change="handleChange($event)"
                    @edit="handleEdit(w, $event)">
       </widget-edit>
     </v-container>
@@ -106,6 +106,7 @@
 
 import WidgetWrap from '/src/components/widget-wrap'
 import WidgetEdit from '/src/components/widget-edit'
+import store from '@/store.js'
 
 export default {
   name: 'FixedGrid',
@@ -126,7 +127,7 @@ export default {
 
   computed: {
     // config: {id, kind, icon, widgets}
-    config() { return this.$config.grids[this.id] },
+    config() { return store.config.grids[this.id] },
 
     // array of widgets taking edited widget move into account
     widgets() {
@@ -143,8 +144,8 @@ export default {
         static: {title: 'Widgets', value: this.widgetCount} }},
     widgetCount() { return this.config.widgets.length },
 
-    // make this.$config visible in vue debugger
-    _config() { return this.$config },
+    // make store.config visible in vue debugger
+    _config() { return store.config },
   },
 
   methods: {
@@ -159,7 +160,7 @@ export default {
 
     // generate an id for a new widget
     genId() {
-      const ids = Object.keys(this.$config.widgets)
+      const ids = Object.keys(store.config.widgets)
       let id = null
       while (!id || id in ids) {
         id = "00000" + Math.floor(Math.random() * 10000)
@@ -173,19 +174,16 @@ export default {
       const c = { kind, id: this.genId(), row:1, cols:1, static: {title:kind}, dynamic: {} }
       console.log(`Adding ${kind}[${c.id}] widget`)
       // add the widget to the config
-      //this.$store.addWidget(...)
+      //store.store.addWidget(...)
       // start editing it
       //this.handleEdit(c.id, 'toggle')
     },
 
-    // reconfig handles a widget reconfig event, this is how config changes propagate up
-    // from child components and get sent back to the server for persistence.
-    // msg must have topic and payload, topic is relative to the widget's root and if null/""
-    // the entire widget's config gets updated
-    reconfig(ix, msg) {
-      console.log(`widget reconfig(${ix}, ${msg})`)
-      msg.topic = msg.topic ? `widgets.${ix}.${msg.topic}` : `widgets.${ix}`
-      //this.$emit('reconfig', msg) // propagate event up
+    handleChange(ev) {
+      console.log(`handleEdit(${ev}) in fixed-grid`)
+      if (ev.length != 3) return
+      const [ kind, prop, value ] = ev // kind is static/dynamic
+      this.$set(this.edit_config[kind], prop, value)
     },
 
     // handleEdit handles edit events from widgets, what may be 'toggle' or 'cancel'
@@ -203,7 +201,7 @@ export default {
         this.edit_move_ix = null
         // clone config 2 levels deep
         this.edit_config = { static: {}, dynamic: {} }
-        const c = this.$config.widgets[id]
+        const c = store.config.widgets[id]
         Object.keys(c).forEach(k => {
           this.$set(this.edit_config, k,
             typeof c[k] === 'object' ? Object.assign({}, c[k]) : c[k])
@@ -226,10 +224,10 @@ export default {
       // save the widget for restore
       const ix = this.config.widgets.indexOf(id)
       if (ix < 0) return
-      this.deleted_widget = [ix, this.$config.widgets[id]]
+      this.deleted_widget = [ix, store.config.widgets[id]]
       console.log(`Deleted widget:`, this.deleted_widget)
       // FIXME: need to go through store!
-      delete this.$config.widgets[id]
+      delete store.config.widgets[id]
       this.config.widgets.splice(ix, 1) // delete the widget in question
     },
 
@@ -237,7 +235,7 @@ export default {
       const [ix, w] = this.deleted_widget
       console.log(`Restoring widget ${w.id}`)
       // FIXME: need to go through store!
-      this.$config.widgets[w.id] = w
+      store.config.widgets[w.id] = w
       this.config.widgets.splice(ix, 0, w.id)
       this.deleted_widget = null
     },
