@@ -87,18 +87,31 @@
       </div>
 
       <v-spacer></v-spacer>
+
     </v-toolbar>
 
     <!-- Grid of widgets -->
     <v-container fluid class="g-grid-small">
       <widget-wrap :config="statConfig"></widget-wrap>
       <widget-edit v-for="w in widgets" :key="w"
-                   :config="w==edit_id ? edit_config : _config.widgets[w]"
+                   :config="w==edit_id ? edit_config : config_widgets[w]"
                    :edit_active="w==edit_id"
                    @change="handleChange(...$event)"
                    @edit="handleEdit(w, $event)">
       </widget-edit>
+
+      <!-- notification, shows up at top -->
+      <v-snackbar v-model="notif" top left text absolute timeout="2000"
+                  color="primary" content-class="d-flex">
+        <span class="mx-auto">{{notif_msg}}</span>
+      </v-snackbar>
     </v-container>
+
+    <!-- Overlay with spinning save animation -->
+    <v-overlay z-index="10" :value="overlay">
+      <v-progress-circular indeterminate color="primary" size="64"></v-progress-circular>
+      <v-chip color="primary" class="ml-4 pr-10">Saving...</v-chip>
+    </v-overlay>
   </div>
 </template>
 
@@ -107,6 +120,7 @@
 import WidgetWrap from '/src/components/widget-wrap'
 import WidgetEdit from '/src/components/widget-edit'
 import store from '@/store.js'
+import _ from 'lodash'
 
 export default {
   name: 'FixedGrid',
@@ -123,13 +137,16 @@ export default {
     edit_config: {}, // widget config being edited
     deleted_widget: null, // deleted widget [pos, config] for undo
     edit_move_ix: null, // if non-null, edited widget's moved position
+    overlay: false, // controls the visibility of the save-spinner overlay
+    notif: false, // notification pop-up
+    notif_msg: "", // message in notification
   }},
 
   computed: {
     // config: {id, kind, icon, widgets}
     config() { return store.config.grids[this.id] },
 
-    // array of widgets taking edited widget move into account
+    // array of widget indexes taking edited widget move into account
     widgets() {
       if (this.edit_id === null || this.edit_move_ix == null) return this.config.widgets
       const ix = this.config.widgets.indexOf(this.edit_id)
@@ -139,13 +156,21 @@ export default {
       return ww
     },
 
+    config_widgets() { return store.config.widgets },
+
     // config for stat widget to show widget count for debug purposes
     statConfig() { return { kind: 'stat', id: "debugStat", dynamic: {},
         static: {title: 'Widgets', value: this.widgetCount} }},
     widgetCount() { return this.config.widgets.length },
 
-    // make store.config visible in vue debugger
-    _config() { return store.config },
+    // editing helpers
+    widgetEdited() {
+      console.log("widgetEdited:", !_.isEqual(this.config_widgets[this.edit_id], this.edit_config))
+      return !_.isEqual(this.config_widgets[this.edit_id], this.edit_config) },
+    widgetMoved() {
+      console.log("widgetsMoved:", this.edit_move_ix, this.config.widgets.indexOf(this.edit_id))
+      return this.edit_move_ix !== null && this.edit_move_ix !=
+    this.config.widgets.indexOf(this.edit_id) }
   },
 
   methods: {
@@ -182,7 +207,7 @@ export default {
     // handleChange handles change events from the widget edit panel, these change the
     // value passed to a prop of the widget.
     handleChange(what, prop, value) { // what:dynamic/static
-      console.log(`handleChange(${what},${prop},${value}) in fixed-grid`)
+      //console.log(`handleChange(${what},${prop},${value}) in fixed-grid`)
       this.$set(this.edit_config[what], prop, value)
     },
 
@@ -191,10 +216,8 @@ export default {
     handleEdit(id, what) {
       console.log(`handleEdit(${id},${what}) in fixed-grid`)
       if (what == 'cancel' || what == 'toggle' && this.edit_id == id) {
-        // cancel edit
-        this.edit_id = null
-        this.edit_config = {}
-        this.edit_move_ix = null
+        this.cancelEdit()
+
       } else if (what == 'toggle' && this.edit_id !== id) {
         // start edit
         this.edit_id = id
@@ -208,15 +231,65 @@ export default {
             typeof c[k] === 'object' ? Object.assign({}, c[k]) : c[k])
         })
         console.log(`starting edit of ${id}, edit_config:`, this.edit_config)
+
       } else {
         console.log(`Unknown event in fixed-grid: handleEdit(${id}, ${what})`)
       }
     },
 
-    saveEdit() {
-      console.log(`saveEdit for widget ${this.edit_id}`)
+    // helper function to end editing
+    cancelEdit() {
+      this.edit_id = null
+      this.edit_config = {}
+      this.edit_move_ix = null
     },
 
+    saveEdit() {
+      console.log(`***** saveEdit for widget ${this.edit_id}`)
+
+      // detect if nothing has changed
+      if (!this.widgetEdited && !this.widgetMoved) {
+        this.notif_msg = "Nothing changed"
+        this.notif = true
+        window.setTimeout(() => this.cancelEdit(), 500)
+        return
+      }
+      console.log("Edited", this.widgetEdited, this.widgetMoved)
+
+      // save by sending update to server
+      if (this.widgetEdited)
+        this.$emit('reconfig', {topic: "widgets/"+this.edit_id, payload: this.edit_config})
+      if (this.widgetMoved)
+        this.$emit('reconfig', {topic: `grids/${this.id}/widgets`, payload: this.widgets})
+
+      // start spinner and wait for saved data to come back to us or time-out
+      this.overlay = true
+      const self = this
+      let watcher = null
+      // start a time-out after which we return the user to the edit mode to try again or cancel
+      const timeout = window.setTimeout(() => {
+        console.log("Saving timed-out", self.widgetEdited, self.widgetMoved)
+        self.notif_msg = "Saving failed (or is slow)"
+        self.notif = true
+        self.overlay = false
+        if (watcher) watcher() // cancel watcher
+      }, 5000)
+      // start a watcher to see the saved config match the edited config, which means that the
+      // edit has round-tripped to the server and back and thus we're good
+      watcher = this.$watch(() => self.widgetEdited || self.widgetMoved,
+        () => {
+          if (!self.widgetEdited && !self.widgetMoved) {
+            // edited matches saved, all good
+            if (self.overlay) self.overlay = false
+            if (timeout) window.clearTimeout(timeout)
+            watcher() // cancel watcher
+            self.cancelEdit()
+          }
+        }, { deep: true, immediate: true }
+      )
+    },
+
+    // deleteWidget handles the delete button
     deleteWidget() {
       const id = this.edit_id
       console.log(`Deleting widget ${id}`)
@@ -232,6 +305,7 @@ export default {
       this.config.widgets.splice(ix, 1) // delete the widget in question
     },
 
+    // restoreWidget handles the undo-delete button
     restoreWidget() {
       const [ix, w] = this.deleted_widget
       console.log(`Restoring widget ${w.id}`)

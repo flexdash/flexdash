@@ -76,15 +76,15 @@
                 <v-text-field v-else-if="prop_info[prop].type === Number"
                     :label="prop" type="number" dense
                     :hint="prop_info[prop].hint"
-                    :value="config.static[prop]||prop_info[prop].default"
+                    :value="propVal(prop)"
                     @input="handleEdit('static', prop, $event)">
                 </v-text-field>
                 <!-- boolean -->
                 <v-switch v-else-if="prop_info[prop].type === Boolean"
-                    :label="prop" class="mt-0 ml-2"
+                    :label="prop+' '+propVal(prop)" class="mt-0 ml-2"
                     :hint="prop_info[prop].hint"
-                    :value="config.static[prop]||prop_info[prop].default"
-                    @input="handleEdit('static', prop, $event)">
+                    :input-value="propVal(prop)"
+                    @change="handleEdit('static', prop, $event)">
                 </v-switch>
                 <!-- array -->
                 <v-text-field v-else-if="prop_info[prop].type === Array"
@@ -213,6 +213,12 @@ export default {
       }
 
       this.$emit('change', [which, prop, value])
+    },
+
+    // value of a property: either config if set, else default
+    propVal(prop) {
+      if (this.config.static[prop] !== undefined) return this.config.static[prop]
+      else return this.prop_info[prop].default
     },
   },
 

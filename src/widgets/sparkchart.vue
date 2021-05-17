@@ -5,7 +5,7 @@
 -->
 <template>
 <div style="width:100%; ">
-  <v-sparkline v-bind="bindings">
+  <v-sparkline v-bind="bindings" ref="sparkl">
   </v-sparkline>
 </div>
 </template>
@@ -17,28 +17,43 @@ module.exports = {
   props: {
     value: { default: 0 },
     color: { type: String, default: "blue" },
-    fill: { default: 0 }, // FIXME: should be boolean, but can't input that yet
+    fill: { type: Boolean, default: false },
     line_width: { type: Number, default: 4 },
-    bars: { default: false }, // FIXME: boolean
+    bars: { type: Boolean, default: false },
   },
 
   data() { return {
-    //data: Array(20), // data actually displayed in sparkline
-    data: [ 30, 32, 30, 40, 35, 45, 40, 0, 50, 55, 60, 55, 70, 80, 70, 45, 90, 85, 60, 70 ],
+    data: [], // Array(20), // data actually displayed in sparkline
+    //data: [ 30, 32, 30, 40, 35, 45, 40, 0, 50, 55, 60, 55, 70, 80, 70, 45, 90, 85, 60, 70 ],
+    ro: null, // resize observer
+    height: 10, // height, adjusted using resize observer
+    width: 20, // width, adjusted using resize observer
   }},
 
   computed: {
     bindings() {
       return {
         color: this.color,
-        fill: !!this.fill,
-        //lineWidth: this.line_width,
+        fill: this.fill,
+        lineWidth: this.line_width,
         padding: this.line_width,
         value: this.data,
         type: this.bars ? 'bar' : 'trend',
         autoLineWidth: !!this.bars,
+        height: this.height,
+        width: this.width,
       }
     },
+  },
+
+  mounted() {
+    this.$nextTick(() => {
+      if (!this.$el.offsetParent) console.log("oops1")
+      this.ro = new ResizeObserver(this._onResize).observe(this.$el.offsetParent)
+    })
+  },
+  beforeUnmount() {
+    if (this.ro) this.ro.unobserve(this.$el.offsetParent)
   },
 
   watch: {
@@ -46,11 +61,22 @@ module.exports = {
     // use that as data
     value(v) {
       if (typeof v === 'number' || v === null) {
-        this.data.copyWithin(0, 1)
-        this.$set(this.data, this.data.length-1, v)
+        this.data.push(v)
+        if (this.data.length > 20) this.data.unshift()
       } else if (Array.isArray(v)) {
         this.data = v
       }
+    },
+
+  },
+
+  methods: {
+    // receive resize event and change the height of the chart if necessary
+    _onResize() {
+      if (!this.$el.offsetParent) console.log("oops2")
+      this.height = this.$el.offsetParent.clientHeight - this.$el.offsetTop
+      this.width = this.$el.offsetParent.clientWidth
+      console.log("_onResize", this.color, "Height:", this.height)
     },
 
   },

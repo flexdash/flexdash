@@ -95,10 +95,10 @@ const demo_config = {
                          "unit": "F", "radius": 90, "needle_color": "white" },
              "dynamic": { "value": "kitchen" }, "rows": 1, "cols": 1 },
       "11": { "kind": "Sparkchart", "id": "11",
-             "static": { "title": "Livingrm", "color": "green", "line_width": 4, "fill": 0 },
+             "static": { "title": "Livingrm", "color": "green", "line_width": 4, "fill": true },
              "dynamic": { "value": "living room" }, "rows": 1, "cols": 1 },
       "12": { "kind": "Sparkchart", "id": "12",
-             "static": { "title": "Living Room", "bars": 1 },
+             "static": { "title": "Living Room", "bars": true },
              "dynamic": { "value": "living room" }, "rows": 1, "cols": 1 },
       "13": { "kind": "Sparkchart", "id": "13",
              "static": { "title": "Kitchen" },
@@ -159,11 +159,14 @@ export default {
         // send dashboard configuration
         this.$emit('msg', {topic: '$config', payload: demo_config})
         // start interval timers to send data for stats, gauges, etc
-        for (let i=0; i<series.length; i++)
+        for (let i=0; i<series.length; i++) {
           this.timers.push(window.setInterval(()=>this.tick(series[i]), 5000+i*1000))
+          this.tick(series[i])
+        }
         // send time plot config and start interval timer for plot
         this.$emit('msg', {topic: 'temp_opts', payload: plot_opts})
-        this.timers.push(window.setInterval(this.plot, 1000))
+        this.timers.push(window.setInterval(this.plot, 3000))
+        this.plot()
       } else {
         // kill all the timers
         this.timers.map((t) => window.clrInterval(t))

@@ -26,7 +26,7 @@ function walkTree(root, path) {
       // need to handle undefined here because we explicitly set properties to undefined if
       // we need to attach a watcher to a property that doesn't exist
       if (!(d in node) || typeof node[d] === 'undefined')
-        Vue.$set(node, d, {}) // allow new subtrees to be created
+        Vue.set(node, d, {}) // allow new subtrees to be created
       node = node[d]
     } else {
       console.log(`Level '${d}' of '${path}'' is not traversable: ${typeof node[d]}`)
@@ -43,9 +43,9 @@ export const functions = {walkTree}
 
 class Store {
   constructor () {
-    this.root = Vue.observable({sd:{}, config: {}})
+    this.root = Vue.observable({sd:{}, $config: {}})
     this.sd = this.root.sd // server data, i.e. the data being visualized by the dashboard
-    this.config = this.root.config // the dashboard's configuration
+    this.config = this.root.$config // the dashboard's configuration
     return this
   }
 
@@ -59,16 +59,16 @@ class Store {
     }
 
     if (msg.topic === "$config") {
-      Vue.set(this.root, 'config', msg.payload)
-      this.config = this.root.config
+      Vue.set(this.root, '$config', msg.payload)
+      this.config = this.root.$config
       //Object.keys(msg.payload).forEach(k => { Vue.set(this.root.config, k, msg.payload[k]) })
       console.log("Replaced $config with:", msg.payload)
       return
     }
 
+    if (tt[0] !== "$config") tt.unshift("sd")
     const t = tt.pop() // separate off last level
-    const root = tt[0] === '$config' ? this.root.config : this.root.sd
-    const dir = walkTree(root, tt) // start at root
+    const dir = walkTree(this.root, tt) // start at root
     if (!dir) return
     // now dir[t] is the field to update
 
@@ -77,18 +77,18 @@ class Store {
       const ix = parseInt(t, 10)
       if (!Number.isNaN(ix)) {
         if (ix >= 0 && ix < dir.length) {
-          Vue.set(dir, ix, msg.payload)
           console.log(`Updated array elt ${msg.topic} with`, msg.payload)
+          Vue.set(dir, ix, msg.payload)
         } else if (ix == dir.length) {
-          dir[ix].push(msg.payload)
           console.log(`Appended array elt ${msg.topic} with`, msg.payload)
+          dir[ix].push(msg.payload)
         } else {
           console.log(`Array index '${ix}' in '${msg.topic}' > ${dir.length}`)
         }
       }
     } else if (typeof(dir) === 'object') {
+      console.log(`Updated ${msg.topic} with:`, msg.payload)
       Vue.set(dir, t, msg.payload) // $set 'cause we may add new props to dir
-      //console.log(`Updated ${msg.topic} with:`, msg.payload)
     } else {
       console.log(`${msg.topic} is neither Array nor Object in server state`)
       return

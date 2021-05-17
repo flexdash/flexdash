@@ -26,10 +26,10 @@
         <!-- Settings Menu -->
         <v-list dense>
           <v-list-item>
-            <v-switch v-model="$root.editMode" inset label="Edit mode"></v-switch>
+            <v-switch v-model="$root.editMode" inset label="Edit"></v-switch>
           </v-list-item>
           <v-list-item>
-            <v-switch v-model="$vuetify.theme.dark" inset label="Dark theme"></v-switch>
+            <v-switch v-model="$vuetify.theme.dark" inset label="Dark"></v-switch>
           </v-list-item>
         </v-list>
       </v-menu>
@@ -41,7 +41,7 @@
           <v-tab-item v-for="t in tabs" :key="t.id">
             <component v-for="g in t.grids" :key="g.id"
                        v-bind:is="grids[g].kind" :id="g"
-                       @reconfig="reconfig(g, $event)">
+                       @reconfig="reconfig($event)">
             </component>
           </v-tab-item>
         </div>
@@ -114,12 +114,20 @@ export default {
   methods: {
     // reconfig handles a child reconfig event, this is how config changes propagate up
     // and get sent back to the server for persistence.
-    // msg must have topic and payload, topic is relative to the child's root and if null/""
-    // the entire child's config gets updated
-    reconfig(ix, msg) {
-      console.log(`tab reconfig(${ix}, ${msg})`)
-      msg.topic = msg.topic ? `$config.tabs.${ix}.${msg.topic}` : `$config.tabs.${ix}`
-      this.$refs.uib.send(msg)
+    // msg must have topic and payload, topic is relative to $config
+    reconfig(msg) {
+      console.log("config save: ", msg)
+      if (msg.topic) {
+        msg.topic = "$config/" + msg.topic
+        if (this.$refs.uib.$data.enabled) {
+          this.$refs.uib.send(msg)
+        } else {
+          // for demo we enter the config in the in-memory store after a couple of seconds
+          console.log("In-memory insert")
+          const m = JSON.parse(JSON.stringify(msg)) // get rid of watchers
+          window.setTimeout(() => store.insertData(m), 1000)
+        }
+      }
     },
 
     // Called after vue components are loaded and DOM built.
