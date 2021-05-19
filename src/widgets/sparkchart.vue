@@ -48,7 +48,9 @@ module.exports = {
 
   mounted() {
     this.$nextTick(() => {
-      if (!this.$el.offsetParent) console.log("oops1")
+      // sometimes the offsetParent is null, dunno whether that's a persistent problem or not...
+      // it seems to happen when switching away from the tab with the sparkchart
+      if (!this.$el.offsetParent) { console.log("sparkshart oops1"); return }
       this.ro = new ResizeObserver(this._onResize).observe(this.$el.offsetParent)
     })
   },
@@ -62,7 +64,7 @@ module.exports = {
     value(v) {
       if (typeof v === 'number' || v === null) {
         this.data.push(v)
-        if (this.data.length > 20) this.data.unshift()
+        while (this.data.length > 20) this.data.shift()
       } else if (Array.isArray(v)) {
         this.data = v
       }
@@ -73,7 +75,8 @@ module.exports = {
   methods: {
     // receive resize event and change the height of the chart if necessary
     _onResize() {
-      if (!this.$el.offsetParent) console.log("oops2")
+      // sometimes the offsetParent is null, dunno whether that's a persistent problem or not...
+      if (!this.$el.offsetParent) { console.log("sparkchart oops2"); return }
       this.height = this.$el.offsetParent.clientHeight - this.$el.offsetTop
       this.width = this.$el.offsetParent.clientWidth
       console.log("_onResize", this.color, "Height:", this.height)

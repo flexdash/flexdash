@@ -81,7 +81,7 @@
                 </v-text-field>
                 <!-- boolean -->
                 <v-switch v-else-if="prop_info[prop].type === Boolean"
-                    :label="prop+' '+propVal(prop)" class="mt-0 ml-2"
+                    :label="prop" class="mt-0 ml-2"
                     :hint="prop_info[prop].hint"
                     :input-value="propVal(prop)"
                     @change="handleEdit('static', prop, $event)">
@@ -118,7 +118,7 @@
 
 <script scoped>
 
-import WidgetWrap from '/src/components/widget-wrap'
+import WidgetWrap from '@/components/widget-wrap'
 import store from '@/store.js'
 
 export default {

@@ -1,34 +1,30 @@
 import Vue from 'vue'
 import { myMount } from './mounts.js'
 import Dash from "@/Dash.vue"
+import { default as store, StoreReinit } from '@/store.js'
+
+import FixedGrid from "@/grids/fixed-grid.vue"
+Vue.component('FixedGrid', FixedGrid)
 
 const transitionStub = () => ({ render(h) {
   return h('span', this.$options._renderChildren) } })
 
-const config1 = {
-  tabs: [{icon: "view-dashboard", "grids": [ "g0" ] }],
-  grids: { "g0": { "id": "g0", "kind": "h6", "widgets": [] } },
-}
-const config2 = {
-  tabs: [{icon: "view-dashboard", "grids": ["g0","g1"] },
-         {icon: "view-nothing", "grids": [ "g2" ] }],
-  grids: {
-    "g0": { "id": "g0", "kind": "h6", "widgets": [] },
-    "g1": { "id": "g1", "kind": "h6", "widgets": [] },
-    "g2": { "id": "g2", "kind": "h6", "widgets": [] },
-  },
-}
-
 describe('Dash', () => {
 
+  beforeEach(()=>{
+    StoreReinit()
+    store.initDash()
+    window.gridPalette = { FixedGrid: {} }
+  })
+
   it('displays the app title with empty config', () => {
-    const wrapper = myMount(Dash, { mocks: { '$config': {} }})
+    const wrapper = myMount(Dash, {})
     expect(wrapper.isVueInstance).toBeTruthy()
-    expect(wrapper.find("v-toolbar-title-stub").html()).toContain("fooey")
+    expect(wrapper.find("v-toolbar-title-stub").html()).toContain("FlexDash")
   })
 
   it('displays one tab with one grid', () => {
-    const wrapper = myMount(Dash, { mocks: { '$config': config1 }})
+    const wrapper = myMount(Dash, {})
     //expect(wrapper.html()).toMatchSnapshot()
     expect(wrapper.find("v-tab-stub").html()).toContain("view-dashboard")
     expect(wrapper.findAll("v-tab-item-stub").length).toBe(1)
@@ -41,18 +37,27 @@ describe('Dash', () => {
     expect(wrapper.vm.tabGrids).toHaveLength(2)
   })*/
 
-  it('displays the first tab with two grids', async () => {
+  it('displays the two tab with multiple grids', async () => {
+    store.qMutation('add grid', [
+      [ 'grids/g2', { "id": "g2", "kind": "h6", "widgets": [] } ],
+      [ 'grids/g00001/kind', "h6" ],
+      [ 'tabs/t00001/grids/1', "g2" ],
+      [ 'tabs/t00002', { id:'t00002', icon: 'view-nothing', grids:['g2']} ],
+      [ 'dash/tabs/1', "t00002" ],
+    ])
     const wrapper = myMount(Dash, {
-      mocks: { '$config': config2 },
       stubs: {
         transition: transitionStub(),
-        smallFixedGrid: { render(h) { return h('h6', []) }},
+        // prevent a bunch of subcomponents from loading by providing a custom render function
+        fixedGrid: { render(h) { return h('h6', []) }},
+        uib: { render(h) { return h('h5', []) }},
+        demo: { render(h) { return h('h5', []) }},
       },
     }, true)
     await Vue.nextTick()
-    //expect(wrapper.html()).toMatchSnapshot()
+    //console.log(wrapper.html())
     const tabs = wrapper.findAll(".v-tab .v-icon")
-    expect(tabs).toHaveLength(2)
+    expect(tabs).toHaveLength(4) // each tab shows up in the tab bar and in the left nav for mobile
     expect(tabs.at(0).classes()).toContain("mdi-view-dashboard")
     expect(tabs.at(1).classes()).toContain("mdi-view-nothing")
     //console.log("Main", wrapper.find("main").html())

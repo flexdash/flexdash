@@ -1,6 +1,7 @@
 import Vue from 'vue'
 import { myMount } from './mounts.js'
 import WidgetWrap from "@/components/widget-wrap.vue"
+import { default as store, StoreReinit } from '@/store.js'
 
 import Stat from "@/widgets/stat.vue"
 import Gauge from "@/widgets/gauge.vue"
@@ -65,37 +66,42 @@ describe('WidgetWrap', () => {
     expect(wrapper.find("stat-stub").attributes()).toHaveProperty('unit', 'F')
   })
 
-  it("creates dynamic bindings", () => {
-    const sd = Vue.observable({ temp1: 99 }) // server data
-    const config = { kind: 'Stat', dynamic: { value: "temp1" } }
-    const wrapper = myMount(WidgetWrap, { propsData: { config }, mocks: {$sd:sd}, ...options })
-    expect(wrapper.find("stat-stub").attributes()).toHaveProperty('value', '99')
-  })
+  describe('dynamic bindings', ()=>{
+    beforeEach(()=>{ StoreReinit() })
 
-  it("creates dynamic bindings that update", async () => {
-    const sd = Vue.observable({ temp1: 99 }) // server data
-    const config = { kind: 'Stat', dynamic: { value: "temp1" } }
-    const wrapper = myMount(WidgetWrap, { propsData: { config }, mocks: {$sd:sd}, ...options })
-    expect(wrapper.isVueInstance).toBeTruthy()
-    expect(wrapper.find("stat-stub").attributes()).toHaveProperty('value', '99')
-    sd.temp1 = 101
-    await Vue.nextTick()
-    expect(wrapper.find("stat-stub").attributes()).toHaveProperty('value', '101')
-  })
+    it("creates dynamic bindings", () => {
+      store.insertData('temp1', 99)
+      const config = { kind: 'Stat', dynamic: { value: "temp1" } }
+      const wrapper = myMount(WidgetWrap, { propsData: { config }, ...options })
+      expect(wrapper.find("stat-stub").attributes()).toHaveProperty('value', '99')
+    })
 
-  it("updates dynamic bindings and they update", async () => {
-    const sd = Vue.observable({ temp1: 99, temp2: 102 }) // server data
-    const config = { kind: 'Stat', dynamic: { value: "temp1" } }
-    const wrapper = myMount(WidgetWrap, { propsData: { config }, mocks: {$sd:sd}, ...options })
-    expect(wrapper.find("stat-stub").attributes()).toHaveProperty('value', '99')
-    // change what we're looking at
-    config.dynamic.value = "temp2"
-    await Vue.nextTick()
-    expect(wrapper.find("stat-stub").attributes()).toHaveProperty('value', '102')
-    // change the value of what we're looking at
-    sd.temp2 = 103
-    await Vue.nextTick()
-    expect(wrapper.find("stat-stub").attributes()).toHaveProperty('value', '103')
+    it("creates dynamic bindings that update", async () => {
+      store.insertData('temp1', 99)
+      const config = { kind: 'Stat', dynamic: { value: "temp1" } }
+      const wrapper = myMount(WidgetWrap, { propsData: { config }, ...options })
+      expect(wrapper.isVueInstance).toBeTruthy()
+      expect(wrapper.find("stat-stub").attributes()).toHaveProperty('value', '99')
+      store.sd.temp1 = 101
+      await Vue.nextTick()
+      expect(wrapper.find("stat-stub").attributes()).toHaveProperty('value', '101')
+    })
+
+    it("updates dynamic bindings and they update", async () => {
+      store.insertData('temp1', 99)
+      store.insertData('temp2', 102)
+      const config = { kind: 'Stat', dynamic: { value: "temp1" } }
+      const wrapper = myMount(WidgetWrap, { propsData: { config }, ...options })
+      expect(wrapper.find("stat-stub").attributes()).toHaveProperty('value', '99')
+      // change what we're looking at
+      config.dynamic.value = "temp2"
+      await Vue.nextTick()
+      expect(wrapper.find("stat-stub").attributes()).toHaveProperty('value', '102')
+      // change the value of what we're looking at
+      store.sd.temp2 = 103
+      await Vue.nextTick()
+      expect(wrapper.find("stat-stub").attributes()).toHaveProperty('value', '103')
+    })
   })
 
 })

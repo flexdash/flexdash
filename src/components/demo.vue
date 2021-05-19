@@ -54,10 +54,14 @@ const randomStepper = (() => {
 })()
 
 const demo_config = {
-  "tabs": [
-      { "id": "t0", "icon": "view-dashboard", "grids": [ "g0" ] },
-      { "id": "t1", "icon": "home-thermometer", "grids": [ "g1", "g2" ] }
-  ],
+  "dash": {
+      "title": "FlexDash",
+      "tabs": [ "t00000", "t00001" ]
+  },
+  "tabs": {
+      "t00000": { "id": "t00000", "icon": "view-dashboard", "grids": [ "g0" ] },
+      "t00001": { "id": "t00001", "icon": "home-thermometer", "grids": [ "g1", "g2" ] }
+  },
   "grids": {
       "g0": { "id": "g0", "kind": "fixed-grid",
               "widgets": [ "0", "3", "2", "9", "6", "7", "8", "10", "11", "12", "13", "14" ]

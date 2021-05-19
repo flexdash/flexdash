@@ -117,8 +117,8 @@
 
 <script scoped>
 
-import WidgetWrap from '/src/components/widget-wrap'
-import WidgetEdit from '/src/components/widget-edit'
+import WidgetWrap from '@/components/widget-wrap'
+import WidgetEdit from '@/components/widget-edit'
 import store from '@/store.js'
 import _ from 'lodash'
 

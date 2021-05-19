@@ -30,7 +30,8 @@ export default {
     value: { type: Number, default: null }, // current value to show
     unit: { type: String, default: "" },
     title: { type: String, default: "Gauge" },
-    arc: { type: Number, default: 90 },
+    arc: { type: Number, default: 90,  // degrees spanned by the arc of the gauge
+           validator: (v) => v>10 && v<=360 },
     center: { type: Boolean, default: false }, // center the text in the gauge, else bottom
     //
     min: { type: Number, default: 0 }, // minimum value
