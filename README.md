@@ -32,18 +32,21 @@ internally, just enough to be able to play around a little. To do anything
 you need to enable edit mode using the gears menu at the top-right.
 
 Known issues:
-- lots of stuff to fix and improve everywhere!
-- the two tabs are hard-coded, there is currently no way to change that
-- the second tab has two grids, which is not really useful yet 'cause one can't change
-  the properties of a grid
-- the first widget on a grid showing the number of widgets is not removable or
-  editable, it's a "debug feature"
-- it's currently not possible to configure a widget's output (for example for a button
+- Lots of stuff to fix and improve everywhere!
+- The two tabs are hard-coded, there is currently no way to change that.
+- The second tab has two grids, which is not really useful yet 'cause one can't change
+  the properties of a grid.
+- The first widget on a grid showing the number of widgets is not removable or
+  editable, it's a "debug feature".
+- It's currently not possible to configure a widget's output (for example for a button
   or switch), the functionality is there and used to work but is broken
   right now. (Since there's no server in demo mode I've prioritized
   other stuff.)
-- When you save a config change it currently takes 1-2 seconds even though there's
+- When saving a config change it currently takes 1-2 seconds even though there's
   no slow connection or server, it's just a delay built-in for the demo (and testing).
+- The autocomplete used to bind a data variable to a widget input is only
+  usable for a flat namespace, not for a tree. That's OK for the demo
+  'cause it only produces simple variable names, but needs to be fixed.
 
 While FlexDash can be used with Node-red the instructions for hooking
 it up are not ready yet... Stay tuned...
