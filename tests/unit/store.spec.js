@@ -61,7 +61,7 @@ describe('Store constructor', () => {
     expect(s.sd).toBe(s.root.sd)
     expect(s.config).toBe(s.root.$config)
     expect(s.sd).toEqual({})
-    expect(s.config).toEqual({})
+    expect(s.config).toHaveProperty('tabs')
     expect(Object.getOwnPropertyNames(s.root).length).toBe(3) // Vue adds __ob__
   })
 })
@@ -194,53 +194,142 @@ describe('Store initDash', () => {
   })
 })
 
-describe('Store addTab', () => {
-  let s
+// ===== tab mutations
 
+describe('tab mutations', () => {
+  let s
   beforeEach(() => {
     s = new Store()
     s.initDash()
   })
 
-  it('adds a tab into an empty store', () => {
-    s.addTab()
-    expect(s.config.dash.tabs).toHaveLength(2)
-    expect(Object.keys(s.config.tabs)).toHaveLength(2)
-    expect(Object.keys(s.config.grids)).toHaveLength(2)
-    expect(Object.keys(s.config.widgets)).toHaveLength(0)
+  describe('addTab', () => {
+    it('adds a tab into an empty store', () => {
+      s.addTab()
+      expect(s.config.dash.tabs).toHaveLength(2)
+      expect(Object.keys(s.config.tabs)).toHaveLength(2)
+      expect(Object.keys(s.config.grids)).toHaveLength(2)
+      expect(Object.keys(s.config.widgets)).toHaveLength(0)
+    })
+  })
+
+  describe('deleteTab', () => {
+    it('deletes an empty tab', () => {
+      const old_config = JSON.stringify(s.config)
+      s.addTab()
+      s.deleteTab(1)
+      expect(JSON.stringify(s.config)).toEqual(old_config)
+    })
+
+    it('deletes a tab with widgets', () => {
+      const old_config = JSON.stringify(s.config)
+      s.addTab()
+      const tab_id = s.config.dash.tabs[1]
+      const grid_id = s.config.tabs[tab_id].grids
+      s.qMutation("add widget", [
+        [`widgets/w123`, { id: "w123" }], // insert widget
+        [`grids/${grid_id}/widgets`, ['w123']], // link widget into grid
+      ])
+      expect(Object.keys(s.config.widgets)).toHaveLength(1) // make sure a widget is inserted
+      s.deleteTab(1)
+      expect(JSON.stringify(s.config)).toEqual(old_config)
+    })
+
+    it('throws deleting a non-existent tab', () => {
+      expect(()=> s.deleteTab(55)).toThrow(StoreError)
+    })
+  })
+
+  describe('updateTab', () => {
+    beforeEach(() => {
+      Vue.set(s.config.tabs, 't001', { icon: 'myicon', id: 't001', grids:['g1'] })
+    })
+
+    it('updates a tab with multiple props', () => {
+      s.updateTab('t001', { icon:'newicon', foo:'bar' })
+      expect(s.config.tabs.t001.icon).toBe('newicon')
+      expect(s.config.tabs.t001.foo).toBe('bar')
+      expect(s.config.tabs.t001.id).toBe('t001')
+      expect(s.config.tabs.t001.grids.length).toBe(1)
+      // check undo
+      expect(s.undo).toHaveLength(1)
+      expect(s.undo[0].tagline).toBe('update tab icon,foo')
+      expect(s.undo[0].mutation).toContainEqual([`tabs/t001/icon`, 'myicon'])
+      expect(s.undo[0].mutation).toContainEqual([`tabs/t001/foo`, undefined])
+    })
+
+    it('throws updating a non-existent tab', () => {
+      expect(()=> s.updateTab('txxx', {})).toThrow(StoreError)
+    })
   })
 })
 
-describe('Store deleteTab', () => {
-  let s
+// ===== grid mutations
 
+describe('grid mutations', () => {
+  let s
   beforeEach(() => {
     s = new Store()
     s.initDash()
   })
 
-  it('deletes an empty tab', () => {
-    const old_config = JSON.stringify(s.config)
-    s.addTab()
-    s.deleteTab(1)
-    expect(JSON.stringify(s.config)).toEqual(old_config)
+  describe('addTab', () => {
+    it('adds a tab into an empty store', () => {
+      s.addTab()
+      expect(s.config.dash.tabs).toHaveLength(2)
+      expect(Object.keys(s.config.tabs)).toHaveLength(2)
+      expect(Object.keys(s.config.grids)).toHaveLength(2)
+      expect(Object.keys(s.config.widgets)).toHaveLength(0)
+    })
   })
 
-  it('deletes a tab with widgets', () => {
-    const old_config = JSON.stringify(s.config)
-    s.addTab()
-    const tab_id = s.config.dash.tabs[1]
-    const grid_id = s.config.tabs[tab_id].grids
-    s.qMutation("add widget", [
-      [`widgets/w123`, { id: "w123" }], // insert widget
-      [`grids/${grid_id}/widgets`, ['w123']], // link widget into grid
-    ])
-    expect(Object.keys(s.config.widgets)).toHaveLength(1) // make sure a widget is inserted
-    s.deleteTab(1)
-    expect(JSON.stringify(s.config)).toEqual(old_config)
+  describe('deleteTab', () => {
+    it('deletes an empty tab', () => {
+      const old_config = JSON.stringify(s.config)
+      s.addTab()
+      s.deleteTab(1)
+      expect(JSON.stringify(s.config)).toEqual(old_config)
+    })
+
+    it('deletes a tab with widgets', () => {
+      const old_config = JSON.stringify(s.config)
+      s.addTab()
+      const tab_id = s.config.dash.tabs[1]
+      const grid_id = s.config.tabs[tab_id].grids
+      s.qMutation("add widget", [
+        [`widgets/w123`, { id: "w123" }], // insert widget
+        [`grids/${grid_id}/widgets`, ['w123']], // link widget into grid
+      ])
+      expect(Object.keys(s.config.widgets)).toHaveLength(1) // make sure a widget is inserted
+      s.deleteTab(1)
+      expect(JSON.stringify(s.config)).toEqual(old_config)
+    })
+
+    it('throws deleting a non-existent tab', () => {
+      expect(()=> s.deleteTab(55)).toThrow(StoreError)
+    })
   })
 
-  it('throws deleting a non-existent tab', () => {
-    expect(()=> s.deleteTab(55)).toThrow(StoreError)
+  describe('updateTab', () => {
+    beforeEach(() => {
+      Vue.set(s.config.tabs, 't001', { icon: 'myicon', id: 't001', grids:['g1'] })
+    })
+
+    it('updates a tab with multiple props', () => {
+      s.updateTab('t001', { icon:'newicon', foo:'bar' })
+      expect(s.config.tabs.t001.icon).toBe('newicon')
+      expect(s.config.tabs.t001.foo).toBe('bar')
+      expect(s.config.tabs.t001.id).toBe('t001')
+      expect(s.config.tabs.t001.grids.length).toBe(1)
+      // check undo
+      expect(s.undo).toHaveLength(1)
+      expect(s.undo[0].tagline).toBe('update tab icon,foo')
+      expect(s.undo[0].mutation).toContainEqual([`tabs/t001/icon`, 'myicon'])
+      expect(s.undo[0].mutation).toContainEqual([`tabs/t001/foo`, undefined])
+    })
+
+    it('throws updating a non-existent tab', () => {
+      expect(()=> s.updateTab('txxx', {})).toThrow(StoreError)
+    })
   })
 })

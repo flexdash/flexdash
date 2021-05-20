@@ -2,6 +2,7 @@ import { createLocalVue } from "@vue/test-utils"
 import { shallowMount, mount } from "@vue/test-utils"
 import Vue from 'vue'
 import Vuetify from 'vuetify'
+import store from '@/store.js'
 
 const localVue = createLocalVue()
 Vue.use(Vuetify)
@@ -19,5 +20,8 @@ export function myMount(comp, options, real) {
         tab : 0,
       }),
     ...options})
+  if (!options.provide) options.provide = {}
+  options.provide.$config = store.config
+  options.provide.$store = store
   return real? mount(comp, options) : shallowMount(comp, options)
 }

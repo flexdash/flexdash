@@ -1,6 +1,6 @@
 import Vue from 'vue'
 import { myMount } from './mounts.js'
-import Dash from "@/Dash.vue"
+import Dash from "@/dash.vue"
 import { default as store, StoreReinit } from '@/store.js'
 
 import FixedGrid from "@/grids/fixed-grid.vue"
@@ -37,7 +37,7 @@ describe('Dash', () => {
     expect(wrapper.vm.tabGrids).toHaveLength(2)
   })*/
 
-  it('displays the two tab with multiple grids', async () => {
+  it('displays the two tabs with multiple grids', async () => {
     store.qMutation('add grid', [
       [ 'grids/g2', { "id": "g2", "kind": "h6", "widgets": [] } ],
       [ 'grids/g00001/kind', "h6" ],
@@ -48,20 +48,16 @@ describe('Dash', () => {
     const wrapper = myMount(Dash, {
       stubs: {
         transition: transitionStub(),
-        // prevent a bunch of subcomponents from loading by providing a custom render function
-        fixedGrid: { render(h) { return h('h6', []) }},
-        uib: { render(h) { return h('h5', []) }},
-        demo: { render(h) { return h('h5', []) }},
       },
-    }, true)
+    })
+    wrapper.setData({gotConfig: true})
     await Vue.nextTick()
     //console.log(wrapper.html())
-    const tabs = wrapper.findAll(".v-tab .v-icon")
+    const tabs = wrapper.findAll("v-tab-stub v-icon-stub")
     expect(tabs).toHaveLength(4) // each tab shows up in the tab bar and in the left nav for mobile
-    expect(tabs.at(0).classes()).toContain("mdi-view-dashboard")
-    expect(tabs.at(1).classes()).toContain("mdi-view-nothing")
-    //console.log("Main", wrapper.find("main").html())
-    expect(wrapper.findAll("h6").length).toBe(2)
+    expect(tabs.at(0).text()).toContain("mdi-view-dashboard")
+    expect(tabs.at(1).text()).toContain("mdi-view-nothing")
+    expect(wrapper.findAll("h6").length).toBe(3) // 3 tabs total
   })
 
 })

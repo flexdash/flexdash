@@ -18,13 +18,13 @@
                        style="font-variant: small-caps">
         {{ this.gotConfig ? dash.title : "FlexDash" }}
       </v-toolbar-title>
-      <v-tabs v-model=tab class="hidden-xs-only">
-        <v-tab v-for="(t, ix) in tabs" :key="t.id">
+      <v-tabs v-model=tab_ix class="hidden-xs-only" v-if="gotConfig">
+        <v-tab v-for="(tid, ix) in dash_tabs" :key="tid">
           <!-- Icon for the tab -->
-          <v-icon large>mdi-{{all_tabs[t].icon}}</v-icon>
+          <v-icon large>mdi-{{tabs[tid].icon}}</v-icon>
           <!-- Button to edit the tab -->
           <div style="position:absolute; z-index:5; right:0; top:0.5ex;">
-            <v-btn small icon v-if="$root.editMode && ix==tab" @click="tab_edit=!tab_edit">
+            <v-btn small icon v-if="$root.editMode && ix==tab_ix" @click="tab_edit=!tab_edit">
               <v-icon small>mdi-pencil</v-icon>
             </v-btn>
           </div>
@@ -76,25 +76,25 @@
         </v-text-field-->
         <v-btn small class="ml-3 align-self-center" color="primary" @click="handleSave">save</v-btn>
         <v-btn small class="ml-1 align-self-center" @click="handleCancel">cancel</v-btn>
-        <v-btn small class="ml-auto align-self-center" @click="handleDelete">delete tab</v-btn>
+        <v-btn small class="ml-auto align-self-center" @click="handleDeleteTab">delete tab</v-btn>
       </template>
     </v-app-bar>
 
     <!-- Navigation drawer opening from the left on small devices to show tabs -->
-    <v-navigation-drawer v-model="sidebar" app clipped mini-variant>
-      <v-tabs vertical v-model=tab>
-        <v-tab v-for="t in tabs" :key="t" class="px-0" style="min-width: auto">
-          <v-icon large>mdi-{{all_tabs[t].icon}}</v-icon>
+    <v-navigation-drawer v-model="sidebar" app clipped mini-variant v-if="gotConfig">
+      <v-tabs vertical v-model=tab_ix>
+        <v-tab v-for="t in dash_tabs" :key="t" class="px-0" style="min-width: auto">
+          <v-icon large>mdi-{{tabs[t].icon}}</v-icon>
         </v-tab>
       </v-tabs>
     </v-navigation-drawer>
 
     <v-main>
-      <v-tabs-items v-if="gotConfig" v-model="tab">
+      <v-tabs-items v-if="gotConfig" v-model="tab_ix">
         <div :style="{ backgroundColor: $vuetify.theme.themes[theme].background}">
-          <v-tab-item v-for="t in tabs" :key="t">
-            <component v-for="g in all_tabs[t].grids" :key="g"
-                       v-bind:is="all_grids[g].kind" :id="g"
+          <v-tab-item v-for="(tab, id) in tabs" :key="id">
+            <component v-for="g in tab.grids" :key="g"
+                       v-bind:is="grids[g].kind" :id="g"
                        @reconfig="reconfig($event)">
             </component>
           </v-tab-item>
@@ -111,20 +111,19 @@
 <script scoped>
 import Uib from '@/components/uib'
 import Demo from '@/components/demo'
-import store from '@/store.js'
+//const J = JSON.stringify
 
 export default {
   name: 'Dash',
 
-  components: {
-    Uib, Demo,
-  },
+  components: { Uib, Demo, },
+  inject: [ '$config', '$store' ],
 
   data: () => ({
     appTitle: 'FlexDash',
     sidebar: false, // disabled for now
     gotConfig: false, // set to true when we've received the initial config
-    tab: null, // which tab we're on
+    tab_ix: null, // which tab we're on
 
     // tab editing stuff
     tab_edit: false, // turns tab editing drawer on/off
@@ -137,32 +136,31 @@ export default {
   }),
 
   computed: {
-    dash() { return this.gotConfig ? store.config.dash : {} },
-    // tabs to show
-    tabs() { return this.dash.tabs || [] },
-
-    // current tab ID
-    tab_id() { return this.tabs[this.tab] },
-
-    all_grids() { return store.config.grids }, // make accessible in template
-    all_tabs() { return store.config.tabs }, // make accessible in template
-
+    // note: some of the following get evaluated before the config is loaded, the gotConfig
+    // guard ensures that they do get re-evaluated when it is loaded despite Vue2 issues...
+    dash() { return this.gotConfig ? this.$config.dash : {} },
+    dash_tabs() { return this.dash.tabs || [] }, // tabs to show, handling init
+    tab_id() { return this.tab_ix != null ? this.dash_tabs[this.tab_ix] : null }, // current tab ID
+    tabs() { return this.gotConfig ? this.$config.tabs : {} }, // make accessible in template
+    grids() { return this.gotConfig ? this.$config.grids : {} }, // make accessible in template
     theme() { return (this.$vuetify.theme.dark) ? 'dark' : 'light' },
 
     // for debugging purposes, these show up in the vue devtools
-    _sd() { return store.sd },
-    _config() { return store.config },
+    _sd() { return this.$store.sd },
+    _config() { return this.$config },
   },
 
   watch: {
     // set some defaults for editing tab
     tab_id(id) {
-      this.tab_icon = store.config.tabs[id].icon
-      this.tab_grids = store.config.tabs[id].grids.length
+      if (id != null) {
+        this.tab_icon = this.tabs[id].icon
+        this.tab_grids = this.tabs[id].grids.length
+      }
     },
     // ensure the current tab exists
     tabs(tt) {
-      if (this.tab >= tt.length) this.tab = tt.length-1
+      if (this.tab_ix >= tt.length) this.tab_ix = tt.length-1
     },
   },
 
@@ -179,7 +177,7 @@ export default {
   },
 
   methods: {
-    // reconfig handles a child reconfig event, this is how config changes propagate up
+    /* reconfig handles a child reconfig event, this is how config changes propagate up
     // and get sent back to the server for persistence.
     // msg must have topic and payload, topic is relative to $config
     reconfig(msg) {
@@ -195,7 +193,7 @@ export default {
           window.setTimeout(() => store.insertData(m), 1000)
         }
       }
-    },
+    },*/
 
     // Handle a msg event emitted by a server connection, process the message and
     // inject it into the store.
@@ -214,37 +212,31 @@ export default {
         // sanity check the config for bootstrapping purposes
         if (!msg.payload || !msg.payload.dash) {
           console.log("*** No or broken config, clearing! (got:", msg.payload)
-          store.initDash()
+          this.$store.initDash()
           return
         }
       }
 
       // Insert into store.
-      store.insertData(msg.topic, msg.payload)
+      this.$store.insertData(msg.topic, msg.payload)
     },
 
-    // save and cancel in the tab editing toolbar
+    // handle buttons for tab editing
     handleSave() {
-      this.reconfig({topic: `tabs/${this.tab_id}/icon`, payload: this.tab_icon})
-      this.tab_edit = false// 
+      this.$store.updateTab(this.tab_id, {icon: this.tab_icon})
+      this.tab_edit = false
     },
     handleCancel() {
       this.tab_edit = false
-      this.tab_icon = this.all_tabs[this.tab_id].icon
+      this.tab_icon = this.tabs[this.tab_id].icon
     },
-
-    // handle add-tab button
-    handleAddTab() { store.addTab() },
-
-    // handle delete-tab button
+    handleAddTab() {
+      this.$store.addTab()
+      this.tab_ix = this.tabs.length-1 // the new tab should be at the end of the list
+      this.tab_edit = true // switch to editing the new tab
+    },
     handleDeleteTab() {
-      if (this.tabs.length < 2) return; // can't delete last tab
-      this.deleted_tab = this.tabs[this.tab_id]
-      this.deleted_ix = this.tab
-      let new_tabs = {...this.tabs}
-      new_tabs.splice(this.tab, 1)
-      this.reconfig({topic: `dash.tabs`, payload: new_tabs})
-      this.tab_edit = false
+      this.$store.deleteTab(this.tab)
     },
 
   },

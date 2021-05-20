@@ -36,7 +36,6 @@
 </template>
 
 <script scoped>
-import store from '@/store.js'
 
 export default {
   name: 'WidgetWrap',
@@ -84,21 +83,21 @@ export default {
     },
   },
 
-  inject: [ 'sendSrv' ],
+  inject: [ 'sendSrv', '$store' ],
 
   methods: {
     // addDynBinding adds a dynamic binding of store.sd[var_name] -> bindings[key]
     // TODO: perform type conversion and precision adjustment when assigning
     addDynBinding(key, var_name) {
       const self = this
-      if (!(var_name in store.sd)) {
+      if (!(var_name in this.$store.sd)) {
         // in vue2 we can't add a watcher to something that doesn't exist
         // so we create it as undefined and handle that properly when we eventually insert
         // something *it's a hack*
-        self.$set(store.sd, var_name, undefined)
+        self.$set(this.$store.sd, var_name, undefined)
       }
       const w = this.$watch(
-          () => store.sd[var_name],
+          () => self.$store.sd[var_name],
           (newVal) => { self.updateBindingValue(key, newVal) },
           {deep: true, immediate: true})
       return w

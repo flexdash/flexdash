@@ -4,9 +4,9 @@
 
 import Vue from 'vue'
 import vuetify from '@/plugins/vuetify'
-import Dash from './Dash.vue'
+import Dash from './dash.vue'
 import LoadScript from 'vue-plugin-load-script'
-//import store from './store'
+import store from './store'
 
 // Load socket.io from the local npm package (i.e. tell webpack to include it) and stick it into
 // a global var so uibuilder finds it.
@@ -48,10 +48,17 @@ window.gridPalette = loadComponentsFromDir(requireGrids)
 new Vue({
   vuetify,
 
-  // Hack some global variable(s) into Vue so all components can refer to them
+  // Hack some global variable(s) into Vue so all components can refer to them as this.$root.xxx
   data: { // https://stackoverflow.com/questions/51275301/how-to-react-to-a-global-variable-with-vue
     editMode: true,
   },
+
+  // Provide the store to all components through the hierarchy
+  provide: {
+    $config: store.config,
+    $store: store,
+  },
+
 
   render: h => h(Dash)
 }).$mount('#app')

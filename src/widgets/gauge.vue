@@ -67,4 +67,9 @@ export default {
   }
   div.gauge-card--label div { z-index: 2; position: relative; }
   div.gauge-card--label span { margin-bottom: -0.5ex; }
+
+/* need to incorporate this for large gauges
+.gauge-large .gauge-value { line-height: 3rem; font-size: 2rem; }
+.gauge-large .gauge-title { line-height: 1.5rem; font-size: 1rem; }
+*/
 </style>
