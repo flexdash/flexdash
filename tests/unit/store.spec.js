@@ -130,6 +130,11 @@ describe('Store insertData', () => {
     expect(()=> s.insertData('grid1/widgets/4', 'x')).toThrow(StoreError)
     expect(s.root.sd.grid1.widgets).toEqual(['a', 'b'])
   })
+  it('throws on deleting array elements', () => {
+    expect(()=> s.insertData('grid1/widgets/0', undefined)).toThrow(StoreError)
+    expect(()=> s.insertData('grid1/widgets/2', undefined)).toThrow(StoreError)
+    expect(s.root.sd.grid1.widgets).toEqual(['a', 'b'])
+  })
   it('throws on tree walk errors', () => {
     s.insertData( 'foo', [{a:1}])
     expect(()=>s.insertData( 'foo/2/a', [{a:2}])).toThrow(StoreError)
@@ -185,6 +190,49 @@ describe('Store qMutation', () => {
 
 })
 
+describe('Store undo', () => {
+  const grid_id = 'g00001'
+  let s
+
+  beforeEach(() => {
+    s = new Store()
+    s.initDash()
+  })
+
+  it('coalesces consecutive mutations to identical properties', () => {
+    s.updateGrid(grid_id, { kind:'newgrid', foo:'bar' })
+    expect(s.undo.buf).toHaveLength(1)
+    expect(s.undo.buf[0].tagline).toBe('update grid kind,foo')
+    expect(s.undo.buf[0].mutation).toContainEqual([`grids/${grid_id}/kind`, 'fixed-grid'])
+    expect(s.undo.buf[0].mutation).toContainEqual([`grids/${grid_id}/foo`, undefined])
+    s.updateGrid(grid_id, { kind:'newgrid', foo:'bar2' })
+    expect(s.undo.buf).toHaveLength(1)
+    expect(s.undo.buf[0].tagline).toBe('update grid kind,foo')
+    expect(s.undo.buf[0].mutation).toContainEqual([`grids/${grid_id}/kind`, 'fixed-grid'])
+    expect(s.undo.buf[0].mutation).toContainEqual([`grids/${grid_id}/foo`, undefined])
+  })
+
+  it('does not coalesce consecutive mutations to different props', () => {
+    s.updateGrid(grid_id, { kind:'newgrid', foo:'bar' })
+    expect(s.undo.buf).toHaveLength(1)
+    s.updateGrid(grid_id, { kind:'newgrid', foo2:'bar2' })
+    expect(s.undo.buf).toHaveLength(2)
+  })
+
+  it('performs an undo', () => {
+    const old_config = JSON.stringify(s.config)
+    s.updateGrid(grid_id, { kind:'newgrid', foo:'bar' })
+    expect(s.undo.buf).toHaveLength(1)
+    s.performUndo()
+    expect(s.undo.buf).toHaveLength(0)
+    expect(JSON.stringify(s.config)).toEqual(old_config)
+  })
+
+  it('throws on undo if the buffer is empty', () => {
+    expect(()=> s.performUndo()).toThrow(StoreError)
+  })
+})
+
 describe('Store initDash', () => {
   let s
   beforeEach(() => { s = new Store(); s.initDash() })
@@ -205,7 +253,8 @@ describe('tab mutations', () => {
 
   describe('addTab', () => {
     it('adds a tab into an empty store', () => {
-      s.addTab()
+      const tab_ix = s.addTab()
+      expect(tab_ix).toBe(1)
       expect(s.config.dash.tabs).toHaveLength(2)
       expect(Object.keys(s.config.tabs)).toHaveLength(2)
       expect(Object.keys(s.config.grids)).toHaveLength(2)
@@ -216,8 +265,8 @@ describe('tab mutations', () => {
   describe('deleteTab', () => {
     it('deletes an empty tab', () => {
       const old_config = JSON.stringify(s.config)
-      s.addTab()
-      s.deleteTab(1)
+      const tab_ix = s.addTab()
+      s.deleteTab(tab_ix)
       expect(JSON.stringify(s.config)).toEqual(old_config)
     })
 
@@ -267,69 +316,146 @@ describe('tab mutations', () => {
 // ===== grid mutations
 
 describe('grid mutations', () => {
+  const tab_id = 't00001'
   let s
   beforeEach(() => {
     s = new Store()
     s.initDash()
   })
 
-  describe('addTab', () => {
-    it('adds a tab into an empty store', () => {
-      s.addTab()
-      expect(s.config.dash.tabs).toHaveLength(2)
-      expect(Object.keys(s.config.tabs)).toHaveLength(2)
+  describe('addGrid', () => {
+    it('adds a grid into an empty store', () => {
+      const grid_ix = s.addGrid(tab_id)
+      expect(grid_ix).toBe(1)
+      expect(s.config.tabs[tab_id].grids).toHaveLength(2)
       expect(Object.keys(s.config.grids)).toHaveLength(2)
       expect(Object.keys(s.config.widgets)).toHaveLength(0)
     })
   })
 
-  describe('deleteTab', () => {
-    it('deletes an empty tab', () => {
+  describe('deleteGrid', () => {
+    it('deletes an empty grid', () => {
       const old_config = JSON.stringify(s.config)
-      s.addTab()
-      s.deleteTab(1)
+      s.addGrid(tab_id)
+      s.deleteGrid(tab_id, 1)
       expect(JSON.stringify(s.config)).toEqual(old_config)
     })
 
-    it('deletes a tab with widgets', () => {
+    it('deletes a grid with widgets', () => {
       const old_config = JSON.stringify(s.config)
-      s.addTab()
-      const tab_id = s.config.dash.tabs[1]
-      const grid_id = s.config.tabs[tab_id].grids
-      s.qMutation("add widget", [
-        [`widgets/w123`, { id: "w123" }], // insert widget
-        [`grids/${grid_id}/widgets`, ['w123']], // link widget into grid
-      ])
+      const grid_ix = s.addGrid(tab_id)
+      s.addWidget(s.gridIDByIX(tab_id, grid_ix), 'Stat')
       expect(Object.keys(s.config.widgets)).toHaveLength(1) // make sure a widget is inserted
-      s.deleteTab(1)
+      s.deleteGrid(tab_id, grid_ix)
       expect(JSON.stringify(s.config)).toEqual(old_config)
     })
 
-    it('throws deleting a non-existent tab', () => {
-      expect(()=> s.deleteTab(55)).toThrow(StoreError)
+    it('throws deleting a non-existent grid', () => {
+      expect(()=> s.deleteGrid(tab_id, 55)).toThrow(StoreError)
     })
   })
 
-  describe('updateTab', () => {
+  describe('updateGrid', () => {
+    let grid_ix, grid_id
     beforeEach(() => {
-      Vue.set(s.config.tabs, 't001', { icon: 'myicon', id: 't001', grids:['g1'] })
+      grid_ix = s.addGrid(tab_id)
+      grid_id = s.gridIDByIX(tab_id, grid_ix)
     })
 
-    it('updates a tab with multiple props', () => {
-      s.updateTab('t001', { icon:'newicon', foo:'bar' })
-      expect(s.config.tabs.t001.icon).toBe('newicon')
-      expect(s.config.tabs.t001.foo).toBe('bar')
-      expect(s.config.tabs.t001.id).toBe('t001')
-      expect(s.config.tabs.t001.grids.length).toBe(1)
+    it('updates a grid with multiple props', () => {
+      s.updateGrid(grid_id, { kind:'newgrid', foo:'bar' })
+      expect(s.config.grids[grid_id].kind).toBe('newgrid')
+      expect(s.config.grids[grid_id].foo).toBe('bar')
+      expect(s.config.grids[grid_id].id).toBe(grid_id)
+      expect(s.config.grids[grid_id].widgets.length).toBe(0)
       // check undo
-      expect(s.undo.buf).toHaveLength(1)
-      expect(s.undo.buf[0].tagline).toBe('update tab icon,foo')
-      expect(s.undo.buf[0].mutation).toContainEqual([`tabs/t001/icon`, 'myicon'])
-      expect(s.undo.buf[0].mutation).toContainEqual([`tabs/t001/foo`, undefined])
+      expect(s.undo.buf).toHaveLength(2) // the addGrid and the updateGrid
+      expect(s.undo.buf[1].tagline).toBe('update grid kind,foo')
+      expect(s.undo.buf[1].mutation).toContainEqual([`grids/${grid_id}/kind`, 'fixed-grid'])
+      expect(s.undo.buf[1].mutation).toContainEqual([`grids/${grid_id}/foo`, undefined])
     })
 
-    it('throws updating a non-existent tab', () => {
-      expect(()=> s.updateTab('txxx', {})).toThrow(StoreError)
+    it('throws updating a non-existent grid', () => {
+      expect(()=> s.updateGrid('gxxx', {})).toThrow(StoreError)
     })
   })
+})
+
+// ===== widget mutations
+
+describe('widget mutations', () => {
+  const grid_id = 'g00001'
+  let s
+  beforeEach(() => {
+    s = new Store()
+    s.initDash()
+  })
+
+  describe('addWidget', () => {
+    it('adds a widget into an empty grid', () => {
+      const widget_ix = s.addWidget(grid_id, 'stat')
+      expect(widget_ix).toBe(0)
+      expect(s.config.grids[grid_id].widgets).toHaveLength(1)
+      expect(Object.keys(s.config.widgets)).toHaveLength(1)
+    })
+  })
+
+  describe('deleteWidget', () => {
+    it('deletes a widget', () => {
+      const old_config = JSON.stringify(s.config)
+      const widget_id = s.addWidget(grid_id)
+      expect(Object.keys(s.config.widgets)).toHaveLength(1)
+      s.deleteWidget(grid_id, widget_id)
+      expect(JSON.stringify(s.config)).toEqual(old_config)
+    })
+
+    it('throws deleting a non-existent widget', () => {
+      expect(()=> s.deleteWidget(grid_id, 55)).toThrow(StoreError)
+    })
+  })
+
+  describe('updateWidget', () => {
+    let widget_ix, widget_id
+    beforeEach(() => {
+      widget_ix = s.addWidget(grid_id, 'stat')
+      widget_id = s.widgetIDByIX(grid_id, widget_ix)
+    })
+
+    it('updates a widget with multiple props', () => {
+      s.updateWidget(widget_id, { kind:'newwidget', foo:'bar' })
+      expect(s.config.widgets[widget_id].kind).toBe('newwidget')
+      expect(s.config.widgets[widget_id].foo).toBe('bar')
+      expect(s.config.widgets[widget_id].id).toBe(widget_id)
+      // check undo
+      expect(s.undo.buf).toHaveLength(2) // the addWidget and the updateWidget
+      expect(s.undo.buf[1].tagline).toBe('update widget kind,foo')
+      expect(s.undo.buf[1].mutation).toContainEqual([`widgets/${widget_id}/kind`, 'stat'])
+      expect(s.undo.buf[1].mutation).toContainEqual([`widgets/${widget_id}/foo`, undefined])
+    })
+
+    it('updates a widget prop', () => {
+      s.updateWidgetProp(widget_id, 'static', 'title', 'bar')
+      expect(s.config.widgets[widget_id].static.title).toBe('bar')
+      expect(s.config.widgets[widget_id].id).toBe(widget_id)
+      // check undo
+      expect(s.undo.buf).toHaveLength(2) // the addWidget and the updateWidget
+      expect(s.undo.buf[1].tagline).toBe('update widget prop static:title')
+      expect(s.undo.buf[1].mutation).toContainEqual([`widgets/${widget_id}/static/title`, 'stat'])
+    })
+
+    it('adds a widget prop', () => {
+      s.updateWidgetProp(widget_id, 'dynamic', 'title', 'bar')
+      expect(s.config.widgets[widget_id].dynamic.title).toBe('bar')
+      expect(s.config.widgets[widget_id].id).toBe(widget_id)
+      // check undo
+      expect(s.undo.buf).toHaveLength(2) // the addWidget and the updateWidget
+      expect(s.undo.buf[1].tagline).toBe('update widget prop dynamic:title')
+      expect(s.undo.buf[1].mutation).toContainEqual([`widgets/${widget_id}/dynamic/title`, undefined])
+    })
+
+    it('throws updating a non-existent widget', () => {
+      expect(()=> s.updateWidget('wxxx', {})).toThrow(StoreError)
+    })
+  })
+
 })

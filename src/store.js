@@ -221,21 +221,21 @@ export class Store {
 
   tabIDByIX(ix) {
     const tabs = this.config.dash.tabs
-    if (tabs && ix >= 0 || ix < tabs.length) return tabs[ix]
+    if (tabs && ix >= 0 && ix < tabs.length) return tabs[ix]
     throw new StoreError(`tab #${ix} does not exist`)
   }
 
   // tab may be a tab_id (string) or a tab object
   gridIDByIX(tab, ix) {
     if (typeof tab === 'string') tab = this.tabByID(tab)
-    if (ix >= 0 || ix < tab.grids.length) return tab.grids[ix]
+    if (tab && ix >= 0 && ix < tab.grids.length) return tab.grids[ix]
     throw new StoreError(`grid #${ix} does not exist in tab ${tab.id}`)
   }
 
   // grid may be a grid_id (string) or a grid object
   widgetIDByIX(grid, ix) {
     if (typeof grid === 'string') grid = this.gridByID(grid)
-    if (ix >= 0 || ix < grid.widgets.length) return grid.widgets[ix]
+    if (grid && ix >= 0 && ix < grid.widgets.length) return grid.widgets[ix]
     throw new StoreError(`widget #${ix} does not exist in grid ${grid.id}`)
   }
 
@@ -261,14 +261,17 @@ export class Store {
   // ===== Operations on tabs
 
   // addTab adds a new tab and initializes it with an empty grid
+  // returns the index of the new tab
   addTab() {
       const tab_id = this.genId(this.config.tabs, "t")
       const grid_id = this.genId(this.config.grids, "g")
+      const tab_ix = this.config.dash.tabs.length
       this.qMutation("add a tab", [
         [`grids/${grid_id}`, { id: grid_id, kind: 'fixed-grid', widgets: [] } ],
         [`tabs/${tab_id}`, { id: tab_id, icon: 'rocket-launch', grids: [ grid_id ] } ],
-        [`dash/tabs/${this.config.dash.tabs.length}`, tab_id ],
+        [`dash/tabs/${tab_ix}`, tab_id ],
       ])
+    return tab_ix
   }
 
   // deleteTab with index ix
@@ -298,13 +301,16 @@ export class Store {
   // ===== Operations on grids
 
   // addGrid adds a new grid to a tab and initializes it with an empty set of widgets
+  // returns the index of the new grid in tab.grids
   addGrid(tab_id) {
     const tab = this.tabByID(tab_id)
     const grid_id = this.genId(this.config.grids, "g")
+    const grid_ix = tab.grids.length
     this.qMutation("add a grid", [ // FIXME: add tab name when implemented
       [`grids/${grid_id}`, { id: grid_id, kind: 'fixed-grid', widgets: [] } ],
-      [`tabs/${tab_id}/grids/${tab.grids.length}`, grid_id ],
+      [`tabs/${tab_id}/grids/${grid_ix}`, grid_id ],
     ])
+    return grid_ix
   }
 
   // deleteGrid with index ix from tab tab_id
@@ -331,14 +337,17 @@ export class Store {
   // ===== Operations on widgets
 
   // addWidget adds a new widget of the specified kind to a grid
+  // returns the index of the new widget in the grid
   addWidget(grid_id, kind) {
     const grid = this.gridByID(grid_id)
     const widget_id = this.genId(this.config.widgets, "w")
+    const widget_ix = grid.widgets.length
     this.qMutation("add a widget", [ // FIXME: add tab name when implemented
       [`widgets/${widget_id}`,
         { id: widget_id, rows:1, cols:1, kind, static:{title:kind}, dynamic:{} } ],
-      [`grids/${grid_id}/widgets/${grid.widgets.length}`, widget_id ],
+      [`grids/${grid_id}/widgets/${widget_ix}`, widget_id ],
     ])
+    return widget_ix
   }
 
   // deleteWidget with index ix from grid grid_id
