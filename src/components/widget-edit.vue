@@ -21,7 +21,7 @@
   <div :style="widgetStyle">
     <!-- v-menu is used to display a floating v-card below the component for editing
          We control the activation and deactivation of the menu ourselves, though. -->
-    <v-menu :value="edit_active && reposition" offset-y content-class="popup-spacer"
+    <v-menu :value="edit_active && reposition" offset-y allow-overflow content-class="popup-spacer"
             :close-on-content-click="false" :close-on-click="false">
 
       <!-- Widget proper -->

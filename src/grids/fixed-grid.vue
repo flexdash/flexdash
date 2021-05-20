@@ -30,7 +30,7 @@
           <v-list>
             <v-subheader>Add Widget to the end of the grid</v-subheader>
             <v-list-item v-for="kind in palette()" :key="kind"
-                         @click="$store.addWidget(id, kind)">
+                         @click="addWidget(kind)">
               <v-list-item-title>{{kind}}</v-list-item-title>
             </v-list-item>
           </v-list>
@@ -82,6 +82,11 @@ export default {
     },
 
     toggleEdit(ix, on) { this.edit_ix = on ? ix : null },
+
+    addWidget(kind) {
+      const widget_ix = this.$store.addWidget(this.id, kind)
+      this.edit_ix = widget_ix // start editing the new widget
+    },
 
     // handle the delete button
     deleteWidget(ix) {
