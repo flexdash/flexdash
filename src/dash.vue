@@ -19,7 +19,7 @@
         {{ this.gotConfig ? dash.title : "FlexDash" }}
       </v-toolbar-title>
       <v-tabs v-model=tab_ix class="hidden-xs-only" v-if="gotConfig">
-        <v-tab v-for="(tid, ix) in dash_tabs" :key="tid">
+        <v-tab v-for="(tid, ix) in dash_tabs" :key="tid+ix">
           <!-- Icon for the tab -->
           <v-icon large>mdi-{{tabs[tid].icon}}</v-icon>
           <!-- Button to edit the tab -->
@@ -34,6 +34,17 @@
           <v-icon>mdi-plus</v-icon>
         </v-btn>
       </v-tabs>
+
+      <!-- Undo button -->
+      <v-tooltip bottom :disabled="!canUndo">
+        <template v-slot:activator="{ on, attrs }">
+          <v-btn icon v-bind="attrs" v-on="on"
+                 :disabled="!canUndo" @click="$store.performUndo()">
+            <v-icon>mdi-undo</v-icon>
+          </v-btn>
+        </template>
+        <span>undo {{ canUndo && $store.undo.buf[$store.undo.buf.length-1].tagline }}</span>
+      </v-tooltip>
 
       <!-- Connection icons -->
       <demo @msg="handleMsg"></demo>
@@ -92,8 +103,10 @@
     <v-main>
       <v-tabs-items v-if="gotConfig" v-model="tab_ix">
         <div :style="{ backgroundColor: $vuetify.theme.themes[theme].background}">
-          <v-tab-item v-for="(tab, id) in tabs" :key="id">
-            <component v-for="g in tab.grids" :key="g"
+          <v-tab-item v-for="(id,ix) in dash_tabs" :key="id"
+                      :class="{'is-active': ix == tab_ix}">
+                      <!-- set class above as work-around for vuetify issue #11405-->
+            <component v-for="g in tabs[id].grids" :key="g"
                        v-bind:is="grids[g].kind" :id="g"
                        @reconfig="reconfig($event)">
             </component>
@@ -144,6 +157,7 @@ export default {
     tabs() { return this.gotConfig ? this.$config.tabs : {} }, // make accessible in template
     grids() { return this.gotConfig ? this.$config.grids : {} }, // make accessible in template
     theme() { return (this.$vuetify.theme.dark) ? 'dark' : 'light' },
+    canUndo() { return this.$store.undo.buf.length > 0 },
 
     // for debugging purposes, these show up in the vue devtools
     _sd() { return this.$store.sd },
@@ -177,24 +191,6 @@ export default {
   },
 
   methods: {
-    /* reconfig handles a child reconfig event, this is how config changes propagate up
-    // and get sent back to the server for persistence.
-    // msg must have topic and payload, topic is relative to $config
-    reconfig(msg) {
-      console.log("config save: ", msg)
-      if (msg.topic) {
-        msg.topic = "$config/" + msg.topic
-        if (this.$refs.uib.$data.enabled) {
-          this.$refs.uib.send(msg)
-        } else {
-          // for demo we enter the config in the in-memory store after a couple of seconds
-          console.log("In-memory insert")
-          const m = JSON.parse(JSON.stringify(msg)) // get rid of watchers
-          window.setTimeout(() => store.insertData(m), 1000)
-        }
-      }
-    },*/
-
     // Handle a msg event emitted by a server connection, process the message and
     // inject it into the store.
     handleMsg(msg) {
@@ -232,11 +228,16 @@ export default {
     },
     handleAddTab() {
       this.$store.addTab()
-      this.tab_ix = this.tabs.length-1 // the new tab should be at the end of the list
-      this.tab_edit = true // switch to editing the new tab
+      this.$nextTick(() => {
+        this.tab_ix = this.dash_tabs.length-1 // the new tab should be at the end of the list
+        this.tab_edit = true // switch to editing the new tab
+      })
     },
     handleDeleteTab() {
-      this.$store.deleteTab(this.tab)
+      this.$store.deleteTab(this.tab_ix)
+      if (this.tab_ix >= this.$config.dash.tabs.length-1) // this.dash_tabs has not updated yet
+        this.tab_ix = this.$config.dash.tabs.length-1
+      this.tab_edit = false
     },
 
   },

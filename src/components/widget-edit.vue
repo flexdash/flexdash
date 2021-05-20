@@ -223,6 +223,8 @@ export default {
 
     // style attribute for widget to determine size
     widgetStyle() {
+      // note: if rows/cols don't exist when the widget is created the widgetStyle will not
+      // recompute in Vue2
       const row = `grid-row-start: span ${this.widget.rows||1}`
       const col = `grid-column-start: span ${this.widget.cols||1}`
       return `${row}; ${col};`
@@ -262,11 +264,14 @@ export default {
     handleEdit(which, prop, value) {
       //console.log("edit:", which, prop, value)
       if (!(which in this.widget)) return
-      if (!(prop in this.child_props) && prop != 'title') return
 
-      // handle Number coming in as String
-      if (this.child_props[prop].type === Number && typeof value === 'string') {
-        value = Number.parseFloat(value)
+      if (prop != 'title') {
+        if (!(prop in this.child_props)) return
+
+        // handle Number coming in as String
+        if (this.child_props[prop].type === Number && typeof value === 'string') {
+          value = Number.parseFloat(value)
+        }
       }
 
       this.$store.updateWidgetProp(this.id, which, prop, value)

@@ -56,7 +56,7 @@ export class Store {
     this.sd = this.root.sd // server data, i.e. the data being visualized by the dashboard
     this.config = this.root.$config // the dashboard's configuration
     this.queue = [] // queue of mutations to send to the server
-    this.undo = [] // undo steps
+    this.undo = Vue.observable({ buf:[], at:null }) // undo steps
     return this
   }
 
@@ -75,7 +75,8 @@ export class Store {
   // not arrays, although technically it leaves the property in the object. Should figure out
   // whether to actually delete object properties but that may interfere with reactive watchers.
   // Undefined also serializes to null in JSON, so it's impossible to delete something from the
-  // server end.
+  // server end. Update: gotta really delete stuff, at least in the $config, else we try to
+  // render deleted stuff...
   insertData(topic, payload) {
     let tt = topic.split("/") // split levels of hierarchy
     tt = tt.filter(t => t.length > 0) // remove empty components, e.g. leading slash
@@ -103,12 +104,16 @@ export class Store {
       const ix = parseInt(t, 10)
       if (!Number.isNaN(ix)) {
         if (ix >= 0 && ix < dir.length) {
-          console.log(`Updated array elt ${topic} with`, payload)
+          if (payload === undefined) // can't produce a simple undo
+            throw new StoreError(`Cannot delete array element '${ix}' in '${topic}'`)
           old = dir[ix]
+          console.log(`Updated array elt ${topic} with`, payload)
           Vue.set(dir, ix, payload)
         } else if (ix == dir.length) {
-          console.log(`Appended array elt ${topic} with`, payload)
+          if (payload === undefined)
+            throw new StoreError(`Array index '${ix}' in '${topic}' >= ${dir.length}`)
           old = undefined
+          console.log(`Appended array elt ${topic} with`, payload)
           dir.push(payload)
         } else {
           throw new StoreError(`Array index '${ix}' in '${topic}' > ${dir.length}`)
@@ -117,33 +122,67 @@ export class Store {
         throw new StoreError(`Array index '${t}' is not a number`)
       }
     } else if (typeof(dir) === 'object') {
-      console.log(`Updated ${topic} with:`, payload)
       old = dir[t]
-      Vue.set(dir, t, payload) // $set 'cause we may add new props to dir
+      if (payload !== undefined) {
+        console.log(`Updated ${topic} with:`, payload)
+        Vue.set(dir, t, payload) // $set 'cause we may add new props to dir
+      } else {
+        console.log(`Deleted ${topic}`)
+        delete dir[t]
+      }
     } else {
       throw new StoreError(`${topic} is neither Array nor Object in server state`)
     }
      return old
   }
 
+  // pushUndo pushes a mutation onto the undo buffer but coalesces consecutive mutations with the
+  // same tagline if they happen within a minute of one-another in order to make undo meaningful
+  // when performing repetitive actions, such as hitting the + button on a numeric input.
+  pushUndo(tagline, mutation) {
+    const now = Date.now()
+    const u = this.undo
+    if (u.at && u.buf.length > 0 && now-u.at < 60000 && tagline == u.buf[u.buf.length-1].tagline)
+    {
+      // coalesce FIXME: should also coalesce mutations that update the same thing...
+      console.log("undo coalesce")
+      u.buf[u.buf.length-1].mutation = [ ...mutation, ...u.buf[u.buf.length-1].mutation ]
+    } else {
+      // std push
+      u.at = now
+      u.buf.push({tagline, mutation})
+      while (u.buf.length > 10) u.buf.shift()
+    }
+  }
+
+  // performUndo replays a recorded undo mutation off the stack.
+  // TODO: consider implementing redo?
+  performUndo() {
+    console.log("perform undo")
+    const u = this.undo
+    if (u.buf.length == 0) throw new StoreError("undo buffer is empty")
+    const m = u.buf.pop()
+    u.at = null
+    this.qMutation(null, m.mutation)
+  }
 
   // qMutation in the central function through which all mutations to the config must be
   // funneled. It applies the mutation locally and queues it for sending to the server,
   // then waits for an ack with a timeout.
-  // It also records the mutation in in the undo buffer.
+  // It also records the mutation in the undo buffer.
   // The tagline is a string that goes into the undo buffer and is indended to help the user
   // identify what the undo will do. Msgs is an array of [path, value] tuples with the
   // leading "$config/" omitted from the path.
   // If tagline is null, no undo steps are recorded, this is primarily used to perform
   // undo steps themselves.
   qMutation(tagline, msgs) {
+    console.log("queueing mutation", tagline)
     // apply the mutation locally and save the undo steps
     let undo = []
     for (const m of msgs) {
       undo.unshift([m[0], this.insertData("$config/" + m[0], m[1])]) // unshift to reverse the order
     }
-    this.undo.push({tagline, mutation: undo})
-    while (this.undo.length > 10) this.undo.shift()
+    if (tagline) this.pushUndo(tagline, undo)
 
     // send the mutation to the server
     // TODO!
@@ -241,10 +280,10 @@ export class Store {
 
     // construct mutation to delete the whole shebang
     this.qMutation("delete a tab", [ // FIXME: add tab title to the message once implemented
-        ...widgets.map(w => [ `widgets/${w}`, undefined ]),
-        ...grids.map(g => [ `grids/${g}`, undefined ]),
-        [ `tabs/${tab_id}`, undefined ],
         [ `dash/tabs`, this.config.dash.tabs.filter((t,i) => i != ix) ],
+        [ `tabs/${tab_id}`, undefined ],
+        ...grids.map(g => [ `grids/${g}`, undefined ]),
+        ...widgets.map(w => [ `widgets/${w}`, undefined ]),
     ])
   }
 
@@ -275,9 +314,9 @@ export class Store {
     const grid = this.gridByID(grid_id)
     // construct mutation to delete the grid and its widgets
     this.qMutation("delete a grid", [ // FIXME: add tab title to the message once implemented
-      ...grid.widgets.map(w => [ `widgets/${w}`, undefined ]),
-      [ `grids/${grid_id}`, undefined ],
       [ `tabs/${tab_id}/grids`, tab.grids.filter((g,i) => i != ix) ],
+      [ `grids/${grid_id}`, undefined ],
+      ...grid.widgets.map(w => [ `widgets/${w}`, undefined ]),
     ])
   }
 
@@ -294,10 +333,11 @@ export class Store {
   // addWidget adds a new widget of the specified kind to a grid
   addWidget(grid_id, kind) {
     const grid = this.gridByID(grid_id)
-    const widget_id = this.genId(this.config.widgets, "g")
+    const widget_id = this.genId(this.config.widgets, "w")
     this.qMutation("add a widget", [ // FIXME: add tab name when implemented
-      [`widgets/${widget_id}`, { id: widget_id, kind, widgets: [] } ],
-      [`grid/${grid_id}/widgets/${grid.widgets.length}`, widget_id ],
+      [`widgets/${widget_id}`,
+        { id: widget_id, rows:1, cols:1, kind, static:{title:kind}, dynamic:{} } ],
+      [`grids/${grid_id}/widgets/${grid.widgets.length}`, widget_id ],
     ])
   }
 
@@ -307,8 +347,8 @@ export class Store {
     const widget_id = this.widgetIDByIX(grid, ix)
     // construct mutation to delete the widget
     this.qMutation("delete a widget", [ // add tab title to the message once implemented
-      [ `widgets/${widget_id}`, undefined ],
       [ `grids/${grid_id}/widgets`, grid.widgets.filter((w,i) => i != ix) ],
+      [ `widgets/${widget_id}`, undefined ],
     ])
   }
 
