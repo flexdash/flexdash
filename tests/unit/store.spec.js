@@ -151,7 +151,7 @@ describe('Store qMutation', () => {
       'a': { id: 'a', kind: 'stat' },
       'b': { id: 'b', kind: 'gauge' },
     })
-    s.undo.push({tagline: "old stuff", mutations: []})
+    s.pushUndo("old stuff", [])
   })
 
   it('performs a mutation and enqueues its undo', () => {
@@ -166,21 +166,21 @@ describe('Store qMutation', () => {
     expect(s.config.widgets.b.id).toBe('x')
     expect(s.config.widgets.b.kind).toBe('gauge')
     // check that the old stuff showed up in the undo in reverse order
-    expect(s.undo).toHaveLength(2)
-    expect(s.undo[1].tagline).toBe('test mutation')
-    expect(s.undo[1].mutation).toEqual([[`widgets/b/id`, old_b_id], [`widgets/a`, old_a]])
+    expect(s.undo.buf).toHaveLength(2)
+    expect(s.undo.buf[1].tagline).toBe('test mutation')
+    expect(s.undo.buf[1].mutation).toEqual([[`widgets/b/id`, old_b_id], [`widgets/a`, old_a]])
   })
 
   it('shifts old mutations out of undo', ()=>{
     // overfill the undo queue
-    for (let i=0; i<20; i++) s.undo.push({tagline: "old stuff "+i, mutations: []})
-    expect(s.undo).toHaveLength(21)
+    for (let i=0; i<20; i++) s.undo.buf.push({tagline: "old stuff "+i, mutation: []})
+    expect(s.undo.buf).toHaveLength(21)
     // perform a mutation and check that the overflow got cleared and the right stuff is left
     s.qMutation('test mutation', [])
-    expect(s.undo).toHaveLength(10)
-    expect(s.undo[0].tagline).toBe('old stuff 11')
-    expect(s.undo[8].tagline).toBe('old stuff 19')
-    expect(s.undo[9].tagline).toBe('test mutation')
+    expect(s.undo.buf).toHaveLength(10)
+    expect(s.undo.buf[0].tagline).toBe('old stuff 11')
+    expect(s.undo.buf[8].tagline).toBe('old stuff 19')
+    expect(s.undo.buf[9].tagline).toBe('test mutation')
   })
 
 })
@@ -252,10 +252,10 @@ describe('tab mutations', () => {
       expect(s.config.tabs.t001.id).toBe('t001')
       expect(s.config.tabs.t001.grids.length).toBe(1)
       // check undo
-      expect(s.undo).toHaveLength(1)
-      expect(s.undo[0].tagline).toBe('update tab icon,foo')
-      expect(s.undo[0].mutation).toContainEqual([`tabs/t001/icon`, 'myicon'])
-      expect(s.undo[0].mutation).toContainEqual([`tabs/t001/foo`, undefined])
+      expect(s.undo.buf).toHaveLength(1)
+      expect(s.undo.buf[0].tagline).toBe('update tab icon,foo')
+      expect(s.undo.buf[0].mutation).toContainEqual([`tabs/t001/icon`, 'myicon'])
+      expect(s.undo.buf[0].mutation).toContainEqual([`tabs/t001/foo`, undefined])
     })
 
     it('throws updating a non-existent tab', () => {
@@ -322,10 +322,10 @@ describe('grid mutations', () => {
       expect(s.config.tabs.t001.id).toBe('t001')
       expect(s.config.tabs.t001.grids.length).toBe(1)
       // check undo
-      expect(s.undo).toHaveLength(1)
-      expect(s.undo[0].tagline).toBe('update tab icon,foo')
-      expect(s.undo[0].mutation).toContainEqual([`tabs/t001/icon`, 'myicon'])
-      expect(s.undo[0].mutation).toContainEqual([`tabs/t001/foo`, undefined])
+      expect(s.undo.buf).toHaveLength(1)
+      expect(s.undo.buf[0].tagline).toBe('update tab icon,foo')
+      expect(s.undo.buf[0].mutation).toContainEqual([`tabs/t001/icon`, 'myicon'])
+      expect(s.undo.buf[0].mutation).toContainEqual([`tabs/t001/foo`, undefined])
     })
 
     it('throws updating a non-existent tab', () => {
