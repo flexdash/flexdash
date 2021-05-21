@@ -21,7 +21,8 @@
   <div :style="widgetStyle">
     <!-- v-menu is used to display a floating v-card below the component for editing
          We control the activation and deactivation of the menu ourselves, though. -->
-    <v-menu :value="edit_active && reposition" offset-y allow-overflow content-class="popup-spacer"
+    <v-menu :value="edit_active && reposition" offset-y allow-overflow min-width="80%"
+            content-class="popup-spacer"
             :close-on-content-click="false" :close-on-click="false">
 
       <!-- Widget proper -->
@@ -46,14 +47,14 @@
         </v-card-title>
 
         <v-card-text v-if="edit_active"><!-- v-if 'cause edited_xx vars not always set -->
-          <v-container fluid>
+          <v-container fluid class="pa-0 pt-4">
             <!-- Display row with delete button, move buttons, and resize controls -->
             <v-row align="center">
-              <v-col class="d-flex" cols="4">
+              <v-col class="d-flex" cols="6" sm="4">
                 <!-- delete widget -->
                 <v-btn small @click="$emit('delete')">Delete widget</v-btn>
               </v-col>
-              <v-col class="d-flex" cols="4">
+              <v-col class="d-flex" cols="6" sm="2">
                 <!-- move widget up/down -->
                 <v-tooltip bottom>
                   <template v-slot:activator="{ on }">
@@ -70,7 +71,7 @@
                   <span>Move widget towards the bottom-right of the grid</span>
                 </v-tooltip>
               </v-col>
-              <v-col class="d-flex" cols="4">
+              <v-col class="d-flex" cols="12" sm="6" md="4">
                 <!-- adjust widget rows -->
                 <v-btn small icon @click="adjustRows(-1)" class="ml-2">
                   <v-icon>mdi-minus</v-icon></v-btn>
