@@ -244,7 +244,7 @@ describe('Store initDash', () => {
 
 // ===== tab mutations
 
-describe('tab mutations', () => {
+describe('Store tab mutations', () => {
   let s
   beforeEach(() => {
     s = new Store()
@@ -360,6 +360,7 @@ describe('grid mutations', () => {
     beforeEach(() => {
       grid_ix = s.addGrid(tab_id)
       grid_id = s.gridIDByIX(tab_id, grid_ix)
+      expect(s.config.grids[grid_id].widgets).toEqual([])
     })
 
     it('updates a grid with multiple props', () => {
@@ -367,7 +368,7 @@ describe('grid mutations', () => {
       expect(s.config.grids[grid_id].kind).toBe('newgrid')
       expect(s.config.grids[grid_id].foo).toBe('bar')
       expect(s.config.grids[grid_id].id).toBe(grid_id)
-      expect(s.config.grids[grid_id].widgets.length).toBe(0)
+      expect(s.config.grids[grid_id].widgets).toEqual([])
       // check undo
       expect(s.undo.buf).toHaveLength(2) // the addGrid and the updateGrid
       expect(s.undo.buf[1].tagline).toBe('update grid kind,foo')

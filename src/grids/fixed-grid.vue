@@ -5,12 +5,31 @@
 
 <template>
   <div style="display: contents;">
-    <!-- Edit bar above the grid proper -->
-    <v-toolbar v-if="$root.editMode" dense color="surface" class="editmode">
-      <!--v-toolbar-title class="mr-4">Edit Grid</v-toolbar-title-->
-      <div>
-        <v-chip small>fixed size grid</v-chip>
-      </div>
+    <!-- Hacky roll-up/roll-down icon at the top-center of the grid if there's no toolbar -->
+    <div v-if="rollupMini" :class="rollerClasses">
+      <v-btn xsmall icon height="24px" class="mx-auto" @click="toggleRoll">
+        <v-icon>mdi-arrow-{{rolledup ? 'down' : 'up'}}-drop-circle</v-icon>
+      </v-btn>
+    </div>
+
+    <!-- Normal-mode title bar, when we have a title -->
+    <v-toolbar dense flat v-if="rollupMaxi" height=36 color="background"
+               class="d-flex justify-start">
+      <v-btn xsmall icon height="24px" class="mx-auto" @click="toggleRoll">
+        <v-icon>mdi-arrow-{{rolledup ? 'down' : 'up'}}-drop-circle</v-icon>
+      </v-btn>
+      <v-toolbar-title>{{grid.title}}</v-toolbar-title>
+    </v-toolbar>
+
+    <!-- Editing toolbar above grid proper -->
+    <v-toolbar v-if="$root.editMode" dense flat color="background"
+               class="editmode d-flex justify-start">
+      <v-btn small icon color="grey" @click="toggleRoll" class="mr-4">
+        <v-icon>mdi-arrow-{{rolledup ? 'down' : 'up'}}-drop-circle</v-icon>
+      </v-btn>
+      <v-text-field single-line dense hide-details label="title" class="mr-6"
+                    :value="grid.title" @change="changeTitle" style="width: 20ex">
+      </v-text-field>
 
       <!-- Menu to add widget -->
       <div>
@@ -36,12 +55,10 @@
           </v-list>
         </v-menu>
       </div>
-
-      <v-spacer></v-spacer>
     </v-toolbar>
 
     <!-- Grid of widgets -->
-    <v-container fluid class="g-grid-small">
+    <v-container fluid v-if="!rolledup" class="g-grid-small pt-0">
       <widget-edit v-for="(w,ix) in grid.widgets" :key="w" :id="w" :grid_id="id"
                    :edit_active="ix == edit_ix" @edit="toggleEdit(ix, $event)"
                    @move="moveWidget(ix, $event)" @delete="deleteWidget(ix)">
@@ -67,11 +84,18 @@ export default {
   data() { return {
     add_menu: null, // true while adding widget menu is shown
     edit_ix: null, // widget being edited
+    rolledup: false, // whether grid is rolled-up
   }},
 
   computed: {
     // grid config: {id, kind, icon, widgets}
     grid() { return this.$store.gridByID(this.id) },
+    rollupMini() { return !this.$root.editMode && !this.grid.title },
+    rollupMaxi() { return !this.$root.editMode &&  this.grid.title },
+    rollerClasses() { // classes for mini roll-up div
+      const rm = this.grid.widgets.length>0 &&  !this.rolledup && 'roller__minimal'
+      return [ 'd-flex', 'roller', rm ]
+    },
   },
 
   methods: {
@@ -104,6 +128,9 @@ export default {
       this.edit_ix += dir
     },
 
+    toggleRoll() { this.rolledup = !this.rolledup },
+    changeTitle(ev) { this.$store.updateGrid(this.id, { title: ev }) },
+
   },
 
 }
@@ -114,6 +141,10 @@ export default {
 
 /* style for button groups in the edit toolbar */
 .v-toolbar__content div { margin-right: 4ex; }
+
+/* style for roll-up/roll-down bar when there's no toolbar */
+.roller { width: 100% }
+.roller.roller__minimal { height: 22px; }
 
 /* style to make grid happen */
 .g-grid-large {

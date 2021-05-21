@@ -3,6 +3,7 @@
 // Copyright ©2021 Thorsten von Eicken, MIT license, see LICENSE file
 
 import Vue from 'vue'
+import _ from 'lodash'
 
 export class StoreError extends Error {
   constructor (message) {
@@ -48,6 +49,11 @@ function walkTree(root, path) {
 export const functions = {walkTree}
 
 // ===== Store class
+
+// empty objects for addTab, addGrid, etc. The ID is missing and must be added!
+const empty_tab = { icon: 'rocket-launch', title: "", grids: [] }
+const empty_grid = { kind: 'fixed-grid', title: "", widgets: [] }
+const empty_widget = { kind: 'stat', rows:1, cols:1, static:{title:"Stat"}, dynamic:{} }
 
 export class Store {
   constructor () {
@@ -267,8 +273,8 @@ export class Store {
       const grid_id = this.genId(this.config.grids, "g")
       const tab_ix = this.config.dash.tabs.length
       this.qMutation("add a tab", [
-        [`grids/${grid_id}`, { id: grid_id, kind: 'fixed-grid', widgets: [] } ],
-        [`tabs/${tab_id}`, { id: tab_id, icon: 'rocket-launch', grids: [ grid_id ] } ],
+        [`grids/${grid_id}`, {  ..._.cloneDeep(empty_grid), id: grid_id }],
+        [`tabs/${tab_id}`, { ..._.cloneDeep(empty_tab), id: tab_id, grids: [grid_id] }],
         [`dash/tabs/${tab_ix}`, tab_id ],
       ])
     return tab_ix
@@ -307,7 +313,7 @@ export class Store {
     const grid_id = this.genId(this.config.grids, "g")
     const grid_ix = tab.grids.length
     this.qMutation("add a grid", [ // FIXME: add tab name when implemented
-      [`grids/${grid_id}`, { id: grid_id, kind: 'fixed-grid', widgets: [] } ],
+      [`grids/${grid_id}`, { ..._.cloneDeep(empty_grid), id: grid_id } ],
       [`tabs/${tab_id}/grids/${grid_ix}`, grid_id ],
     ])
     return grid_ix
@@ -344,7 +350,7 @@ export class Store {
     const widget_ix = grid.widgets.length
     this.qMutation("add a widget", [ // FIXME: add tab name when implemented
       [`widgets/${widget_id}`,
-        { id: widget_id, rows:1, cols:1, kind, static:{title:kind}, dynamic:{} } ],
+        { ..._.cloneDeep(empty_widget), id: widget_id, kind, static:{title:kind} } ],
       [`grids/${grid_id}/widgets/${widget_ix}`, widget_id ],
     ])
     return widget_ix
