@@ -53,6 +53,27 @@ const randomStepper = (() => {
   }
 })()
 
+const welcome_text = `
+# Welcome to FlexDash
+
+You are seeing the FlexDash demo dashboard. It shows a variety of _widgets_ spread across
+multiple _tabs_. Each tab can have multiple _grids_ that lay out the widgets and that can be
+rolled up and down.
+
+### Getting started
+
+The demo dashboard does not connect to any server and instead displays randomly generated data.
+To connect to a server, use the _mdi-network_ icon at the top right (not implemented yet).
+
+To edit the dashboard's configuration, switch to edit mode using the settings icon at
+the top-right. All editing is instantaneous while the dashboard remains live. If you make
+a mistake, use the undo button at the top right.
+
+### Feeding data into FlexDash
+
+_to be continued_ ...
+`
+
 const demo_config = {
   "dash": {
       "title": "FlexDash",
@@ -64,12 +85,14 @@ const demo_config = {
   },
   "grids": {
       "g0": { "id": "g0", "kind": "fixed-grid",
-              "widgets": [ "0", "3", "2", "9", "6", "7", "8", "10", "11", "12", "13", "14" ]
+              "widgets": [ "1", "0", "3", "2", "9", "6", "7", "8", "10", "11", "12", "13", "14" ]
       },
       "g1": { "id": "g1", "kind": "fixed-grid", "widgets": [] },
       "g2": { "id": "g2", "kind": "fixed-grid", "widgets": [] }
   },
   "widgets": {
+      "1": { "kind": "Markdown", "id": "1", "cols": 3, "rows": 3, "dynamic": {},
+            "static": { "title": "", "text": welcome_text } },
       "0": { "kind": "Stat", "id": "0",
              "static": { "title": "Bedroom", "value": "cold", "unit": "F" },
              "dynamic": { "value": "bedroom" }, "rows": 1, "cols": 1 },
