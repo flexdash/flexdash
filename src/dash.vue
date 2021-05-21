@@ -5,6 +5,17 @@
 <template>
   <v-app>
 
+    <!-- Navigation drawer opening from the left on small devices to show tabs -->
+    <v-navigation-drawer v-model="sidebar" app mini-variant clipped v-if="gotConfig">
+      <div>
+      <v-tabs vertical v-model=tab_ix>
+        <v-tab v-for="t in dash_tabs" :key="t" class="px-0" style="min-width: auto">
+          <v-icon large>mdi-{{tabs[t].icon}}</v-icon>
+        </v-tab>
+      </v-tabs>
+      </div>
+    </v-navigation-drawer>
+
     <!-- wrapping nav in a menu to be able to bring up an editing card -->
     <v-menu v-model="tab_edit" offset-y allow-overflow max-width="30ex"
             content-class="popup-spacer" :close-on-content-click="false">
@@ -77,17 +88,6 @@
             </v-list>
           </v-menu>
         </v-app-bar>
-
-        <!-- Navigation drawer opening from the left on small devices to show tabs -->
-        <v-navigation-drawer v-model="sidebar" app mini-variant v-if="gotConfig">
-          <div>
-          <v-tabs vertical v-model=tab_ix>
-            <v-tab v-for="t in dash_tabs" :key="t" class="px-0" style="min-width: auto">
-              <v-icon large>mdi-{{tabs[t].icon}}</v-icon>
-            </v-tab>
-          </v-tabs>
-          </div>
-        </v-navigation-drawer>
       </template>
 
       <!-- Editing panel shown floating below tab -->
