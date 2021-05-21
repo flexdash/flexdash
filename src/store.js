@@ -304,6 +304,13 @@ export class Store {
     )
   }
 
+  // updateDash props (an object that gets merged into existing props)
+  updateDash(props) {
+    this.qMutation(`update dash ${Object.keys(props).join(",")}`,
+      Object.entries(props).map(([k,v]) => [`dash/${k}`, v])
+    )
+  }
+
   // ===== Operations on grids
 
   // addGrid adds a new grid to a tab and initializes it with an empty set of widgets

@@ -50,7 +50,7 @@ new Vue({
 
   // Hack some global variable(s) into Vue so all components can refer to them as this.$root.xxx
   data: { // https://stackoverflow.com/questions/51275301/how-to-react-to-a-global-variable-with-vue
-    editMode: true,
+    editMode: false,
   },
 
   // Provide the store to all components through the hierarchy

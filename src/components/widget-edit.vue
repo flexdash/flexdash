@@ -35,7 +35,7 @@
       <v-card color="panel">
         <v-card-title class="d-flex align-baseline">
           <span>Edit {{widget.kind}} widget</span>
-          <v-text-field dense prefix='"' suffix='"' class="ml-3 mt-0 text-h6 flex-grow-0"
+          <v-text-field dense class="ml-3 mt-0 text-h6 flex-grow-0"
                         :value="widget.static['title']" :hide-details="true"
                         @input="handleEdit('static', 'title', $event)">
           </v-text-field>
