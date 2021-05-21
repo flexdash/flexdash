@@ -10,7 +10,7 @@
     <div v-if="rollupMini" :class="rollerClasses">
       <v-tooltip bottom>
         <template v-slot:activator="{ on }">
-          <v-btn xsmall icon height="24px" class="mx-auto" @click="toggleRoll" v-on="on">
+          <v-btn x-small icon height="24px" class="mx-auto" @click="toggleRoll" v-on="on">
             <v-icon>mdi-arrow-{{rolledup ? 'down' : 'up'}}-drop-circle</v-icon>
           </v-btn>
         </template>
@@ -24,7 +24,7 @@
       <!-- roll-up/down button -->
       <v-tooltip bottom>
         <template v-slot:activator="{ on }">
-          <v-btn xsmall icon height="24px" class="mx-auto" @click="toggleRoll" v-on="on">
+          <v-btn x-small icon height="24px" class="mx-auto" @click="toggleRoll" v-on="on">
             <v-icon>mdi-arrow-{{rolledup ? 'down' : 'up'}}-drop-circle</v-icon>
           </v-btn>
         </template>

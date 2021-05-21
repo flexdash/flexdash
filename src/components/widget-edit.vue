@@ -34,7 +34,7 @@
 
       <!-- Editing panel shown floating below widget -->
       <v-card color="panel">
-        <v-card-title class="d-flex align-baseline">
+        <v-card-title class="d-flex align-baseline pb-6">
           <span>Edit {{widget.kind}} widget</span>
           <v-text-field dense class="ml-3 mt-0 text-h6 flex-grow-0"
                         :value="widget.static['title']" :hide-details="true"
@@ -46,8 +46,17 @@
           </v-btn>
         </v-card-title>
 
+        <v-card-text v-if="child_help" class="pb-0">
+          <h3 v-if="child_help_title">{{child_help_title}}
+            <v-btn x-small flat text class="ml-3" v-if="child_help_text"
+                   :value="edit_help" @click="edit_help=!edit_help">
+              {{ edit_help ? "less..." : "more..." }}</v-btn>
+          </h3>
+          <div v-if="edit_help" class="md">{{child_help_text}}</div>
+        </v-card-text>
+
         <v-card-text v-if="edit_active"><!-- v-if 'cause edited_xx vars not always set -->
-          <v-container fluid class="pa-0 pt-4">
+          <v-container fluid class="pa-0">
             <!-- Display row with delete button, move buttons, and resize controls -->
             <v-row align="center">
               <v-col class="d-flex" cols="6" sm="4">
@@ -178,6 +187,7 @@ export default {
     // hack to reposition the edit window when changing widget shape/position, this will go
     // away once we have dragging...
     reposition: true,
+    edit_help: false, // more... help text expansion toggle
   }},
 
   computed: {
@@ -220,6 +230,19 @@ export default {
       const p = window.widgetPalette
       if (this.widget.kind in p) return p[this.widget.kind].props || {}
       return {}
+    },
+
+    // handle a non-vue-standard "help" option in a widget
+    child_help() {
+      const p = window.widgetPalette
+      if (this.widget.kind in p) return p[this.widget.kind].help
+      return undefined
+    },
+    child_help_title() {
+      return this.child_help ? this.child_help.replace(/[.\n].*/s, "") : null
+    },
+    child_help_text() {
+      return this.child_help ? this.child_help.replace(/^.*?[.\n]\s/s, "") : null
     },
 
     // style attribute for widget to determine size

@@ -32,8 +32,9 @@
     computed: {
       md() {
         //console.log("Before:", this.text.replace(/\n/g, "\\n"))
-        console.log("After:", tfmarkdown(this.text, true))
-        return tfmarkdown(this.text, true) },
+        //console.log("After:", tfmarkdown(this.text, true))
+        return tfmarkdown(this.text, true)
+      },
     },
 
   }

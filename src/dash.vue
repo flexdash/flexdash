@@ -68,8 +68,7 @@
           </v-tooltip>
 
           <!-- Connection icons -->
-          <demo @msg="handleMsg"></demo>
-          <uib ref="uib" @msg="handleMsg"></uib>
+          <connections></connections>
 
           <!-- Settings menu at far right -->
           <v-menu offset-x min-width="10em" v-model="settings_menu">
@@ -167,20 +166,18 @@
 </template>
 
 <script scoped>
-import Uib from '@/components/uib'
-import Demo from '@/components/demo'
+import Connections from '@/components/connections'
 //const J = JSON.stringify
 
 export default {
   name: 'Dash',
 
-  components: { Uib, Demo, },
+  components: { Connections },
   inject: [ '$config', '$store' ],
 
   data: () => ({
     appTitle: 'FlexDash',
     sidebar: false, // disabled for now
-    gotConfig: false, // set to true when we've received the initial config
     tab_ix: null, // which tab we're on
     tab_edit: false, // turns tab editing drawer on/off
 
@@ -189,6 +186,7 @@ export default {
   }),
 
   computed: {
+    gotConfig() { return this.$config.dash.title !== undefined },
     // note: some of the following get evaluated before the config is loaded, the gotConfig
     // guard ensures that they do get re-evaluated when it is loaded despite Vue2 issues...
     dash() { return this.gotConfig ? this.$config.dash : {} },
@@ -225,32 +223,6 @@ export default {
   },
 
   methods: {
-    // Handle a msg event emitted by a server connection, process the message and
-    // inject it into the store.
-    handleMsg(msg) {
-      // Ignore if there's not topic and payload
-      if (!('topic' in msg && 'payload' in msg)) {
-        console.log("Message w/out topic/payload:", msg)
-        return
-      }
-
-      // Do some special handling of dashboard config messages
-      if (msg.topic === "$config") {
-        console.log("*** config received")
-        this.gotConfig = true
-
-        // sanity check the config for bootstrapping purposes
-        if (!msg.payload || !msg.payload.dash) {
-          console.log("*** No or broken config, clearing! (got:", msg.payload)
-          this.$store.initDash()
-          return
-        }
-      }
-
-      // Insert into store.
-      this.$store.insertData(msg.topic, msg.payload)
-    },
-
     // handle buttons for tab editing
     addTab() {
       const tab_ix = this.$store.addTab()
@@ -294,7 +266,6 @@ export default {
     deleteGrid(tab_id, grid_ix) {
       this.$store.deleteGrid(tab_id, grid_ix)
     },
-
   },
 
 }

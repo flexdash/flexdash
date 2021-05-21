@@ -4,9 +4,6 @@
 -->
 
 <template>
-  <v-icon :color="color">mdi-network</v-icon>
-</template>
-<template>
   <div class="mx-2">
     <v-tooltip bottom>
       <template v-slot:activator="{on}">

@@ -4,15 +4,11 @@
 -->
 
 <template>
-  <div class="mx-2">
-    <v-tooltip bottom>
-      <template v-slot:activator="{on}">
-        <v-btn small icon :color="color" v-on="{click:handleChange, ...on}">
-          <v-icon>mdi-dice-multiple</v-icon>
-        </v-btn>
-      </template>
-      <span>Enable random demo data to be fed into demo_*.</span>
-    </v-tooltip>
+  <div style="display: content;">
+    <v-list-item-title>Demo</v-list-item-title>
+    <v-list-item-content>
+      <span>Random data for demo purposes.</span>
+    </v-list-item-content>
   </div>
 </template>
 
@@ -42,7 +38,7 @@ const randomStepper = (() => {
           z = x2 * w;
       }
       phase ^= 1;
-  
+
       return z;
     }
     let min = 50, max = 90, r
@@ -155,64 +151,71 @@ const plot_opts = {
         "F": { from: "C", range: /*(u, min, max) =>*/ '[ min*9/5+32, max*9/5+32 ]' }, },
 }
 
+class DemoConnection {
+  constructor () {
+    this.active = false
+    this.timers = []
+    return this
+  }
+
+  start(sendMsg) {
+    this.sendMsg = sendMsg
+    this.active = true
+    // send dashboard configuration
+    this.sendMsg({topic: '$config', payload: demo_config})
+    // start interval timers to send data for stats, gauges, etc
+    for (let i=0; i<series.length; i++) {
+      this.timers.push(window.setInterval(()=>this.tick(series[i]), 5000+i*1000))
+      this.tick(series[i])
+    }
+    // send time plot config and start interval timer for plot
+    this.sendMsg({topic: 'temp_opts', payload: plot_opts})
+    this.timers.push(window.setInterval(()=>this.plot, 3000))
+    this.plot()
+  }
+
+  stop() {
+    // kill all the timers
+    this.timers.map((t) => window.clrInterval(t))
+    this.timer = []
+    this.active = false
+  }
+
+  status() {
+    return "OK"
+  }
+
+  // internal functions
+
+  tick(s) {
+    const t = Math.round(10*randomStepper(s))/10
+    //console.log(`Demo: demo_${s}=${t}`)
+    this.sendMsg({topic: `${s}`, payload: t})
+  }
+
+  plot() {
+    let data = [ Date.now()/1000, Math.round(10*randomStepper("p1"))/10,
+        Math.round(10*randomStepper("p2"))/10, Math.round(10*randomStepper("p3"))/10 ]
+    this.sendMsg({topic: 'temp_data', payload: data})
+  }
+}
+
+// singleton for now
+const connection = new DemoConnection()
+export { connection }
+
+// Vue component to display configuration dialog
 export default {
-  name: 'Demo',
+  name: 'DemoConnection',
 
   data: () => ({
     enable: true,
-    timers: [],
   }),
 
   computed: {
     color() { return this.enable ? "green" : null },
   },
 
-  // Called after vue components are loaded and DOM built.
-  mounted() {
-    if (this.enable) {
-      // if the demo stuff is enabled at mount time we kick everything off here
-      this.enable = false
-      this.handleChange()
-      window.setTimeout(this.tick, 3000)
-    }
-  },
-
-  methods: {
-    // handle a demo switch toggle
-    handleChange() {
-      this.enable = !this.enable
-      console.log("Demo switch changed to", this.enable)
-      if (this.enable) {
-        // send dashboard configuration
-        this.$emit('msg', {topic: '$config', payload: demo_config})
-        // start interval timers to send data for stats, gauges, etc
-        for (let i=0; i<series.length; i++) {
-          this.timers.push(window.setInterval(()=>this.tick(series[i]), 5000+i*1000))
-          this.tick(series[i])
-        }
-        // send time plot config and start interval timer for plot
-        this.$emit('msg', {topic: 'temp_opts', payload: plot_opts})
-        this.timers.push(window.setInterval(this.plot, 3000))
-        this.plot()
-      } else {
-        // kill all the timers
-        this.timers.map((t) => window.clrInterval(t))
-        this.timer = []
-      }
-    },
-
-    tick(s) {
-      const t = Math.round(10*randomStepper(s))/10
-      //console.log(`Demo: demo_${s}=${t}`)
-      this.$emit('msg', {topic: `${s}`, payload: t})
-    },
-
-    plot() {
-      let data = [ Date.now()/1000, Math.round(10*randomStepper("p1"))/10,
-          Math.round(10*randomStepper("p2"))/10, Math.round(10*randomStepper("p3"))/10 ]
-      this.$emit('msg', {topic: 'temp_data', payload: data})
-    },
-  },
-
 }
+
 </script>
