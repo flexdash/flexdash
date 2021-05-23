@@ -9,25 +9,25 @@
 </template>
 
 <script scoped>
-  module.exports = {
-    name: 'Stat',
-    help: `Display numeric or text status value.
+export default {
+  name: 'Stat',
+  help: `Display numeric or text status value.
 The Stat widget displays a simple centered numerical or text value. Optionally a unit string
 can be appended and is rendered as a superscript.`,
 
-    props: {
-      unit: String,
-      value: { default: null },
-    },
+  props: {
+    unit: String,
+    value: { default: null },
+  },
 
-    computed: {
-      unitTxt: function() { return this.value === "--" ? "" : this.unit; },
-      valTxt: function() {
-        if (typeof this.value == 'number') return Math.round(this.value*10.0)/10.0
-        else if (this.value === null) return "--";
-        else return this.value;
-      },
+  computed: {
+    unitTxt: function() { return this.value === "--" ? "" : this.unit; },
+    valTxt: function() {
+      if (typeof this.value == 'number') return Math.round(this.value*10.0)/10.0
+      else if (this.value === null) return "--";
+      else return this.value;
     },
+  },
 
-  }
+}
 </script>

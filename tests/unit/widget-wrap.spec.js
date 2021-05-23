@@ -1,30 +1,28 @@
 import Vue from 'vue'
 import { myMount } from './mounts.js'
-import WidgetWrap from "@/components/widget-wrap.vue"
-import { default as store, StoreReinit } from '@/store.js'
+import WidgetWrap from "/src/components/widget-wrap.vue"
+import { default as store, StoreReinit } from '/src/store.js'
 
-import Stat from "@/widgets/stat.vue"
-import Gauge from "@/widgets/gauge.vue"
+import Stat from "/src/widgets/stat.vue"
+import Gauge from "/src/widgets/gauge.vue"
 
 const config1 = {
   kind: 'Stat', id: "w1", static: { title: "t1", unit: "F" }, dynamic: { value: "foo" }
 }
 
 const options = {
-  provide: { sendSrv: () => {} },
+  provide: {
+    palette: {
+      widgets: {
+        Stat: { props: { unit: { type: String }, value: { type: Number } } },
+        Gauge: { props: { title: { type: String } } },
+      },
+    },
+  },
   components: { Stat, Gauge },
 }
 
 describe('WidgetWrap', () => {
-
-  beforeEach(() => {
-    window.widgetPalette = {
-      Stat: { props: { unit: { type: String }, value: { type: Number } } },
-      Gauge: { props: { title: { type: String } } },
-    }
-  })
-
-  afterEach(() => { delete window.widgetPalette })
 
   it("renders an empty title if the child doesn't", () => {
     const config = { kind: 'Stat' }

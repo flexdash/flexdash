@@ -1,9 +1,31 @@
 import Vue from 'vue';
-import Vuetify from 'vuetify';
+import Vuetify from 'vuetify/lib';
 import 'vuetify/dist/vuetify.min.css'
 //import colors from 'vuetify/lib/util/colors'
 
-Vue.use(Vuetify);
+//  It would be good to move to the SVG version and drop the -outline icons, then see how
+//  to load on-demand even afer bundling. We only need "all icons" so the user can pick arbitrary
+//  icons for tabs and widgets...
+import '@mdi/font/css/materialdesignicons.css'
+
+// See https://fontsource.org/docs/getting-started
+// The browser does seem to load only the fonts actually used, gotta see what the bundling
+// ends up doing... This seems better or worked-out internally in Vuetify3
+import '@fontsource/roboto/100.css'
+import '@fontsource/roboto/300.css'
+import '@fontsource/roboto/400.css'
+import '@fontsource/roboto/500.css'
+import '@fontsource/roboto/700.css'
+import '@fontsource/roboto/900.css'
+import '@fontsource/roboto/100-italic.css'
+import '@fontsource/roboto/300-italic.css'
+import '@fontsource/roboto/400-italic.css'
+import '@fontsource/roboto/500-italic.css'
+import '@fontsource/roboto/700-italic.css'
+import '@fontsource/roboto/900-italic.css'
+
+
+Vue.use(Vuetify)
 
 export default new Vuetify({
   theme: {
@@ -34,4 +56,4 @@ export default new Vuetify({
       },
     },
   },
-});
+})

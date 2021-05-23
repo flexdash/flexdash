@@ -73,7 +73,7 @@
           <!-- Menu content -->
           <v-list>
             <v-subheader>Add Widget to the end of the grid</v-subheader>
-            <v-list-item v-for="kind in palette()" :key="kind"
+            <v-list-item v-for="kind in widgets" :key="kind"
                          @click="addWidget(kind)">
               <v-list-item-title>{{kind}}</v-list-item-title>
             </v-list-item>
@@ -106,13 +106,13 @@
 
 <script scoped>
 
-import WidgetEdit from '@/components/widget-edit'
+import WidgetEdit from '/src/components/widget-edit.vue'
 
 export default {
   name: 'FixedGrid',
 
   components: { WidgetEdit },
-  inject: [ '$store', '$config' ],
+  inject: [ '$store', '$config', 'palette' ],
 
   props: {
     id: { type: String }, // this grid's ID
@@ -133,15 +133,16 @@ export default {
       const rm = this.grid.widgets.length>0 &&  !this.rolledup && 'roller__minimal'
       return [ 'd-flex', 'roller', rm ]
     },
+
+    // widgets provides the list of available widgets for the add-widget drop-down
+    widgets() {
+      console.log("Palette:", this.palette.widgets);
+      return Object.keys(this.palette.widgets)
+    },
+
   },
 
   methods: {
-    // palette returns the list of available widgets for the add-widget drop-down
-    palette() {
-      console.log("Palette:", window.widgetPalette);
-      return Object.keys(window.widgetPalette)
-    },
-
     toggleEdit(ix, on) { this.edit_ix = on ? ix : null },
 
     addWidget(kind) {

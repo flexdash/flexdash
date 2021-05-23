@@ -166,13 +166,13 @@
 
 <script scoped>
 
-import WidgetWrap from '@/components/widget-wrap'
+import WidgetWrap from '/src/components/widget-wrap.vue'
 
 export default {
   name: 'WidgetEdit',
 
   components: { WidgetWrap },
-  inject: [ '$store' ],
+  inject: [ '$store', 'palette' ],
 
   props: {
     id: { type: String, required: true }, // my widget ID
@@ -227,14 +227,14 @@ export default {
     // convert types and raise warning messages. (Note that this is not reactive in the component
     // definition.)
     child_props() {
-      const p = window.widgetPalette
+      const p = this.palette.widgets
       if (this.widget.kind in p) return p[this.widget.kind].props || {}
       return {}
     },
 
     // handle a non-vue-standard "help" option in a widget
     child_help() {
-      const p = window.widgetPalette
+      const p = this.palette.widgets
       if (this.widget.kind in p) return p[this.widget.kind].help
       return undefined
     },

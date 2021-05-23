@@ -107,3 +107,10 @@ To develop on FlexDash you should clone the repo, do an `npm install` and
   mode can be found in `src/components/demo.vue`.
 - There a start at unit tests in `tests/unit` but they haven't kept up.
 
+## Scripts
+
+```bash
+  npm run dev # start dev server
+  npm run build # build for production
+  npm run serve # locally preview production build
+```

@@ -2,7 +2,7 @@ import { createLocalVue } from "@vue/test-utils"
 import { shallowMount, mount } from "@vue/test-utils"
 import Vue from 'vue'
 import Vuetify from 'vuetify'
-import store from '@/store.js'
+import store from '/src/store.js'
 
 const localVue = createLocalVue()
 Vue.use(Vuetify)
@@ -12,13 +12,10 @@ export const transitionStub = () => ({ render(h) {
 
 export function myMount(comp, options, real) {
   const vuetify = new Vuetify()
+  const palette = { grids: {FixedGrid: {}}, widgets: {Stat:{}, Gauge:{}} }
   options = Object.assign({
     localVue, vuetify,
-    data: () => ({
-        appTitle : "fooey",
-        gotConfig : true,
-        tab : 0,
-      }),
+    provide: {palette},
     ...options})
   if (!options.provide) options.provide = {}
   options.provide.$config = store.config

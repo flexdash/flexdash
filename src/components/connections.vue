@@ -28,7 +28,7 @@
 
 <script scoped>
 //import Uib from '@/components/uib'
-import { default as Demo, connection as demo_connection } from '@/connections/demo'
+import { default as Demo, connection as demo_connection } from '/src/connections/demo.vue'
 
 export default {
   name: "Connections",

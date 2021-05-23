@@ -21,23 +21,23 @@
 </style>
 
 <script scoped>
-  module.exports = {
-    name: 'Markdown',
+export default {
+  name: 'Markdown',
 
-    props: {
-      title: { default: "Markdown" },
-      text: { type: String, default: "Hello World!" },
+  props: {
+    title: { default: "Markdown" },
+    text: { type: String, default: "Hello World!" },
+  },
+
+  computed: {
+    md() {
+      //console.log("Before:", this.text.replace(/\n/g, "\\n"))
+      //console.log("After:", tfmarkdown(this.text, true))
+      return tfmarkdown(this.text, true)
     },
+  },
 
-    computed: {
-      md() {
-        //console.log("Before:", this.text.replace(/\n/g, "\\n"))
-        //console.log("After:", tfmarkdown(this.text, true))
-        return tfmarkdown(this.text, true)
-      },
-    },
-
-  }
+}
 
 
 function tfmarkdown(md, disableHtml) {

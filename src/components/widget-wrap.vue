@@ -65,7 +65,7 @@ export default {
     // convert types and raise warning messages. (Note that this is not reactive in the component
     // definition.)
     child_props() {
-      const p = window.widgetPalette
+      const p = this.palette.widgets
       if (this.config.kind in p) return p[this.config.kind].props || {}
       return {}
     },
@@ -83,7 +83,7 @@ export default {
     },
   },
 
-  inject: [ 'sendSrv', '$store' ],
+  inject: [ '$store', 'palette' ],
 
   methods: {
     // addDynBinding adds a dynamic binding of store.sd[var_name] -> bindings[key]
@@ -181,7 +181,7 @@ export default {
       const o = this.config.output
       if (!this.suppressOutput && o) {
         console.log(`Widget ${this.config.kind}[${this.config.id}] sending ${o} <-`, data)
-        this.sendSrv(o, data)
+        //this.sendSrv(o, data)
       } else {
         console.log(`Output of widget ${this.config.kind}[${this.config.id}] suppressed`)
       }

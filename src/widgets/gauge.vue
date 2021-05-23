@@ -17,7 +17,7 @@
 </template>
 
 <script scoped>
-import SvgGauge from '../components/svg-gauge';
+import SvgGauge from '/src/components/svg-gauge.vue';
 
 export default {
   name: 'Gauge',

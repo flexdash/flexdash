@@ -80,11 +80,11 @@ const demo_config = {
       "t00001": { "id": "t00001", "icon": "home-thermometer", "grids": [ "g1", "g2" ] }
   },
   "grids": {
-      "g0": { "id": "g0", "kind": "fixed-grid",
+      "g0": { "id": "g0", "kind": "FixedGrid",
               "widgets": [ "1", "0", "3", "2", "9", "6", "7", "8", "10", "11", "12", "13", "14" ]
       },
-      "g1": { "id": "g1", "kind": "fixed-grid", "widgets": [] },
-      "g2": { "id": "g2", "kind": "fixed-grid", "widgets": [] }
+      "g1": { "id": "g1", "kind": "FixedGrid", "widgets": [] },
+      "g2": { "id": "g2", "kind": "FixedGrid", "widgets": [] }
   },
   "widgets": {
       "1": { "kind": "Markdown", "id": "1", "cols": 3, "rows": 3, "dynamic": {},

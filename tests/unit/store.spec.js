@@ -1,5 +1,5 @@
 import Vue from 'vue'
-import { default as store, Store, StoreError, functions as f } from "@/store.js"
+import { default as store, Store, StoreError, functions as f } from "/src/store.js"
 
 describe('Store walkTree', () => {
   let tree

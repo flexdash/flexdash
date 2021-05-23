@@ -1,10 +1,17 @@
 module.exports = {
-  preset: '@vue/cli-plugin-unit-jest',
-  "moduleNameMapper": {
-    "^@(public/.*)$": "<rootDir>/$1",
+  moduleFileExtensions: ['vue', 'js', 'json'],
+  moduleNameMapper: {
+    "^/(.*)$": "<rootDir>/$1",
+  },
+  globals: {
+    'vue-jest': {babelConfig: true},
+  },
+  transform: {
+    '^.+\\.vue$': 'vue-jest',
+    ".*\\.(js)$": "babel-jest",
   },
   collectCoverage: true,
-  //coverageProvider: 'v8',
+  coverageProvider: 'v8',
   coverageDirectory: 'tests/cov',
   coverageReporters: ['text', 'html'],
   collectCoverageFrom: [

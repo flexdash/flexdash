@@ -11,7 +11,7 @@
 </template>
 
 <script scoped>
-module.exports = {
+export default {
   name: 'Toggle',
 
   props: {

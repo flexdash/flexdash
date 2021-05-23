@@ -16,78 +16,78 @@
       </div>
     </v-navigation-drawer>
 
-    <!-- wrapping nav in a menu to be able to bring up an editing card -->
-    <v-menu v-model="tab_edit" offset-y allow-overflow max-width="30ex"
-            content-class="popup-spacer" :close-on-content-click="false">
-      <template v-slot:activator="on">
+    <!-- Top title/navigation bar -->
+    <v-app-bar dense app clipped-left color="surface">
+      <!-- Hamburger menu shown on smallest devices only -->
+      <span class="hidden-sm-and-up">
+        <v-app-bar-nav-icon @click="sidebar = !sidebar"></v-app-bar-nav-icon>
+      </span>
 
-        <!-- Top title/navigation bar -->
-        <v-app-bar dense app clipped-left color="surface">
-          <!-- Hamburger menu shown on smallest devices only -->
-          <span class="hidden-sm-and-up">
-            <v-app-bar-nav-icon @click="sidebar = !sidebar"></v-app-bar-nav-icon>
-          </span>
+      <!-- Title -->
+      <v-toolbar-title class="text-h4 font-weight-bold text--secondary flex-shrink-0 mr-3"
+                       style="font-variant: small-caps">
+        {{ gotConfig ? dash.title : "FlexDash" }}
+      </v-toolbar-title>
 
-          <!-- Title -->
-          <v-toolbar-title class="text-h4 font-weight-bold text--secondary flex-shrink-0 mr-3"
-                           style="font-variant: small-caps">
-            {{ gotConfig ? dash.title : "FlexDash" }}
-          </v-toolbar-title>
-
-          <!-- Tabs -->
-          <v-tabs v-model=tab_ix icons-and-text class="hidden-xs-only" v-if="gotConfig">
-            <v-tab v-for="(tid, ix) in dash_tabs" :key="tid+ix" :xhref="'#tab'+ix"
-                   :class="{'is-active': ix == tab_ix}">
-                   <!-- set class above as work-around for vuetify issue #11405-->
-              <!-- Text and icon for the tab -->
-              {{tabs[tid].title}}
-              <v-icon :large="!tabs[tid].title" class="mb-0">mdi-{{tabs[tid].icon}}</v-icon>
-              <!-- Button to edit the tab -->
-              <div style="position:absolute; z-index:5; right:0; top:0.5ex;">
-                <v-btn small icon v-if="$root.editMode && ix==tab_ix"
-                       @click="tab_edit=!tab_edit" :not-used="on">
-                  <v-icon small>mdi-pencil</v-icon>
-                </v-btn>
-              </div>
-            </v-tab>
-            <!-- Button to add a tab -->
-            <v-btn v-if="$root.editMode" x-small fab @click="addTab" class="my-auto">
-              <v-icon>mdi-plus</v-icon>
+      <!-- Tabs -->
+      <v-tabs v-model=tab_ix icons-and-text center-active class="xhidden-xs-only" v-if="gotConfig">
+        <v-tab v-for="(tid, ix) in dash_tabs" :key="tid+ix" :id="'tab-'+tid" :xhref="'#tab'+ix"
+               :class="{'is-active': ix == tab_ix}">
+               <!-- set class above as work-around for vuetify issue #11405-->
+          <!-- Text and icon for the tab -->
+          {{tabs[tid].title}}
+          <v-icon :large="!tabs[tid].title" class="mb-0">mdi-{{tabs[tid].icon}}</v-icon>
+          <!-- Button to edit the tab -->
+          <div style="position:absolute; z-index:5; right:0; top:0.5ex;">
+            <v-btn small icon v-if="$root.editMode && ix==tab_ix"
+                   @click="tab_edit=!tab_edit">
+              <v-icon small>mdi-pencil</v-icon>
             </v-btn>
-          </v-tabs>
+          </div>
+        </v-tab>
+        <!-- Button to add a tab -->
+        <v-btn v-if="$root.editMode" x-small fab @click="addTab($event)" class="my-auto">
+          <v-icon>mdi-plus</v-icon>
+        </v-btn>
+      </v-tabs>
 
-          <!-- Undo button -->
-          <v-tooltip bottom :disabled="!canUndo" :foo="on">
-            <template v-slot:activator="{ on, attrs }">
-              <v-btn icon v-bind="attrs" v-on="on"
-                     :disabled="!canUndo" @click="$store.performUndo()">
-                <v-icon>mdi-undo</v-icon>
-              </v-btn>
-            </template>
-            <span>undo {{ canUndo && $store.undo.buf[$store.undo.buf.length-1].tagline }}</span>
-          </v-tooltip>
+      <v-spacer></v-spacer>
 
-          <!-- Connection icons -->
-          <connections></connections>
+      <!-- Undo button -->
+      <v-tooltip bottom :disabled="!canUndo">
+        <template v-slot:activator="{ on, attrs }">
+          <v-btn icon v-bind="attrs" v-on="on"
+                 :disabled="!canUndo" @click="$store.performUndo()">
+            <v-icon>mdi-undo</v-icon>
+          </v-btn>
+        </template>
+        <span>undo {{ canUndo && $store.undo.buf[$store.undo.buf.length-1].tagline }}</span>
+      </v-tooltip>
 
-          <!-- Settings menu at far right -->
-          <v-menu offset-x min-width="10em" v-model="settings_menu">
-            <!-- Menu activator, i.e. the button -->
-            <template v-slot:activator="{ on, attrs }">
-              <v-btn icon v-bind="attrs" v-on="on"><v-icon>mdi-cog</v-icon></v-btn>
-            </template>
-            <!-- Settings Menu -->
-            <v-list dense>
-              <v-list-item>
-                <v-switch v-model="$root.editMode" inset label="Edit"></v-switch>
-              </v-list-item>
-              <v-list-item>
-                <v-switch v-model="$vuetify.theme.dark" inset label="Dark"></v-switch>
-              </v-list-item>
-            </v-list>
-          </v-menu>
-        </v-app-bar>
-      </template>
+      <!-- Connection icons -->
+      <connections></connections>
+
+      <!-- Settings menu at far right -->
+      <v-menu offset-x min-width="10em" v-model="settings_menu">
+        <!-- Menu activator, i.e. the button -->
+        <template v-slot:activator="{ on, attrs }">
+          <v-btn icon v-bind="attrs" v-on="on"><v-icon>mdi-cog</v-icon></v-btn>
+        </template>
+        <!-- Settings Menu -->
+        <v-list dense>
+          <v-list-item>
+            <v-switch v-model="$root.editMode" inset label="Edit"></v-switch>
+          </v-list-item>
+          <v-list-item>
+            <v-switch v-model="$vuetify.theme.dark" inset label="Dark"></v-switch>
+          </v-list-item>
+        </v-list>
+      </v-menu>
+    </v-app-bar>
+
+    <!-- Menu used to show editing panel-->
+    <v-menu v-model="tab_edit" offset-y allow-overflow :activator="'#tab-'+tab_id"
+            max-width="30ex" content-class="popup-spacer" :close-on-content-click="false">
 
       <!-- Editing panel shown floating below tab -->
       <v-card color="surface">
@@ -150,8 +150,8 @@
           <v-tab-item v-for="(id) in dash_tabs" :key="id"
                       :class="{'is-active': id == tab_id}">
                       <!-- set class above as work-around for vuetify issue #11405-->
-            <component v-for="(g, ix) in tabs[id].grids" :key="g"
-                       v-bind:is="grids[g].kind" :id="g"
+            <component v-for="(g, ix) in tabs[id].grids" :key="g" :id="g"
+                       v-bind:is="grids[g].kind in palette.grids ? grids[g].kind : 'VCard'"
                        @delete="deleteGrid(id, ix)">
             </component>
           </v-tab-item>
@@ -166,14 +166,14 @@
 </template>
 
 <script scoped>
-import Connections from '@/components/connections'
+import Connections from '/src/components/connections.vue'
 //const J = JSON.stringify
 
 export default {
   name: 'Dash',
 
   components: { Connections },
-  inject: [ '$config', '$store' ],
+  inject: [ '$config', '$store', 'palette' ],
 
   data: () => ({
     appTitle: 'FlexDash',
@@ -224,8 +224,9 @@ export default {
 
   methods: {
     // handle buttons for tab editing
-    addTab() {
+    addTab(ev) {
       const tab_ix = this.$store.addTab()
+      ev.stopPropagation()
       this.$nextTick(() => {
         this.tab_ix = tab_ix
         this.tab_edit = true // switch to editing the new tab
@@ -276,14 +277,14 @@ export default {
 [v-cloak]::before { content: "loading…" }
  
 /* Remove some excessive padding at left&right, especially for small devices */
-.v-app-bar > .v-toolbar__content { padding: 0px 8px; }
-/* Improve vertical alignment of items in toolbar extension (justify-content superceded by mx-auto)*/
-.v-app-bar > .v-toolbar__extension { align-items: end; justify-content: center; }
-.v-app-bar > .v-toolbar__extension input { padding-top: 0px !important; }
-/* Add a hairline between the normal app bar and the extension */
-.v-app-bar.theme--light .v-toolbar__extension { border-top: 1px solid #e0e0e0; }
-.v-app-bar.theme--dark .v-toolbar__extension { border-top: 1px solid #111; }
+.v-app-bar > .v-toolbar__content { padding: 0px 8px; display: flex; }
 
+/* Make tabs fit between title on the left and buttons on the right, why is this so hard? */
+.v-app-bar .v-tabs { overflow: auto }
+.v-app-bar .v-slide-group__prev { display: none !important; }
+.v-app-bar .v-slide-group__next { display: none !important; }
+
+/* Give menu a tiny bit of room between tab and top of menu */
 .popup-spacer { margin-top: 2px; margin-bottom: 3px; }
 
 /* this is probably the wrong place for these little utility classes... */

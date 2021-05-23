@@ -3,47 +3,32 @@
 // Copyright ©2021 Thorsten von Eicken, MIT license, see LICENSE file
 
 import Vue from 'vue'
-import vuetify from '@/plugins/vuetify'
+import vuetify from './plugins/vuetify.js'
 import Dash from './dash.vue'
-import LoadScript from 'vue-plugin-load-script'
 import store from './store'
 
 // Load socket.io from the local npm package (i.e. tell webpack to include it) and stick it into
 // a global var so uibuilder finds it.
-window.io = require('socket.io-client')
+//window.io = require('socket.io-client')
 
 Vue.config.productionTip = false
 
-Vue.use(LoadScript)
-Vue.loadScript('./date_helpers.js')
-
-// loadComponentsFromDir loads all .vue files in a specific directory and returns a map of
-// their PascalCased names to their component definition (the default object being exported).
-function loadComponentsFromDir(requireComponent) {
-  return Object.fromEntries(
-    requireComponent.keys().map(fileName => {
-      // Load the component module
-      const componentConfig = requireComponent(fileName)
-      // Get PascalCase name of component
-      const baseName = fileName.split("/").pop().replace(/\.\w+$/, '')
-      // Transform to PascalCase
-      let componentName = baseName.replace(/-\w/g, s=>{return s[1].toLocaleUpperCase()})
-      componentName = componentName[0].toLocaleUpperCase() + componentName.substr(1)
-      // Register component globally
-      Vue.component(componentName, componentConfig.default || componentConfig)
-      console.log(`Imported ${componentName} globally from ${fileName}`)
-      return [ componentName, componentConfig.default ]
+// use Vite's module glob import to load widgets and grids
+const palette = Vue.observable({ widgets: {}, grids: {}, count: 0 })
+function globImport(tgt, metaglob) {
+  for (const path in metaglob) {
+    metaglob[path]().then(mod => {
+      const name = mod.default.name
+      console.log(`Loaded ${name} from ${path}`)
+      Vue.component(name, mod.default)
+      Vue.set(tgt, name, mod.default)
+    }).catch(err => {
+      console.log(`Error glob-loading ${path}:`, err)
     })
-  )
+  }
 }
-// Globally register all widgets from /src/widgets/*.vue and all grids from /src/grids/*.vue
-// 'cause they get instantiated dynamically in various places.
-// It's debatable whether this might be better done locally in the grid and widget components...
-// From https://vuejs.org/v2/guide/components-registration.html
-const requireWidgets = require.context("./widgets", true /*recursive*/, /\S+\.vue$/)
-window.widgetPalette = loadComponentsFromDir(requireWidgets)
-const requireGrids = require.context("./grids", true /*recursive*/, /\S+\.vue$/)
-window.gridPalette = loadComponentsFromDir(requireGrids)
+globImport(palette.widgets, import.meta.glob('/src/widgets/*.vue'))
+globImport(palette.grids, import.meta.glob('./grids/*.vue'))
 
 new Vue({
   vuetify,
@@ -53,10 +38,12 @@ new Vue({
     editMode: false,
   },
 
-  // Provide the store to all components through the hierarchy
   provide: {
+    // Provide the store to all components through the hierarchy
     $config: store.config,
     $store: store,
+    // provide the widget and grid palettes to all components (although just a couple need them)
+    palette,
   },
 
 
