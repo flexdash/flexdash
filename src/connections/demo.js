@@ -1,18 +1,8 @@
-<!-- Demo - Fake back-end server that sends a little bit of pseudo-random demo data so we
-     can try things out without having to connect anywhere.
-     Copyright ©2021 Thorsten von Eicken, MIT license, see LICENSE file
--->
-
-<template>
-  <div style="display: content;">
-    <v-list-item-title>Demo</v-list-item-title>
-    <v-list-item-content>
-      <span>Random data for demo purposes.</span>
-    </v-list-item-content>
-  </div>
-</template>
-
-<script scoped>
+/* Demo - Fake back-end server that sends a little bit of pseudo-random demo data so we
+   can try things out without having to connect anywhere.
+   This file contains the code that actually generates the data.
+   Copyright ©2021 Thorsten von Eicken, MIT license, see LICENSE file
+*/
 
 const series = [ 'kitchen', 'bedroom', 'study', 'living room', 'guest room' ]
 
@@ -73,7 +63,11 @@ _to be continued_ ...
 const demo_config = {
   "dash": {
       "title": "FlexDash",
-      "tabs": [ "t00000", "t00001" ]
+      "tabs": [ "t00000", "t00001" ],
+  },
+  "conn": {
+      "demo": { "enabled": true },
+      "websock": { "enabled": false, "address": "" },
   },
   "tabs": {
       "t00000": { "id": "t00000", "icon": "view-dashboard", "grids": [ "g0" ] },
@@ -87,7 +81,7 @@ const demo_config = {
       "g2": { "id": "g2", "kind": "FixedGrid", "widgets": [] }
   },
   "widgets": {
-      "1": { "kind": "Markdown", "id": "1", "cols": 3, "rows": 3, "dynamic": {},
+      "1": { "kind": "Markdown", "id": "1", "cols": 3, "rows": 5, "dynamic": {},
             "static": { "title": "", "text": welcome_text } },
       "0": { "kind": "Stat", "id": "0",
              "static": { "title": "Bedroom", "value": "cold", "unit": "F" },
@@ -151,71 +145,63 @@ const plot_opts = {
         "F": { from: "C", range: /*(u, min, max) =>*/ '[ min*9/5+32, max*9/5+32 ]' }, },
 }
 
-class DemoConnection {
-  constructor () {
+import Vue from 'vue'
+
+export default class DemoConnection {
+  constructor (serverSend, storeInsert) {
+    this.serverSend = serverSend
+    this.storeInsert = storeInsert
     this.active = false
     this.timers = []
+    // data fed into the Vue reactivity system
+    this.data = Vue.observable({
+      last_msg: {topic:null, payload:null}, // last message sent for display
+      status: 'off',
+    })
     return this
   }
 
-  start(sendMsg) {
-    this.sendMsg = sendMsg
+  start() {
     this.active = true
     // send dashboard configuration
-    this.sendMsg({topic: '$config', payload: demo_config})
+    this.storeInsert({topic: '$config', payload: demo_config})
     // start interval timers to send data for stats, gauges, etc
     for (let i=0; i<series.length; i++) {
       this.timers.push(window.setInterval(()=>this.tick(series[i]), 5000+i*1000))
       this.tick(series[i])
     }
     // send time plot config and start interval timer for plot
-    this.sendMsg({topic: 'temp_opts', payload: plot_opts})
+    this.storeInsert({topic: 'temp_opts', payload: plot_opts})
     this.timers.push(window.setInterval(()=>this.plot, 3000))
     this.plot()
+    this.data.status = 'ok'
   }
 
   stop() {
     // kill all the timers
-    this.timers.map((t) => window.clrInterval(t))
+    this.timers.map((t) => window.clearInterval(t))
     this.timer = []
     this.active = false
-  }
-
-  status() {
-    return "OK"
+    this.data.last_msg.topic = null
+    this.data.status = 'off'
   }
 
   // internal functions
 
+  send(msg) {
+    Vue.set(this.data, 'last_msg', msg)
+    this.storeInsert(msg)
+  }
+
   tick(s) {
     const t = Math.round(10*randomStepper(s))/10
     //console.log(`Demo: demo_${s}=${t}`)
-    this.sendMsg({topic: `${s}`, payload: t})
+    this.send({topic: `${s}`, payload: t})
   }
 
   plot() {
     let data = [ Date.now()/1000, Math.round(10*randomStepper("p1"))/10,
         Math.round(10*randomStepper("p2"))/10, Math.round(10*randomStepper("p3"))/10 ]
-    this.sendMsg({topic: 'temp_data', payload: data})
+    this.storeInsert({topic: 'temp_data', payload: data})
   }
 }
-
-// singleton for now
-const connection = new DemoConnection()
-export { connection }
-
-// Vue component to display configuration dialog
-export default {
-  name: 'DemoConnection',
-
-  data: () => ({
-    enable: true,
-  }),
-
-  computed: {
-    color() { return this.enable ? "green" : null },
-  },
-
-}
-
-</script>

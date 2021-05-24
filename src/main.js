@@ -30,12 +30,15 @@ function globImport(tgt, metaglob) {
 globImport(palette.widgets, import.meta.glob('/src/widgets/*.vue'))
 globImport(palette.grids, import.meta.glob('./grids/*.vue'))
 
-new Vue({
+const app = new Vue({
   vuetify,
 
-  // Hack some global variable(s) into Vue so all components can refer to them as this.$root.xxx
   data: { // https://stackoverflow.com/questions/51275301/how-to-react-to-a-global-variable-with-vue
+    // editMode encodes whether the edit toggle is on/off, access anywhere as this.$root.editMode
     editMode: false,
+    // current route, gets initialized with the initial location that loads FlexDash
+    route: window.location.hash,
+    params: (new URL(document.location)).searchParams,
   },
 
   provide: {
@@ -49,3 +52,12 @@ new Vue({
 
   render: h => h(Dash)
 }).$mount('#app')
+
+window.addEventListener('popstate', () => {
+  const sp = (new URL(document.location)).searchParams
+  console.log(`POP! hash=${window.location.hash} qstring=${sp}`)
+  app.route = window.location.hash
+  app.params = sp
+})
+
+app.$mount('#app')

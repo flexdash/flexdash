@@ -14,9 +14,10 @@
     "watch": "NODE_OPTIONS=--experimental-vm-modules npx jest --watch --silent"
   },
   "dependencies": {
-    "@mdi/font": "5.9.55",
     "@fontsource/roboto": "*",
+    "@mdi/font": "5.9.55",
     "lodash": "^4.17.21",
+    "reconnecting-websocket": "^4.4.0",
     "uplot": "^1.6.9",
     "vite-plugin-vue2": "^1.4.0",
     "vue": "^2.6.12",

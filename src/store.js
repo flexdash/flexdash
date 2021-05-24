@@ -58,7 +58,10 @@ const empty_widget = { kind: 'stat', rows:1, cols:1, static:{title:"Stat"}, dyna
 export class Store {
   constructor () {
     // At init we need to populate $config a little so Vue2's watchers work, sigh...
-    this.root = Vue.observable({sd:{}, $config: {dash:{}, tabs:{}, grids:{}, widgets:{}}})
+    this.root = Vue.observable({
+      sd:{},
+      $config: {dash:{}, tabs:{}, grids:{}, widgets:{}, conn:{}}
+    })
     this.sd = this.root.sd // server data, i.e. the data being visualized by the dashboard
     this.config = this.root.$config // the dashboard's configuration
     this.queue = [] // queue of mutations to send to the server
@@ -113,13 +116,13 @@ export class Store {
           if (payload === undefined) // can't produce a simple undo
             throw new StoreError(`Cannot delete array element '${ix}' in '${topic}'`)
           old = dir[ix]
-          console.log(`Updated array elt ${topic} with`, payload)
+          //console.log(`Updated array elt ${topic} with`, payload)
           Vue.set(dir, ix, payload)
         } else if (ix == dir.length) {
           if (payload === undefined)
             throw new StoreError(`Array index '${ix}' in '${topic}' >= ${dir.length}`)
           old = undefined
-          console.log(`Appended array elt ${topic} with`, payload)
+          //console.log(`Appended array elt ${topic} with`, payload)
           dir.push(payload)
         } else {
           throw new StoreError(`Array index '${ix}' in '${topic}' > ${dir.length}`)
@@ -130,10 +133,10 @@ export class Store {
     } else if (typeof(dir) === 'object') {
       old = dir[t]
       if (payload !== undefined) {
-        console.log(`Updated ${topic} with:`, payload)
+        //console.log(`Updated ${topic} with:`, payload)
         Vue.set(dir, t, payload) // $set 'cause we may add new props to dir
       } else {
-        console.log(`Deleted ${topic}`)
+        //console.log(`Deleted ${topic}`)
         delete dir[t]
       }
     } else {

@@ -30,7 +30,7 @@
       </v-toolbar-title>
 
       <!-- Tabs -->
-      <v-tabs v-model=tab_ix icons-and-text center-active class="xhidden-xs-only" v-if="gotConfig">
+      <v-tabs v-model=tab_ix icons-and-text center-active class="hidden-xs-only" v-if="gotConfig">
         <v-tab v-for="(tid, ix) in dash_tabs" :key="tid+ix" :id="'tab-'+tid" :xhref="'#tab'+ix"
                :class="{'is-active': ix == tab_ix}">
                <!-- set class above as work-around for vuetify issue #11405-->
@@ -54,7 +54,7 @@
       <v-spacer></v-spacer>
 
       <!-- Undo button -->
-      <v-tooltip bottom :disabled="!canUndo">
+      <v-tooltip v-if="$root.editMode" bottom :disabled="!canUndo">
         <template v-slot:activator="{ on, attrs }">
           <v-btn icon v-bind="attrs" v-on="on"
                  :disabled="!canUndo" @click="$store.performUndo()">
@@ -151,7 +151,7 @@
                       :class="{'is-active': id == tab_id}">
                       <!-- set class above as work-around for vuetify issue #11405-->
             <component v-for="(g, ix) in tabs[id].grids" :key="g" :id="g"
-                       v-bind:is="grids[g].kind in palette.grids ? grids[g].kind : 'VCard'"
+                       v-bind:is="grids[g].kind in palette.grids ? grids[g].kind : 'div'"
                        @delete="deleteGrid(id, ix)">
             </component>
           </v-tab-item>
@@ -208,6 +208,10 @@ export default {
     tabs(tt) {
       if (this.tab_ix >= tt.length) this.tab_ix = tt.length-1
     },
+  },
+
+  mounted() {
+    console.log(`FlexDash! route=${this.$root.route} params=${this.$root.params}`)
   },
 
   provide() {
