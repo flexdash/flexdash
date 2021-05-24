@@ -63,7 +63,7 @@ export default {
   components: { DemoSettings, WebsockSettings },
 
   data: ()=> ({
-    show_dialog: true, // modal dialog box to configure connections
+    show_dialog: false, // modal dialog box to configure connections
     demo_connection: null,
     websock_connection: null,
   }),
