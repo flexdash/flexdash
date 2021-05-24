@@ -3,7 +3,7 @@
 // Copyright ©2021 Thorsten von Eicken, MIT license, see LICENSE file
 
 import Vue from 'vue'
-import _ from 'lodash'
+import { cloneDeep } from 'lodash-es'
 
 export class StoreError extends Error {
   constructor (message) {
@@ -276,8 +276,8 @@ export class Store {
       const grid_id = this.genId(this.config.grids, "g")
       const tab_ix = this.config.dash.tabs.length
       this.qMutation("add a tab", [
-        [`grids/${grid_id}`, {  ..._.cloneDeep(empty_grid), id: grid_id }],
-        [`tabs/${tab_id}`, { ..._.cloneDeep(empty_tab), id: tab_id, grids: [grid_id] }],
+        [`grids/${grid_id}`, {  ...cloneDeep(empty_grid), id: grid_id }],
+        [`tabs/${tab_id}`, { ...cloneDeep(empty_tab), id: tab_id, grids: [grid_id] }],
         [`dash/tabs/${tab_ix}`, tab_id ],
       ])
     return tab_ix
@@ -323,7 +323,7 @@ export class Store {
     const grid_id = this.genId(this.config.grids, "g")
     const grid_ix = tab.grids.length
     this.qMutation("add a grid", [ // FIXME: add tab name when implemented
-      [`grids/${grid_id}`, { ..._.cloneDeep(empty_grid), id: grid_id } ],
+      [`grids/${grid_id}`, { ...cloneDeep(empty_grid), id: grid_id } ],
       [`tabs/${tab_id}/grids/${grid_ix}`, grid_id ],
     ])
     return grid_ix
@@ -360,7 +360,7 @@ export class Store {
     const widget_ix = grid.widgets.length
     this.qMutation("add a widget", [ // FIXME: add tab name when implemented
       [`widgets/${widget_id}`,
-        { ..._.cloneDeep(empty_widget), id: widget_id, kind, static:{title:kind} } ],
+        { ...cloneDeep(empty_widget), id: widget_id, kind, static:{title:kind} } ],
       [`grids/${grid_id}/widgets/${widget_ix}`, widget_id ],
     ])
     return widget_ix
