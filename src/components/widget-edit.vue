@@ -98,11 +98,13 @@
 
             <!-- Display component properties for editing -->
             <v-row align="center">
-              <!-- For each property of the component, show a combobox to select what gets bound -->
+              <!-- For each property of the component, show some type of edit field-->
               <v-col class="d-flex" cols="12" sm="6" md="4" v-for="prop in edit_props" :key=prop>
+                <!-- toggle buttons to select static vs. dynamic -->
                 <v-tooltip bottom>
                   <template v-slot:activator="{ on, attrs }">
-                    <v-btn-toggle mandatory dense v-model="prop_static[prop]" class="mt-2 mr-1"
+                    <v-btn-toggle mandatory dense class="mt-2 mr-1"
+                                  :value="prop_static[prop]" @change="toggleStatic(prop, $event)"
                                   background-color="rgba(0,0,0,0)" color="primary">
                       <v-btn x-small icon v-bind="attrs" v-on="on">
                         <v-icon>mdi-link-variant</v-icon></v-btn>
@@ -181,19 +183,68 @@ export default {
   },
 
   data() { return {
+    widget: {},
     suppressOutput: true,
     prop_static: {}, // manual toggle between static and dynamic binding
-    saved_widget: null, // widget props for revert function
     // hack to reposition the edit window when changing widget shape/position, this will go
     // away once we have dragging...
     reposition: true,
     edit_help: false, // more... help text expansion toggle
+    // child_props holds the description of the widget component's props
+    child_props: {}, 
+    // prop_info is child_props further massaged:
+    // {name:{type, default, validator, hint, icon, dynamic},...}
+    // prop types: String, Number, Boolean, Array, Object, Date //, Function, Symbol
+    prop_info: {},
   }},
 
-  computed: {
-    // this widget's configuration
-    widget() { return this.$store.widgetByID(this.id) },
+  beforeCreate() { console.log("Before create:", this) },
 
+  created() {
+    console.log("Created widget", this.id)
+    // fetch the widget from the store and perform some init
+    const w = this.$store.widgetByID(this.id) 
+    if (w.static === undefined) w.static = {}
+    if (w.dynamic === undefined) w.dynamic = {}
+    // inspect the component and extract child props
+    let cp = {}
+    const p = this.palette.widgets
+    if (w.kind in p) cp = p[w.kind].props || {}
+    // massage child_props into prop_info
+    const icons = { String: 'mdi-format-quote-close', Number: 'mdi-numeric',
+        Boolean: 'mdi-yin-yang', Array: "mdi-code-brackets", Object: "mdi-code-braces" }
+    let pi = {}
+    for (let name in cp) {
+      let type = cp[name].type || String
+      if (![String, Number, Boolean, Array, Object].includes(type)) type = String
+      let hint = type.name
+      if (cp[name].default !== undefined) hint += `, default: ${cp[name].default}`
+      let icon = icons[type.name]
+      pi[name] = {type, default: cp[name].default, validator: cp[name].validator,
+                  hint, icon, dynamic: cp[name].dynamic}
+    }
+    // FlexDash doesn't have any good place to tweak a freshly instantiated widget. It
+    // just gets added "all undefined" in the store. Right now the code here "does some
+    // stuff"...
+    // The defaults for the widget inputs (props) are currently handled by
+    // Vue's prop defaults, so the store just setting static={} works, except for dynamic
+    // default. We hack them here.
+    console.log("this.widget for", w.id, ", info=", pi, "widget=", w)
+    for (const p in pi) {
+      // if the prop definition says it's dynamic and it's completely unset, then set it
+      if (pi[p].dynamic && !(p in w.dynamic) && !(p in w.static)) {
+        w.dynamic[p] = pi[p].dynamic
+      }
+    }
+    // update instance variables
+    this.widget = w
+    this.child_props = cp
+    this.prop_info = pi
+    // handle init edit_mode being active
+    if (this.edit_active) this.propStatic()
+  },
+
+  computed: {
     // list of keys from store.sd to show in editing combobox
     sdKeys() { return Object.keys(this.$store.sd).sort() },
 
@@ -201,35 +252,6 @@ export default {
     edit_props() {
       const cp = Object.keys(this.child_props)
       return cp.filter(p => p !== 'title').sort()
-    },
-
-    // collect info for all the properties via introspection and massage
-    // returns {name:{type, default, validator, hint, icon},...}
-    // prop types: String, Number, Boolean, Array, Object, Date //, Function, Symbol
-    prop_info() {
-      const icons = { String: 'mdi-format-quote-close', Number: 'mdi-numeric',
-          Boolean: 'mdi-yin-yang', Array: "mdi-code-brackets", Object: "mdi-code-braces" }
-      let pi = {}
-      const cp = this.child_props
-      for (let name in cp) {
-        let type = cp[name].type || String
-        if (![String, Number, Boolean, Array, Object].includes(type)) type = String
-        let hint = type.name
-        if (cp[name].default !== undefined) hint += `, default: ${cp[name].default}`
-        let icon = icons[type.name]
-        pi[name] = {type, default: cp[name].default, validator: cp[name].validator,
-                    hint, icon}
-      }
-      return pi
-    },
-
-    // child_props holds a description of the properties of the child component, this is used to
-    // convert types and raise warning messages. (Note that this is not reactive in the component
-    // definition.)
-    child_props() {
-      const p = this.palette.widgets
-      if (this.widget.kind in p) return p[this.widget.kind].props || {}
-      return {}
     },
 
     // handle a non-vue-standard "help" option in a widget
@@ -257,27 +279,33 @@ export default {
   },
 
   watch: {
-    edit_active(val) {
-      if (val) {
-        this.saved_widget = this.widget
-        // set the dynamic/static toggles according to what's in the config.
-        // Afterwards they're controlled by the user.
-        let self = this
-        this.prop_static = Object.fromEntries(
-          // if prop in config.dynamic then 0 (not static) else 1 (static)
-          Object.keys(self.child_props).map(p => [p, 1 - (p in self.widget.dynamic)])
-        )
-      } else {
-        this.saved_widget = null
-      }
-    }
+    edit_active(val) { if (val) this.propStatic() },
   },
 
   methods: {
+    // set the dynamic/static toggles according to what's in the config.
+    // Afterwards they're controlled by the user.
+    propStatic() {
+      this.prop_static = Object.fromEntries(
+        // if prop in config.dynamic then 0 (not static) else 1 (static)
+        Object.keys(this.child_props).map(p => [p, (p in this.widget.dynamic)?0:1])
+      )
+      console.log("prop_static:", JSON.stringify(this.prop_static))
+    },
+
     // value of a property: either config if set, else default
     propVal(prop) {
       if (this.widget.static[prop] !== undefined) return this.widget.static[prop]
       else return this.prop_info[prop].default
+    },
+
+    // toggle static vs. dynamic for a specific prop
+    toggleStatic(prop, val) {
+      console.log(`toggleStatic(${prop}, ${val})`)
+      this.prop_static[prop] = val
+      // if a prop is toggled to static we need to delete the dynamic value 'cause it takes
+      // priority, i.e. defeats the switch
+      if (val) this.widget.dynamic[prop] = undefined
     },
 
     // toggle edit handles the edit event from the child component
