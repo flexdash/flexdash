@@ -46,7 +46,7 @@
           </div>
         </v-tab>
         <!-- Button to add a tab -->
-        <v-btn v-if="$root.editMode" x-small fab @click="addTab($event)" class="my-auto">
+        <v-btn v-if="$root.editMode" x-small fab @click="addTab($event)" class="my-auto ml-6">
           <v-icon>mdi-plus</v-icon>
         </v-btn>
       </v-tabs>
@@ -167,6 +167,7 @@
 
 <script scoped>
 import Connections from '/src/components/connections.vue'
+import randomStepper from '/src/utils/random-stepper.js'
 //const J = JSON.stringify
 
 export default {
@@ -197,10 +198,6 @@ export default {
     grids() { return this.gotConfig ? this.$config.grids : {} }, // make accessible in template
     theme() { return (this.$vuetify.theme.dark) ? 'dark' : 'light' },
     canUndo() { return this.$store.undo.buf.length > 0 },
-
-    // for debugging purposes, these show up in the vue devtools
-    _sd() { return this.$store.sd },
-    _config() { return this.$config },
   },
 
   watch: {

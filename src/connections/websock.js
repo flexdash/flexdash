@@ -27,7 +27,7 @@ export default class WebsockConnection {
     console.log("WS: connecting to", addr)
     this.data.status = 'bad'
     this.data.status_txt = "connecting"
-    this.rws = new ReconnectingWebSocket(addr, [], { debug: true, startClosed: true })
+    this.rws = new ReconnectingWebSocket(addr, [], { debug: false, startClosed: true })
     this.rws.addEventListener('open', ()=> this.onOpen())
     this.rws.addEventListener('close', ()=> this.onClose())
     this.rws.addEventListener('message', (m)=> this.onMessage(m))

@@ -17,7 +17,7 @@ can be appended and is rendered as a superscript.`,
 
   props: {
     unit: String,
-    value: { default: null },
+    value: { default: null, dynamic: "$demo_random" },
   },
 
   computed: {

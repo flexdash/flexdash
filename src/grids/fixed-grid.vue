@@ -137,7 +137,7 @@ export default {
     // widgets provides the list of available widgets for the add-widget drop-down
     widgets() {
       console.log("Palette:", this.palette.widgets);
-      return Object.keys(this.palette.widgets)
+      return Object.keys(this.palette.widgets).sort()
     },
 
   },
@@ -153,7 +153,7 @@ export default {
     // handle widget delete event coming up from widget-edit
     deleteWidget(ix) {
       this.$store.deleteWidget(this.id, ix)
-      this.endEdit()
+      this.edit_ix = null
     },
 
     // move a widget up/down (dir=-1/1)
@@ -170,7 +170,6 @@ export default {
     changeTitle(ev) { this.$store.updateGrid(this.id, { title: ev }) },
 
   },
-
 }
 
 </script>

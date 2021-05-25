@@ -15,7 +15,7 @@ export default {
   name: 'Sparkchart',
 
   props: {
-    value: { default: 0 },
+    value: { default: 0, dynamic: "$demo_random" }, // type is Number or Array(Number), sigh
     color: { type: String, default: "blue" },
     fill: { type: Boolean, default: false },
     line_width: { type: Number, default: 4 },

@@ -27,7 +27,7 @@ export default {
   },
 
   props: {
-    value: { type: Number, default: null }, // current value to show
+    value: { type: Number, default: null, dynamic: "$demo_random" }, // current value to show
     unit: { type: String, default: "" },
     title: { type: String, default: "Gauge" },
     arc: { type: Number, default: 90,  // degrees spanned by the arc of the gauge
