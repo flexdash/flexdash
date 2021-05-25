@@ -18,6 +18,10 @@
 .v-card__text.md h5 { font-size: 0.875rem; font-weight: 500; margin: 8px 0px 4px; }
 .v-card__text.md h6 { font-size: 0.875rem; font-weight: 500; margin: 8px 0px 4px; }
 .v-card__text.md { line-height: 1.10rem; padding-top: 0px; padding-bottom: 0px; }
+.v-card__text.md code { padding: 0.2em 0.2em; }
+.v-card__text.md ul { margin-bottom: 16px; }
+.v-card__text.md ol { margin-bottom: 16px; }
+.v-card__text.md img { width: 100%; }
 </style>
 
 <script scoped>
@@ -70,8 +74,8 @@ function tfmarkdown(md, disableHtml) {
   });
 
   // Ordered and unordered lists
-  md = md.replace(/^(\*\s.+\n?)+/gm, function(all){
-    all = all.replace(/^\*\s(.*)\n?/gm, '<li>$1</li>');
+  md = md.replace(/^([-*]\s.+\n?)+/gm, function(all){
+    all = all.replace(/^[-*]\s(.*)\n?/gm, '<li>$1</li>');
     return '<ul>'+all+'</ul>';
   });
   md = md.replace(/^([0-9]+\.\s.+\n?)+/gm, function(all){
@@ -101,9 +105,11 @@ function tfmarkdown(md, disableHtml) {
   //md = md.replace(/(^|\n{2,})([^<])(.*?)([^>])($|\n{2,})/sg, "\n<p>$2$3$4</p>\n");
   md = md.split(/\n{2,}/).map(txt => txt.replace(/^([^<].*[^>])$/s, "<p>$1</p>")).join('\n')
   
-  // Bold, italics and links
+  // Bold, italics, code, links, images
   md = md.replace(/(\*\*|__)(.*?)(\*\*|__)/g, '<b>$2</b>');
   md = md.replace(/[*_](.*?)[*_]/g, '<i>$1</i>');
+  md = md.replace(/`(.*?)`/g, '<code>$1</code>');
+  md = md.replace(/!\[(.*?)\]\((.*?)\)/g, '<img src="$2" alt="$1">');
   md = md.replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2">$1</a>');
 
   // Reference-style links
