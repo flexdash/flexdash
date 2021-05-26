@@ -7,21 +7,20 @@
   "repository": "github.com:tve/flexdash",
   "license": "MIT",
   "scripts": {
-    "dev": "vite",
+    "dev": "vite --host 0.0.0.0",
     "build": "vite build",
-    "serve": "vite preview",
+    "serve": "vite --host 0.0.0.0 preview",
     "test": "NODE_OPTIONS=--experimental-vm-modules npx jest",
     "watch": "NODE_OPTIONS=--experimental-vm-modules npx jest --watch --silent"
   },
   "dependencies": {
     "@fontsource/roboto": "*",
     "@mdi/font": "5.9.55",
-    "lodash-es": "^4.17.21",
     "reconnecting-websocket": "^4.4.0",
-    "uplot": "^1.6.9",
+    "uplot": "^1.6.10",
     "vite-plugin-vue2": "^1.5.1",
     "vue": "^2.6.12",
-    "vuetify": "^2.5.0"
+    "vuetify": "^2.5.1"
   },
   "devDependencies": {
     "@babel/core": "^7.14.3",
@@ -33,7 +32,7 @@
     "jest": "^26.6.3",
     "rollup-plugin-visualizer": "^5.5.0",
     "sass": "1.32.13",
-    "vite": "^2.3.3",
+    "vite": "^2.3.4",
     "vite-plugin-components": "^0.9.2",
     "vue-jest": "^3.0.7"
   }
