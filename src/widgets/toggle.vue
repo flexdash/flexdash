@@ -14,14 +14,20 @@
 export default {
   name: 'Toggle',
 
+  help: `Simple on/off toggle switch.
+Sends a pre-determined value when toggled on or off. The current state can be set via the
+value input.`,
+
   props: {
-    value: { default: 0 },
-    enabled: { default: true },
-    color: { default: "primary" },
-    on_value: { default: true },
-    off_value: { default: false },
-    show_value: { default: true },
+    value: { default: false, tip: "set current value" },
+    enabled: { type: Boolean, default: true },
+    color: { type: String, default: "primary" },
+    on_value: { default: true, tip: "value sent when switched on" },
+    off_value: { default: false, tip: "value sent when switched off" },
+    show_value: { type: Boolean, default: true, tip: "show current value" },
   },
+
+  output: { default: null },
 
   data() { return {
     val: 0,  // current value being displayed, separate from this.value to avoid mutating prop
@@ -47,7 +53,7 @@ export default {
   },
 
   watch: {
-    value(v) { this.val = v; },
+    value(v) { this.val = v },
   },
 
   methods: {

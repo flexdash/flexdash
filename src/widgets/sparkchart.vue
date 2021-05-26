@@ -14,12 +14,22 @@
 export default {
   name: 'Sparkchart',
 
+  help: `Sparkline chart.
+A SparkChart displays a simple graph with up to 20 past values. The values can be displayed
+using a line or bars. When using a line the min/max auto-adjust, when using bars the min
+is fixed at 0.
+
+To insert data send a a simple numeric value, it is appended to the chart and the oldest value
+is dropped. It is also possible to send an array, which replaces the entire chart (and can
+thereby alter the number of values shown). Note that it is not possible to show gaps using
+null values.`,
+
   props: {
-    value: { default: 0, dynamic: "$demo_random" }, // type is Number or Array(Number), sigh
+    value: { default: 0, dynamic: "$demo_random", tip: "number to append, array to replace" },
     color: { type: String, default: "blue" },
-    fill: { type: Boolean, default: false },
-    line_width: { type: Number, default: 4 },
-    bars: { type: Boolean, default: false },
+    fill: { type: Boolean, default: false, tip: "solid fill from the line down" },
+    line_width: { type: Number, default: 4, tip: "width of the sparkline or width between bars" },
+    bars: { type: Boolean, default: false, tip: "draw bars instead of line" },
   },
 
   data() { return {

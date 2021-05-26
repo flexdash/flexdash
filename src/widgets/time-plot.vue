@@ -15,12 +15,22 @@
 -->
 
 <template>
-  <div class="px-1">
-    <div style="xx-background-color:#eef;">
-      <!-- uPlot is injected here -->
-    </div>
+  <div class="px-1 width100 height100">
+    <!-- uPlot is injected here -->
   </div>
 </template>
+
+<style>
+.u-legend .u-label, .u-legend th::after, .u-legend .u-value {
+  font: 0.75rem Roboto;
+  vertical-align: bottom !important;
+}
+.u-legend { display: flex; flex-direction: row; }
+.u-plot { height: 100%; flex-grow: 1; }
+/* hacks for when the legend runs over */
+.v-card.theme--light table.u-legend { background-color: #fff; }
+.v-card.theme--dark table.u-legend { background-color: #1e1e1e; }
+</style>
 
 <script scoped>
 
@@ -36,6 +46,16 @@ import 'uplot/dist/uPlot.min.css'
 export default {
   name: "TimePlot",
 
+  help: `Time-series chart.
+Displays a time-series chart using [uPlot](https://github.com/leeoniya/uPlot). The options
+input corresponds to the uPlot options (which are sadly not well documented). The data input
+feeds data into uPlot.
+
+The data must be an Array consisting of the unix epoch timestamp for the value, followed by
+a value per time-series. A value must be used for each time-series but null can be used
+if no value is available. A null value may or may not show as gap depending on the options.
+`,
+
   props: {
     options: { type: Object, default() {return null} }, // options as uPlot expects
     data: { // data in row-wise format
@@ -50,7 +70,7 @@ export default {
     ro: null, // resize observer
     width: 40, // width in pixels
     chart_data: null, // actual data fed to uPlot (i.e. transposed from data)
-    dark_watcher: null, // watcher on $vuetify.theme.dark
+    dark_watcher: null, // watcher on $vuetify.theme.dark used to adjust chart colors
   }; },
 
   watch: {
@@ -118,7 +138,7 @@ export default {
     },
 
     _calcSize() {
-      let width = this.options.width || this.$el.children[0].clientWidth
+      let width = this.options.width || this.$el.clientWidth
       let height = this.options.height || (width / (this.options.aspect || 2))
       console.log(`Time-plot container sized to ${width}x${height}`)
       this.width = width
@@ -192,19 +212,9 @@ export default {
       });
 
       console.log("uPlot options:", opts);
-      this.chart = new uPlot(opts, this.chart_data, this.$el.children[0]);
+      this.chart = new uPlot(opts, this.chart_data, this.$el);
     },
 
   },
 }
 </script>
-
-<style>
-.u-legend .u-label, .u-legend th::after, .u-legend .u-value {
-  font: 0.75rem Roboto;
-  vertical-align: bottom !important;
-}
-/* hacks for when the legend runs over */
-.v-card.theme--light table.u-legend { background-color: #fff; }
-.v-card.theme--dark table.u-legend { background-color: #1e1e1e; }
-</style>

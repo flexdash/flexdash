@@ -6,159 +6,38 @@
     <v-card-text v-if="title" class="font-weight-bold px-0 pt-1 mb-n1 d-flex">
       <span class="mx-auto">{{title}}</span>
     </v-card-text>
-    <v-card-text v-html="md" class="md pt-1" style="width:100%"></v-card-text>
+    <v-card-text class="pt-0">
+      <md class="pt-1" style="width:100%">{{text}}</md>
+    </v-card-text>
   </div>
 </template>
 
-<style>
-.v-card__text.md h1 { font-size: 1.375rem; font-weight: 900; margin: 12px 0px 12px; }
-.v-card__text.md h2 { font-size: 1.2rem;   font-weight: 700; margin: 12px 0px 8px; }
-.v-card__text.md h3 { font-size: 1.0rem;   font-weight: 700; margin: 12px 0px 8px; }
-.v-card__text.md h4 { font-size: 0.875rem; font-weight: 700; margin: 8px 0px 4px; }
-.v-card__text.md h5 { font-size: 0.875rem; font-weight: 500; margin: 8px 0px 4px; }
-.v-card__text.md h6 { font-size: 0.875rem; font-weight: 500; margin: 8px 0px 4px; }
-.v-card__text.md { line-height: 1.10rem; padding-top: 0px; padding-bottom: 0px; }
-.v-card__text.md code { padding: 0.2em 0.2em; }
-.v-card__text.md ul { margin-bottom: 16px; }
-.v-card__text.md ol { margin-bottom: 16px; }
-.v-card__text.md img { width: 100%; }
-</style>
-
 <script scoped>
+import md from '/src/components/md.vue'
+
 export default {
   name: 'Markdown',
 
+  components: { md },
+
+  help: `Render text using simple MarkDown.
+This widget supports the following MarkDown formatting:
+
+- paragraphs separated by an empty line
+- \`_\`_italics_\`_\`, \`*\`*italics*\`*\`, \`__\`__bold__\`__\`, \`**\`**bold**\`**\`, \`\`\`code\`\`\`
+- unordered lists (lines starting with \`- \`X or \`* \`), ordered lists (lines starting with \`[0-9]. \`)
+- headings (lines starting with \`# \` through \`###### \` or lines followed by \`==\` for H1 and \`--\` for H2)
+- block quotes (lines starting with \`> \`)
+- code blocks (lines indented by 2 or more spaces, sorry, but \`\`\`\`\`\` is not supported)
+- links as https://example.com or using \`[alt text](url)\`
+- images using \`![alt text](url)\` (\`width:100%\` is applied)
+- simple tables by starting lines with \`|\` and separating columns also with \`|\`
+`,
+
   props: {
     title: { default: "Markdown" },
-    text: { type: String, default: "Hello World!" },
-  },
-
-  computed: {
-    md() {
-      //console.log("Before:", this.text.replace(/\n/g, "\\n"))
-      //console.log("After:", tfmarkdown(this.text, true))
-      return tfmarkdown(this.text, true)
-    },
+    text: { type: String, default: "- _Hello_ __!__" },
   },
 
 }
-
-
-function tfmarkdown(md, disableHtml) {
-  if (disableHtml) {
-    var d = document.createElement('div');
-    d.innerText = md;
-    md = d.innerHTML;
-    md = md.replace(/<br>/g, '\n');
-  }
-  
-  // Titles
-  md = md.replace(/^(#+)\s(.*)/gm, function(all, hashcount, title){
-    var hc = hashcount.length;
-    return '<h'+hc+'>'+title+'</h'+hc+'>';
-  });
-  md = md.replace(/^(.*)\n([=-]{2,})/gm, function(all, title, ttype){
-    var hc = ttype[0] === '=' ? '1' : '2';
-    return '<h'+hc+'>'+title+'</h'+hc+'>';
-  });
-
-  // Blockquotes and code blocks
-  md = md.replace(/^>\s((.+\n{0,1})+)/gm, function(all, text){
-    text = text.replace(/(\n>\s|\n)/g, '<br />\n');
-    return '<blockquote>'+text+'</blockquote>';
-  });
-  md = md.replace(/^(((\t+|\s{2,}).*\n)+)/gm, function(all, text){
-    text = text.replace(/&/g, '&amp;').replace(/</g, '&lt;');
-    text = text.replace(/\n/g, '<br />\n');
-    return '<code>'+text+'</code>\n';
-  });
-
-  // Ordered and unordered lists
-  md = md.replace(/^([-*]\s.+\n?)+/gm, function(all){
-    all = all.replace(/^[-*]\s(.*)\n?/gm, '<li>$1</li>');
-    return '<ul>'+all+'</ul>';
-  });
-  md = md.replace(/^([0-9]+\.\s.+\n?)+/gm, function(all){
-    all = all.replace(/^[0-9]+\.\s(.*)\n?/gm, '<li>$1</li>');
-    return '<ol>'+all+'</ol>';
-  });
-
-  // Simple (non-markdown) tables
-  md = md.replace(/^(\|.*\n)+/gm, function(a) {
-    var rows = a.split(/\n/g);
-    var out = ['<table>']
-    for (var i=0; i<rows.length-1; i++) {
-      out.push('<tr>');
-      var cols = rows[i].split(/\|/g);
-      for (var j=1; j<cols.length; j++) {
-        out.push('<td>');
-        out.push(cols[j]);
-        out.push('</td>');
-      }
-      out.push('</tr>');
-    }
-    out.push('</table>\n');
-    return out.join('');
-  });
-
-  // Paragraphs
-  //md = md.replace(/(^|\n{2,})([^<])(.*?)([^>])($|\n{2,})/sg, "\n<p>$2$3$4</p>\n");
-  md = md.split(/\n{2,}/).map(txt => txt.replace(/^([^<].*[^>])$/s, "<p>$1</p>")).join('\n')
-  
-  // Bold, italics, code, links, images
-  md = md.replace(/(\*\*|__)(.*?)(\*\*|__)/g, '<b>$2</b>');
-  md = md.replace(/[*_](.*?)[*_]/g, '<i>$1</i>');
-  md = md.replace(/`(.*?)`/g, '<code>$1</code>');
-  md = md.replace(/!\[(.*?)\]\((.*?)\)/g, '<img src="$2" alt="$1">');
-  md = md.replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2">$1</a>');
-
-  // Reference-style links
-  md = md.replace(/\[(.*?)\]\s*\[(.*?)\]/g, function(all, text, ref) {
-    var path = '';
-    ref = ref.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&');
-    md.replace(new RegExp('\\['+ref+'\\]:\\s*(.*)'), function(all2, path2) {
-      path = path2;
-    });
-    return '<a href="'+path+'">'+text+'</a>';
-  });
-
-  // Remove reference lines
-  md = md.replace(/\[.*\]:.*/g, '');
-
-  // Paragraphs -- doesn't work, puts </P. at end of first line of para
-  //md = md.replace(/(^|\n{2,})([^<])(.*)/g, '\n<p>$2$3</p>');
-
-  // Remove extra line breaks etc
-  md = md.replace('<code><br />', '<code>');
-
-  return md;
-}
-
-/* The above tf-markdown implementation comes from
-   https://github.com/twofront/TF-Markdown
-   and is licensed as follows:
-
-The MIT License (MIT)
-
-Copyright (c) 2014 Two Front Productions Inc.
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-
-*/
 </script>

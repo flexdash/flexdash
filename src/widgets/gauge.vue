@@ -22,25 +22,27 @@ import SvgGauge from '/src/components/svg-gauge.vue';
 export default {
   name: 'Gauge',
 
+  help: `Simple SVG gauge.`,
+
   components: {
     SvgGauge,
   },
 
   props: {
-    value: { type: Number, default: null, dynamic: "$demo_random" }, // current value to show
-    unit: { type: String, default: "" },
+    value: { type: Number, default: null, dynamic: "$demo_random" },
+    unit: { type: String, default: "", tip: "superscript after the value" },
     title: { type: String, default: "Gauge" },
-    arc: { type: Number, default: 90,  // degrees spanned by the arc of the gauge
+    arc: { type: Number, default: 90, tip: "degrees spanned by the arc of the gauge",
            validator: (v) => v>10 && v<=360 },
-    center: { type: Boolean, default: false }, // center the text in the gauge, else bottom
+    center: { type: Boolean, default: false, tip: "center the text in the gauge, else bottom" },
     //
-    min: { type: Number, default: 0 }, // minimum value
-    max: { type: Number, default: 100 }, // maximum value
-    color: { type: String, default: 'green' },  // color of filled segment
-    base_color: { type: String, default: 'lightgrey' },  // color of unfilled segment
-    needle_color: { type: String, default: 'white' },  // color of needle
-    radius: { type: Number, default: 70 },  // inner radius, outer being 100
-    stretch: { type: Boolean, default: false },  // false: 2:1 aspect ratio, true: stretch
+    min: { type: Number, default: 0, tip: "minimum value" },
+    max: { type: Number, default: 100, tip: "maximum value" },
+    color: { type: String, default: 'green', tip: "color of filled segment" },
+    base_color: { type: String, default: 'lightgrey', tip: "color of unfilled segment" },
+    needle_color: { type: String, default: 'white', tip: "color of needle" },
+    radius: { type: Number, default: 70, tip: "inner radius, outer being 100" },
+    stretch: { type: Boolean, default: false, tip: "false: 2:1 aspect ratio, true: stretch" },
   },
 
   computed: {
