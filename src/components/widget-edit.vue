@@ -18,7 +18,7 @@
 
 <template>
   <!-- without div the v-for in parent gets confused by v-menu -->
-  <div :style="widgetStyle">
+  <div class="widget-edit" :style="widgetStyle">
     <!-- v-menu is used to display a floating v-card below the component for editing
          We control the activation and deactivation of the menu ourselves, though. -->
     <v-menu :value="edit_active && reposition" offset-y allow-overflow min-width="80%"
@@ -27,8 +27,8 @@
 
       <!-- Widget proper -->
       <template v-slot:activator="on">
-        <widget-wrap :config="widget" :suppressOutput="suppressOutput" @edit="toggleEdit"
-                     :color="edit_active?'highlight':''" :not-used="on">
+        <widget-wrap :config="widget" :suppress_output="suppress_output && edit_active"
+                     @edit="toggleEdit" :color="edit_active?'highlight':''" :not-used="on">
         </widget-wrap>
       </template>
 
@@ -46,13 +46,14 @@
           </v-btn>
         </v-card-title>
 
+        <!-- Display widget help text -->
         <v-card-text v-if="child_help" class="pb-0">
           <h3 v-if="child_help_title">{{child_help_title}}
-            <v-btn x-small flat text class="ml-3" v-if="child_help_text"
+            <v-btn x-small text class="ml-1" v-if="child_help_text"
                    :value="edit_help" @click="edit_help=!edit_help">
               {{ edit_help ? "less..." : "more..." }}</v-btn>
           </h3>
-          <div v-if="edit_help" class="md">{{child_help_text}}</div>
+          <md v-if="edit_help">{{child_help_text}}</md>
         </v-card-text>
 
         <v-card-text v-if="edit_active"><!-- v-if 'cause edited_xx vars not always set -->
@@ -117,8 +118,8 @@
                 <!-- dynamic link -->
                 <v-combobox v-if="!prop_static[prop]"
                     :label="prop" clearable dense persistent-hint
-                    hint='variable pathname (/-sep)'
-                    :items="sdKeys"
+                    hint='topic (/-separated path)'
+                    :items="sd_keys"
                     :value="widget.dynamic[prop]"
                     @input="handleEdit('dynamic', prop, $event)">
                 </v-combobox>
@@ -150,18 +151,61 @@
                     @input="handleEdit('static', prop, $event)">
                 </v-text-field>
                 <!-- string -->
-                <v-text-field v-else
+                <v-text-field v-else class="w-edit"
                     :label="prop" dense
                     :hint="prop_info[prop].hint"
                     :value="widget.static[prop]||prop_info[prop].default"
                     @input="handleEdit('static', prop, $event)">
+                  <template v-slot:append-outer>
+                    <v-btn icon x-small @click=popupTextField(prop)>
+                      <v-icon>mdi-arrow-expand-all</v-icon>
+                    </v-btn>
+                  </template>
                 </v-text-field>
               </v-col>
             </v-row>
+
+            <!-- row for output binding -->
+            <v-row v-if="'output' in widget" align="center">
+              <v-col class="d-flex" cols="12" sm="6" md="4">
+                <!--h4 class="mt-2 mr-3">Output binding:</h4-->
+                <v-combobox
+                    label="output binding" clearable dense persistent-hint
+                    hint='topic (/-separated path)'
+                    :items="sd_keys"
+                    :value="widget.output"
+                    @input="handleEditOutput($event)">
+                </v-combobox>
+              </v-col>
+              <v-col class="d-flex" cols="12" sm="6" md="4">
+                <v-checkbox label="suppress output while editing" v-model="suppress_output">
+                </v-checkbox>
+              </v-col>
+            </v-row>
+
           </v-container>
         </v-card-text>
-      </v-card>
 
+        <!-- dialog box to edit a string input value full-page -->
+        <v-dialog v-model="dialog" content-class="height80" max-width="100ex">
+          <v-card v-if="dialog" class="d-flex flex-column height100">
+            <v-card-title class="d-flex align-baseline">
+              <span>Edit <span style="font-weight: 700">{{dialog_prop}}</span></span>
+              <v-spacer></v-spacer>
+              <v-btn elevation=0 icon @click="dialog=false">
+                <v-icon>mdi-close</v-icon>
+              </v-btn>
+            </v-card-title>
+            <v-card-text class="flex-grow-1">
+              <v-textarea dense hide-details filled class="height100"
+                  :value="widget.static[dialog_prop]||prop_info[dialog_prop].default"
+                  @change="handleEdit('static', dialog_prop, $event)">
+              </v-textarea>
+            </v-card-text>
+          </v-card>
+        </v-dialog>
+
+      </v-card>
     </v-menu>
   </div>
 </template>
@@ -169,11 +213,12 @@
 <script scoped>
 
 import WidgetWrap from '/src/components/widget-wrap.vue'
+import md from '/src/components/md.vue'
 
 export default {
   name: 'WidgetEdit',
 
-  components: { WidgetWrap },
+  components: { WidgetWrap, md },
   inject: [ '$store', 'palette' ],
 
   props: {
@@ -184,21 +229,24 @@ export default {
 
   data() { return {
     widget: {},
-    suppressOutput: true,
     prop_static: {}, // manual toggle between static and dynamic binding
+    sd_keys: [], // list of keys from store.sd to show in editing combobox
     // hack to reposition the edit window when changing widget shape/position, this will go
     // away once we have dragging...
     reposition: true,
     edit_help: false, // more... help text expansion toggle
+    suppress_output: true, // toggle to suppress output during edit
     // child_props holds the description of the widget component's props
     child_props: {}, 
     // prop_info is child_props further massaged:
     // {name:{type, default, validator, hint, icon, dynamic},...}
     // prop types: String, Number, Boolean, Array, Object, Date //, Function, Symbol
     prop_info: {},
-  }},
 
-  beforeCreate() { console.log("Before create:", this) },
+    // pop-up dialog to edit string property full-page
+    dialog: false,
+    dialog_prop: null,
+  }},
 
   created() {
     console.log("Created widget", this.id)
@@ -217,7 +265,7 @@ export default {
     for (let name in cp) {
       let type = cp[name].type || String
       if (![String, Number, Boolean, Array, Object].includes(type)) type = String
-      let hint = type.name
+      let hint = cp[name].tip || type.name
       if (cp[name].default !== undefined) hint += `, default: ${cp[name].default}`
       let icon = icons[type.name]
       pi[name] = {type, default: cp[name].default, validator: cp[name].validator,
@@ -229,11 +277,21 @@ export default {
     // The defaults for the widget inputs (props) are currently handled by
     // Vue's prop defaults, so the store just setting static={} works, except for dynamic
     // default. We hack them here.
-    console.log("this.widget for", w.id, ", info=", pi, "widget=", w)
     for (const p in pi) {
       // if the prop definition says it's dynamic and it's completely unset, then set it
       if (pi[p].dynamic && !(p in w.dynamic) && !(p in w.static)) {
         w.dynamic[p] = pi[p].dynamic
+      }
+    }
+    // process any widget output binding
+    if (w.kind in p && p[w.kind].output) {
+      const o = p[w.kind].output
+      if (typeof o === 'string') {
+        w.output = o
+        w.output_hint = null
+      } else {
+        w.output = p[w.kind].output.default || null
+        w.output_hint = p[w.kind].output.tip || null
       }
     }
     // update instance variables
@@ -246,7 +304,7 @@ export default {
 
   computed: {
     // list of keys from store.sd to show in editing combobox
-    sdKeys() { return Object.keys(this.$store.sd).sort() },
+    //sd_keys() { return Object.keys(this.$store.sd).sort() }, // reactivity failure...
 
     // list of child prop names for editing, excluding title
     edit_props() {
@@ -279,7 +337,12 @@ export default {
   },
 
   watch: {
-    edit_active(val) { if (val) this.propStatic() },
+    edit_active(val) {
+      if (val) {
+        this.propStatic()
+        this.sd_keys = Object.keys(this.$store.sd).sort()
+      }
+    },
   },
 
   methods: {
@@ -290,7 +353,6 @@ export default {
         // if prop in config.dynamic then 0 (not static) else 1 (static)
         Object.keys(this.child_props).map(p => [p, (p in this.widget.dynamic)?0:1])
       )
-      console.log("prop_static:", JSON.stringify(this.prop_static))
     },
 
     // value of a property: either config if set, else default
@@ -301,7 +363,6 @@ export default {
 
     // toggle static vs. dynamic for a specific prop
     toggleStatic(prop, val) {
-      console.log(`toggleStatic(${prop}, ${val})`)
       this.prop_static[prop] = val
       // if a prop is toggled to static we need to delete the dynamic value 'cause it takes
       // priority, i.e. defeats the switch
@@ -314,7 +375,7 @@ export default {
     endEdit() { this.$emit('edit', false) },
 
     handleEdit(which, prop, value) {
-      //console.log("edit:", which, prop, value)
+      console.log("edit:", which, prop, value)
       if (!(which in this.widget)) return
 
       if (prop != 'title') {
@@ -327,6 +388,21 @@ export default {
       }
 
       this.$store.updateWidgetProp(this.id, which, prop, value)
+    },
+
+    handleEditOutput(value) {
+      console.log("edit: output:", value)
+      this.$store.updateWidget(this.id, {output: value})
+    },
+
+    // pop up a dialog box to edit a text field
+    popupTextField(prop) {
+      if (this.dialog) {
+        this.dialog = false
+      } else {
+        this.dialog_prop = prop
+        this.dialog = true
+      }
     },
 
     // adjust number of rows spanned by widget (dir=-1/+1)
@@ -358,8 +434,8 @@ export default {
 }
 
 </script>
-
-<style scoped>
-.popup-spacer { margin-top: 3px; margin-bottom: 3px; }
-.v-input__append-outer { margin-left: 0px !important; }
+<style>
+.widget-edit .popup-spacer { margin-top: 3px; margin-bottom: 3px; }
+.widget-edit .w-edit > .v-input__append-outer { margin-left: 4px !important; }
+.widget-edit .v-input.height100 div { height: 100%; } 
 </style>

@@ -73,9 +73,10 @@
           <!-- Menu content -->
           <v-list>
             <v-subheader>Add Widget to the end of the grid</v-subheader>
-            <v-list-item v-for="kind in widgets" :key="kind"
-                         @click="addWidget(kind)">
-              <v-list-item-title>{{kind}}</v-list-item-title>
+            <v-list-item v-for="(descr, kind) in widgets" :key="kind"
+                             @click="addWidget(kind)" link>
+                <v-list-item-title>{{kind}}</v-list-item-title>
+                <v-list-item-subtitle v-if="descr">{{descr}}</v-list-item-subtitle>
             </v-list-item>
           </v-list>
         </v-menu>
@@ -137,7 +138,9 @@ export default {
     // widgets provides the list of available widgets for the add-widget drop-down
     widgets() {
       console.log("Palette:", this.palette.widgets);
-      return Object.keys(this.palette.widgets).sort()
+      return Object.fromEntries(Object.keys(this.palette.widgets).sort().map(w =>
+        [ w, (this.palette.widgets[w].help||"").replace(/^([^.\n]{0,80}).*/s, "$1") ]
+      ))
     },
 
   },
@@ -182,6 +185,11 @@ export default {
 /* style for roll-up/roll-down bar when there's no toolbar */
 .roller { width: 100% }
 .roller.roller__minimal { height: 22px; }
+
+/* reduce height of add-widget menu */
+.v-menu__content .v-list-item { min-height: 2rem; width: 500px;}
+.v-menu__content .v-list-item__title { flex: 0 0 auto; margin-right: 12px; }
+
 
 /* style to make grid happen */
 .g-grid-large {

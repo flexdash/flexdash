@@ -7,7 +7,8 @@
 -->
 
 <template>
-  <v-card :color="color">
+  <v-card :color="color" class="d-flex flex-column justify-start align-center"
+          style="overflow: hidden">
 
     <!-- Widget title & buttons shown when the child component does _not_ show the title -->
     <v-card-text v-if="!('title' in child_props)" class="d-flex pa-0 pt-1 mb-n1">
@@ -41,7 +42,7 @@ export default {
   name: 'WidgetWrap',
 
   props: {
-    suppressOutput: { type: Boolean, default: true }, // suppress child output reaching store.sd
+    suppress_output: { type: Boolean, default: true }, // suppress child output reaching store.sd
     color: { type: String, default: undefined }, // background color to highlight the card
 
     // config specifies how each prop of the inner component gets set. It has "static bindings"
@@ -49,6 +50,7 @@ export default {
     // store.sd[some_var] (some_var can actually be a path so it's not quite as simple).
     // { kind, id, rows, cols, static, dynamic } (rows & cols are managed by the grid)
     // TODO: should sanity-check the config and show a broken-widget widget if it's not OK
+    // TODO: display a 'missing' widget if the component can't be loaded
     config: { type: Object, required: true },
   },
 
@@ -177,11 +179,12 @@ export default {
 
     handleEdit() { console.log(`handleEdit() in widget-wrap`); this.$emit('edit', 'toggle') },
 
+    // handler for 'send' events emitted by widget
     sendData(data) {
-      const o = this.config.output
-      if (!this.suppressOutput && o) {
+      let o = this.config.output
+      if (!this.suppress_output && o) {
         console.log(`Widget ${this.config.kind}[${this.config.id}] sending ${o} <-`, data)
-        //this.sendSrv(o, data)
+        this.$root.serverSend(o, data)
       } else {
         console.log(`Output of widget ${this.config.kind}[${this.config.id}] suppressed`)
       }

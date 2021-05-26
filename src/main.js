@@ -39,6 +39,9 @@ const app = new Vue({
     // current route, gets initialized with the initial location that loads FlexDash
     route: window.location.hash,
     params: (new URL(document.location)).searchParams,
+    // sending of messages, this global variable is "provided" by the connections component
+    // and primarily used by the widget-wrapper
+    serverSend: null,
   },
 
   provide: {

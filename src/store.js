@@ -3,7 +3,7 @@
 // Copyright ©2021 Thorsten von Eicken, MIT license, see LICENSE file
 
 import Vue from 'vue'
-import { cloneDeep } from 'lodash-es'
+import cloneDeep from 'lodash.clonedeep'
 
 export class StoreError extends Error {
   constructor (message) {

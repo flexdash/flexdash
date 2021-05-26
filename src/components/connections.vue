@@ -114,6 +114,11 @@ export default {
     this.websock_connection = new WebsockConnection(undefined, this.handleMsg)
     if (this.websock_config && this.websock_config.enabled && this.websock_config.address)
       this.websock_connection.start(this.websock_config.address)
+
+    // set a global variable with our serverSend method so the widget-wrapper can send
+    // data on behalf of widgets
+    // using a lambda here to get the correct 'this'
+    this.$root.serverSend = (topic, payload) => this.serverSend(topic, payload)
   },
 
   beforeDestroy() {
@@ -156,6 +161,21 @@ export default {
 
       // Insert into store.
       this.$store.insertData(msg.topic, msg.payload)
+    },
+
+    // serverSend is used to send data from widgets to all servers we're connected to
+    // topics starting with '$demo' are directly inserted into the store and not sent to servers
+    // FIXME: decide whether to block $config
+    serverSend(topic, payload) {
+      if (topic.startsWith('$demo')) {
+        this.$store.insertData(topic, payload)
+      } else {
+        if (this.websock_connection) {
+          this.websock_connection.serverSend(topic, payload)
+        }
+        // add other connections here...
+      }
+
     },
 
   },

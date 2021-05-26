@@ -81,4 +81,10 @@ export default class WebsockConnection {
     this.data.status = 'bad'
     this.data.status_txt = err.message ? `error: ${err.message}` : "error"
   }
+
+  serverSend(topic, payload) {
+    if (this.rws) {
+      this.rws.send(JSON.stringify({topic, payload}))
+    }
+  }
 }

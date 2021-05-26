@@ -290,6 +290,8 @@ export default {
 
 /* this is probably the wrong place for these little utility classes... */
 .width100 { width: 100%; }
+.height80 { height: 80%; }
+.height100 { height: 100%; }
 .unit { font-size: 70%; vertical-align: 20%; margin-left: 0.1em; }
 
 </style>
