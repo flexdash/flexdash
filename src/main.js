@@ -19,9 +19,13 @@ function globImport(tgt, metaglob) {
   for (const path in metaglob) {
     metaglob[path]().then(mod => {
       const name = mod.default.name
-      console.log(`Loaded ${name} from ${path}`)
-      Vue.component(name, mod.default)
-      Vue.set(tgt, name, mod.default)
+      if (name) {
+        console.log(`Loaded ${name} from ${path}`)
+        Vue.component(name, mod.default)
+        Vue.set(tgt, name, mod.default)
+      } else {
+        throw Error(`Loading ${path} resulted in 'undefined'!?`)
+      }
     }).catch(err => {
       console.log(`Error glob-loading ${path}:`, err)
     })

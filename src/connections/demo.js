@@ -30,8 +30,7 @@ and configure the server to persist the config, all changes you make here are in
 memory only and are lost when you refresh the page.
 `
 
-const websock_text = `
-# Websocket server connection
+const websock_text = `# Websocket server connection
 
 FlexDash can establish a simple websocket connection to a server. This connection allows:
 - sending data from the server to FlexDash for display

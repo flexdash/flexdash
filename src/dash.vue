@@ -209,7 +209,26 @@ export default {
 
   mounted() {
     console.log(`FlexDash! route=${this.$root.route} params=${this.$root.params}`)
+    // select tab by index
+    if (this.$root.route.match(/^#[0-9]+$/)) {
+      const ix = Number.parseInt(this.$root.route.substr(1), 10)
+      if (ix >= 0 && ix < this.dash_tabs.length) this.tab_ix = ix
+    // select tab by name or icon name
+    } else if (this.$root.route.startsWith("#")) {
+      const r = this.$root.route.substr(1)
+      this.dash_tabs.forEach((t,ix)=> {
+        console.log(`Route match: ix=${ix} title=${this.tabs[t].title} icon=${this.tabs[t].icon}`)
+        if (r == this.tabs[t].title || r == this.tabs[t].icon) this.tab_ix = ix
+      })
+    }
+
+    // provide a random changing value for demo purposes. It is wired into newly created
+    // widgets so they spring to life even before the user customizes them.
+    const rs = randomStepper(0, 100)
+    this.intvl = window.setInterval(()=> this.$store.insertData("$demo_random", rs()), 3000)
   },
+
+  beforeDestroy() { window.clearInterval(this.intvl) },
 
   provide() {
     const self = this

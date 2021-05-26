@@ -9,9 +9,9 @@
 export default function(min, max, round) {
   if (min === undefined) min = 0
   if (max === undefined) max = 100
-  if (round === undefined) round = 10
+  if (round === undefined) round = 0.1
 
-  function roundVal(val) { return Math.round(val*round)/round }
+  function roundVal(val) { return Math.round(val/round)/Math.round(1/round) }
 
   let value = (max-min) * Math.random() + min // starting value
   let phase=0, w=0, x2=0
