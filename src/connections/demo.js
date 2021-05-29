@@ -4,8 +4,6 @@
    Copyright ©2021 Thorsten von Eicken, MIT license, see LICENSE file
 */
 
-const series = [ 'kitchen', 'bedroom', 'study', 'living room', 'guest room' ]
-
 const welcome_text = `
 # Welcome to FlexDash
 
@@ -85,7 +83,7 @@ const demo_config = {
       "g00000": { "id": "g00000", "kind": "FixedGrid",
                   "widgets": [ "w00001", "w00000", "w00003", "w00002", "w00009", "w00006",
                                "w00007", "w00008", "w00010", "w00011", "w00012", "w00013",
-                               "w00014" ] },
+                               "w00014", "w00020", "w00021", "w00022", "w00023" ] },
       "g00001": { "id": "g00001", "kind": "FixedGrid", "widgets": [] },
       "g00002": { "id": "g00002", "kind": "FixedGrid", "widgets": [] },
       "g00003": { "id": "g00003", "kind": "FixedGrid", "widgets": ["w00015","w00016"] },
@@ -97,17 +95,17 @@ const demo_config = {
                   "static": { "title": "", "text": websock_text } },
       "w00000": { "kind": "Stat", "id": "w00000",
                   "static": { "title": "Bedroom", "value": "cold", "unit": "F" },
-                  "dynamic": { "value": "bedroom" }, "rows": 1, "cols": 1 },
+                  "dynamic": { "value": "$demo/bedroom" }, "rows": 1, "cols": 1 },
       "w00002": { "kind": "Stat", "id": "w00002",
-                  "static": { "title": "Guest Room", "unit": "F" },
-                  "dynamic": { "value": "guest room" }, "rows": 1, "cols": 1 },
+                  "static": { "title": "Bedroom", "unit": "F" },
+                  "dynamic": { "value": "$demo/bedroom" }, "rows": 1, "cols": 1 },
       "w00003": { "kind": "Gauge", "id": "w00003",
-                  "static": { "title": "Living Room", "value": 50, "arc": 270, "center": true,
+                  "static": { "title": "Hilltop", "value": 50, "arc": 270, "center": true,
                               "unit": "F", "needle_color": "red", "min": 30 },
-                  "dynamic": { "value": "living room" }, "rows": 2, "cols": 2 },
+                  "dynamic": { "value": "$demo/hilltop" }, "rows": 2, "cols": 2 },
       "w00006": { "kind": "Gauge", "id": "w00006",
                   "static": {"title":"Kitchen", "color":"lightblue", "arc":90, "unit":"F","min":0},
-                  "dynamic": { "value": "kitchen" }, "rows": 1, "cols": 1 },
+                  "dynamic": { "value": "$demo/kitchen" }, "rows": 1, "cols": 1 },
       "w00007": { "kind": "Toggle", "id": "w00007",
                   "static": { "title": "light", "off_value": "0", "on_value": "ON",
                               "color": "secondary", "value": "ON" },
@@ -122,22 +120,35 @@ const demo_config = {
       "w00010": { "kind": "Gauge", "id": "w00010",
                   "static": { "title":"Kitchen", "arc":180, "base_color":"lightgreen",
                               "color":"blue", "unit":"F", "radius":90, "needle_color":"white" },
-                  "dynamic": { "value": "kitchen" }, "rows": 1, "cols": 1 },
+                  "dynamic": { "value": "$demo/kitchen" }, "rows": 1, "cols": 1 },
       "w00011": { "kind": "Sparkchart", "id": "w00011",
-                  "static": { "title":"Livingrm", "color":"green", "line_width":4, "fill":true },
-                  "dynamic": { "value": "living room" }, "rows": 1, "cols": 1 },
+                  "static": { "title":"Hilltop", "color":"green", "line_width":4, "fill":true },
+                  "dynamic": { "value": "$demo/hilltop" }, "rows": 1, "cols": 1 },
       "w00012": { "kind": "Sparkchart", "id": "w00012",
-                  "static": { "title": "Living Room", "bars": true },
-                  "dynamic": { "value": "living room" }, "rows": 1, "cols": 1 },
+                  "static": { "title": "Hilltop", "bars": true },
+                  "dynamic": { "value": "$demo/hilltop" }, "rows": 1, "cols": 1 },
       "w00013": { "kind": "Sparkchart", "id": "w00013",
                   "static": { "title": "Kitchen" },
-                  "dynamic": { "value": "kitchen" }, "rows": 1, "cols": 2 },
+                  "dynamic": { "value": "$demo/kitchen" }, "rows": 1, "cols": 2 },
       "w00014": { "kind": "TimePlot", "id": "w00014",
-                  "static": { "title": "Temperatures" },
-                  "dynamic": { "data": "temp_data", "options": "temp_opts" }, "rows":4, "cols":4 },
+                  "static": { "title": "Temperatures", "left_unit": "°F", "left_decimals": 0,
+                              "labels": Array.from({length:10},((_,i)=>"Sensor "+(i+1))) },
+                  "dynamic": { "data": "$demo/plot" }, "rows":4, "cols":4 },
       "w00016": { "kind": "Stat", "id": "w00016",
                   "static": { "title": "ws_data", "unit": "" },
-                  "dynamic": { "value": "ws_data" }, "rows": 1, "cols": 1 }
+                  "dynamic": { "value": "ws_data" }, "rows": 1, "cols": 1 },
+      "w00020": { "kind": "RandomValue", "id": "w00020", "output": "$demo/kitchen",
+                  "static": { "title": "Rnd Kitchen", "min": 50, "max": 90 },
+                  "dynamic": {}, "rows": 1, "cols": 1 },
+      "w00021": { "kind": "RandomValue", "id": "w00021", "output": "$demo/hilltop",
+                  "static": { "title": "Rnd Hilltop", "min": 20, "max": 90, "seconds": 6 },
+                  "dynamic": {}, "rows": 1, "cols": 1 },
+      "w00022": { "kind": "RandomValue", "id": "w00022", "output": "$demo/bedroom",
+                  "static": { "title": "Rnd Bedroom", "min": 50, "max": 90, "seconds": 4 },
+                  "dynamic": {}, "rows": 1, "cols": 1 },
+      "w00023": { "kind": "RandomArray", "id": "w00023", "output": "$demo/plot",
+                  "static": { "title":"Rnd Plot", "min":50, "max":90, "seconds":7, "length":11 },
+                  "dynamic": {}, "rows": 1, "cols": 1 }
     }
 }
 
@@ -165,13 +176,10 @@ import randomStepper from '/src/utils/random-stepper.js'
 
 export default class DemoConnection {
   constructor (serverSend, storeInsert) {
-    this.serverSend = serverSend
     this.storeInsert = storeInsert
     this.active = false
-    this.timers = []
     // data fed into the Vue reactivity system
     this.data = Vue.observable({
-      last_msg: {topic:null, payload:null}, // last message sent for display
       status: 'off',
     })
     return this
@@ -181,44 +189,12 @@ export default class DemoConnection {
     this.active = true
     // send dashboard configuration
     this.storeInsert({topic: '$config', payload: demo_config})
-    // start interval timers to send data for stats, gauges, etc
-    for (let i=0; i<series.length; i++) {
-      const rs = randomStepper(40, 80)
-      this.timers.push(window.setInterval(()=> this.tick(series[i], rs), 5000+i*1000))
-      this.tick(series[i], rs)
-    }
-    // send time plot config and start interval timer for plot
-    this.storeInsert({topic: 'temp_opts', payload: plot_opts})
-    const rs = [randomStepper(20, 110), randomStepper(20, 110), randomStepper(20, 110)]
-    this.timers.push(window.setInterval(()=>this.plot(rs), 3000))
-    this.plot(rs)
-    this.data.status = 'ok'
   }
 
   stop() {
     // kill all the timers
-    this.timers.map((t) => window.clearInterval(t))
-    this.timer = []
     this.active = false
-    this.data.last_msg.topic = null
     this.data.status = 'off'
   }
 
-  // internal functions
-
-  send(msg) {
-    Vue.set(this.data, 'last_msg', msg)
-    this.storeInsert(msg)
-  }
-
-  tick(s, rs) {
-    const t = rs()
-    //console.log(`Demo: demo_${s}=${t}`)
-    this.send({topic: `${s}`, payload: t})
-  }
-
-  plot(rs) {
-    let data = [ Date.now()/1000, rs[0](), rs[1](), rs[2]() ]
-    this.send({topic: 'temp_data', payload: data})
-  }
 }
