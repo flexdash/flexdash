@@ -4,7 +4,7 @@
 -->
 
 <template>
-  <div style="display: contents;">
+  <div class="u-tooltip-attach">
 
     <!-- Hacky roll-up/roll-down icon at the top-center of the grid if there's no title -->
     <div v-if="rollupMini" :class="rollerClasses">
