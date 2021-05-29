@@ -46,7 +46,7 @@ function walkTree(root, path) {
 }
 
 // export helper functions for testing purposes
-export const functions = {walkTree}
+export {walkTree}
 
 // ===== Store class
 

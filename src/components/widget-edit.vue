@@ -285,12 +285,13 @@ export default {
     }
     // process any widget output binding
     if (w.kind in p && p[w.kind].output) {
+      // apply defaults from widget "class"
       const o = p[w.kind].output
       if (typeof o === 'string') {
-        w.output = o
+        if (!('output' in w)) w.output = o
         w.output_hint = null
       } else {
-        w.output = p[w.kind].output.default || null
+        if (!('output' in w)) w.output = p[w.kind].output.default || null
         w.output_hint = p[w.kind].output.tip || null
       }
     }

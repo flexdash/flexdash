@@ -38,6 +38,8 @@
 
 <script scoped>
 
+import { walkTree } from '/src/store.js'
+
 export default {
   name: 'WidgetWrap',
 
@@ -92,14 +94,19 @@ export default {
     // TODO: perform type conversion and precision adjustment when assigning
     addDynBinding(key, var_name) {
       const self = this
-      if (!(var_name in this.$store.sd)) {
+      let path = var_name.split('/').filter(t => t.length > 0)
+      if (path.length == 0) return null // can't bind to root
+      const n = path.pop()
+      const dir = walkTree(this.$store.sd, path)
+      // now bind to dir[n]
+      if (!(n in dir)) {
         // in vue2 we can't add a watcher to something that doesn't exist
         // so we create it as undefined and handle that properly when we eventually insert
         // something *it's a hack*
-        self.$set(this.$store.sd, var_name, undefined)
+        self.$set(dir, n, undefined)
       }
       const w = this.$watch(
-          () => self.$store.sd[var_name],
+          () => dir[n],
           (newVal) => { self.updateBindingValue(key, newVal) },
           {deep: true, immediate: true})
       return w
@@ -183,7 +190,8 @@ export default {
     sendData(data) {
       let o = this.config.output
       if (!this.suppress_output && o) {
-        console.log(`Widget ${this.config.kind}[${this.config.id}] sending ${o} <-`, data)
+        if (!o.startsWith("$demo"))
+          console.log(`Widget ${this.config.kind}[${this.config.id}] sending ${o} <-`, data)
         this.$root.serverSend(o, data)
       } else {
         console.log(`Output of widget ${this.config.kind}[${this.config.id}] suppressed`)
