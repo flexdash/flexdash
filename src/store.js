@@ -3,7 +3,11 @@
 // Copyright ©2021 Thorsten von Eicken, MIT license, see LICENSE file
 
 import Vue from 'vue'
-import cloneDeep from 'lodash.clonedeep'
+
+// import cloneDeep from 'lodash.clonedeep'
+// Use JSON instead of importing 9KB for cloneDeep -- we only use it to create widgets and
+// since this is infrequent going through JSON is not that awful
+function cloneDeep(obj) { return JSON.parse(JSON.stringify(obj)) }
 
 export class StoreError extends Error {
   constructor (message) {
