@@ -76,6 +76,8 @@ Note that this "row-wise" structure gets transposed to the columnar structure ex
 
   output: { default: null, tip: "options passed into uPlot" },
 
+  full_page: true, // can expand to full-page
+
   computed: {
     // generate options for uPlot based on the props
     // this also outputs as a side-effect (not supposed to do that, oh well...)

@@ -20,6 +20,8 @@ export default {
 
   components: { md },
 
+  full_page: true, // tells the widget-wrapper to provide a full-page button
+
   help: `Render text using simple MarkDown.
 This widget supports the following MarkDown formatting:
 

@@ -83,6 +83,8 @@ Note that this "row-wise" structure gets transposed to the columnar structure ex
     },
   },
 
+  full_page: true, // can expand to full-page
+
   data() { return {
     chart: null, // uPlot object instance
     ro: null, // function to cancel resize observer

@@ -7,7 +7,8 @@
 -->
 
 <template>
-  <v-card :color="color" class="d-flex flex-column justify-start align-center"
+  <!--class="d-flex flex-column justify-start align-center"-->
+  <v-card :color="color" :class="full_page ? 'full-page' : undefined"
           style="overflow: hidden">
 
     <!-- Widget title & buttons shown when the child component does _not_ show the title -->
@@ -21,13 +22,23 @@
     </v-card-text>
 
     <!-- Widget edit button w/o title when the child component shows the title itself -->
-    <div display:content v-else-if="$root.editMode">
+    <!--div display:content v-else-if="$root.editMode"-->
       <!-- we need to make sure we're floating way above the widget content... -->
-      <div style="position:absolute; z-index:5; right:0; top:0.5ex;">
+      <div v-else-if="$root.editMode"
+           style="position:absolute; z-index:5; right:0; top:0.5ex;">
         <v-btn small icon class="justify-end align-start mt-n1" @click="handleEdit">
           <v-icon small>mdi-pencil</v-icon>
         </v-btn>
       </div>
+    <!--/div-->
+
+    <div v-if="can_full_page && !$root.editMode" class="full-page-btn"
+         style="position:absolute; right:0; top:0.5ex;">
+        <v-btn small icon @click="toggleFullPage"
+               class="justify-center align-center mt-n1">
+          <!--v-icon small style="background-color:red">mdi-arrow-expand-all</v-icon-->
+          <v-icon small>{{full_page ? "mdi-arrow-collapse" : "mdi-arrow-expand"}}</v-icon>
+        </v-btn>
     </div>
 
     <!-- actual component, pass in its bindings -->
@@ -35,6 +46,15 @@
     </component>
   </v-card>
 </template>
+
+<style scoped>
+.v-card { height: 100%; width: 100% }
+.v-card { display: flex; flex-direction: column; justify-content: flex-start; align-items: center }
+.v-card.full-page { position: absolute; left: 1%; top: 1%; z-index: 10; width: 98%; height: 98% }
+.v-card.full-page .full-page-btn { z-index: 11 }
+.theme--light.v-btn--icon { background-color: #ffffff; }
+.theme--dark.v-btn--icon  { background-color: #1e1e1e; }
+</style>
 
 <script scoped>
 
@@ -59,6 +79,7 @@ export default {
   data() { return {
     watchers: [], // list of watchers used in bindings so we can remove them
     bindings: {}, // mapping of prop_name -> current_value used in v-bind to child
+    full_page: false,
   }},
 
   computed: {
@@ -72,6 +93,12 @@ export default {
       const p = this.palette.widgets
       if (this.config.kind in p) return p[this.config.kind].props || {}
       return {}
+    },
+
+    can_full_page() {
+      const p = this.palette.widgets
+      if (this.config.kind in p) return p[this.config.kind].full_page
+      return false
     },
   },
 
@@ -186,6 +213,8 @@ export default {
 
     handleEdit() { console.log(`handleEdit() in widget-wrap`); this.$emit('edit', 'toggle') },
 
+    toggleFullPage() { this.full_page = !this.full_page },
+
     // handler for 'send' events emitted by widget
     sendData(data) {
       let o = this.config.output
@@ -202,7 +231,3 @@ export default {
 }
 
 </script>
-
-<style scoped>
-.v-card { height: 100%; width: 100% }
-</style>
