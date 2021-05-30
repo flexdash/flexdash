@@ -11,10 +11,12 @@
 <style>
 .uplot {
   width: 100%; height: 100%;
-  display: flex; flex-flow: column nowrap; justify-content: flex-end;
+  display: flex; flex-flow: column nowrap; justify-content: flex-end; align-items: stretch;
   font-family: Roboto !important;
 }
-.uplot .u-wrap { flex: 1 1 100px; min-height: 20px;}
+/* u-wrap needs to occupy the space not used by the legend, and it needs to be full-width, then
+ * the resize observer can track its dimensions and set the canvas size appropriately */
+.uplot .u-wrap { flex: 1 1 100px; min-height: 20px; width: 100% !important}
 .uplot .u-legend { flex: 0 0 auto; }
 .uplot .u-legend .u-marker { width: 1.2ex; height: 1.2ex; }
 .uplot .u-legend * {
@@ -24,7 +26,7 @@
 
 .u-tooltip {
   position: absolute;
-  z-index: 4;
+  z-index: 12;
   border-radius: 6px;
   padding: 4px;
   font: 400 0.75rem Roboto;
@@ -186,9 +188,9 @@ Note that this "row-wise" structure gets transposed to the columnar structure ex
     },
 
     // receive resize event and change the size of the chart if necessary
-    _onResize(uwrap) {
+    _onResize(el) {
       if (!this.chart) return;
-      this.chart.setSize(this._calcSize(uwrap));
+      this.chart.setSize(this._calcSize(el));
     },
 
     _transpose(data) {

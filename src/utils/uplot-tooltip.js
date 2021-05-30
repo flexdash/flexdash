@@ -12,21 +12,22 @@ export default function (uplot) {
     // find parent to attach tooltip
     //let over = u.over;
     let over = u.over
-    console.log(over)
+    //console.log(over)
 
     let lastParent = null
+    left_off = top_off = 0
     while (!over.classList.contains("u-tooltip-attach") && over.tagName != "BODY") {
-      console.log(`${over.classList} ${over.offsetLeft} ${over.offsetTop}`)
+      //console.log(`${over.classList} ${over.offsetLeft} ${over.offsetTop}`)
       if (over.offsetParent != lastParent) {
         left_off += over.offsetLeft
         top_off += over.offsetTop
         lastParent = over.offsetParent
       }
       over = over.parentElement
-      console.log(over)
+      //console.log(over)
     }
     attach = over
-    console.log(`left_off=${left_off} top_off=${top_off}`)
+    //console.log(`left_off=${left_off} top_off=${top_off}`)
 
     // create a DOM element in the uPLot overlay to show the cursor tooltip
     let ttc = u.cursortt = document.createElement("div");
@@ -49,7 +50,7 @@ export default function (uplot) {
   function setCursor(u) {
     if (attach === null) _init(u)
     const {left, top, idx} = u.cursor
-    console.log(`SC: left_off=${left_off} top_off=${top_off}`)
+    //console.log(`SC: left_off=${left_off} top_off=${top_off}`)
 
     if (idx === null) {
       u.cursortt.innerHTML = ""
@@ -89,10 +90,16 @@ export default function (uplot) {
     u.cursortt.innerHTML = html + "</table>"
   }
 
+  function setSize(u) {
+    attach = null // force recalculation of left_off/top_off
+  }
+
+
   return {
     hooks: {
       //init,
       setCursor,
+      setSize,
       //setScale: [ (u, key) => { console.log('setScale', key); } ],
       //setSeries: [ (u, idx) => { console.log('setSeries', idx); } ],
     },
