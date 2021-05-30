@@ -187,7 +187,7 @@
         </v-card-text>
 
         <!-- dialog box to edit a string input value full-page -->
-        <v-dialog v-model="dialog" content-class="height80" max-width="100ex">
+        <v-dialog v-model="dialog" content-class="height80 widget-edit-dialog" max-width="100ex">
           <v-card v-if="dialog" class="d-flex flex-column height100">
             <v-card-title class="d-flex align-baseline">
               <span>Edit <span style="font-weight: 700">{{dialog_prop}}</span></span>
@@ -209,6 +209,12 @@
     </v-menu>
   </div>
 </template>
+
+<style>
+.widget-edit .popup-spacer { margin-top: 3px; margin-bottom: 3px; }
+.widget-edit .w-edit > .v-input__append-outer { margin-left: 4px !important; }
+.widget-edit-dialog .v-input.height100 div { height: 100% !important; } 
+</style>
 
 <script scoped>
 
@@ -435,8 +441,3 @@ export default {
 }
 
 </script>
-<style>
-.widget-edit .popup-spacer { margin-top: 3px; margin-bottom: 3px; }
-.widget-edit .w-edit > .v-input__append-outer { margin-left: 4px !important; }
-.widget-edit .v-input.height100 div { height: 100%; } 
-</style>
