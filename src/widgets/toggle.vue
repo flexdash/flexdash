@@ -16,10 +16,10 @@ export default {
 
   help: `Simple on/off toggle switch.
 Sends a pre-determined value when toggled on or off. The current state can be set via the
-value input.`,
+value input: the toggle will be "on" if the value is equal to the "on_value" input.`,
 
   props: {
-    value: { default: false, tip: "set current value" },
+    value: { default: null, dynamic: "toggle", tip: "set toggle value" },
     enabled: { type: Boolean, default: true },
     color: { type: String, default: "primary" },
     on_value: { default: true, tip: "value sent when switched on" },
