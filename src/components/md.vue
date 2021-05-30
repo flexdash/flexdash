@@ -114,7 +114,7 @@ function tfmarkdown(md, disableHtml) {
   });
   md = md.replace(/(\*\*|__)(.*?)(\*\*|__)/g, '<b>$2</b>');
   md = md.replace(/[*_](.*?)[*_]/g, '<i>$1</i>');
-  md = md.replace(/([^\]][^(])(https?:\/\/.*?)(\s|[.,);][\s<])/g, '$1<a href="$2">$2</a>$3');
+  md = md.replace(/([^\]][^(])(https?:\/\/.*?)([\s<]|[.,);][\s<])/g, '$1<a href="$2">$2</a>$3');
   md = md.replace(/!\[(.*?)\]\((.*?)\)/g, '<img src="$2" alt="$1">');
   md = md.replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2">$1</a>');
 
