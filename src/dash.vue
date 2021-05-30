@@ -40,7 +40,7 @@
           <!-- Button to edit the tab -->
           <div style="position:absolute; z-index:5; right:0; top:0.5ex;">
             <v-btn small icon v-if="$root.editMode && ix==tab_ix"
-                   @click="tab_edit=!tab_edit">
+                   @click.stop="tab_edit=!tab_edit">
               <v-icon small>mdi-pencil</v-icon>
             </v-btn>
           </div>
