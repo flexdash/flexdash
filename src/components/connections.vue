@@ -91,6 +91,8 @@ export default {
 
   inject: [ '$store', '$config' ],
 
+  // created is called before child components are created, so we can parse the URL and prep
+  // some config for them.
   created() {
     console.log("Connection: created")
     const conn = this.$config.conn
@@ -100,13 +102,16 @@ export default {
     const sp = this.$root.params
     if (sp && sp.get('ws')) {
       // got a websocket address string, turn off demo and enable websock
-      conn.demo.enabled = false
+      conn.demo.enabled = true // FIXME: change to false...
       conn.websock.address = sp.get('ws')
       conn.websock.enabled = true
     }
     console.log("Initial connection config:", JSON.stringify(conn))
   },
 
+  // mounted is called after our data and computed variables have been initialized, we can
+  // now instantiate the connection objects and they will be ready by the time our child
+  // components, i.e. the connection settings, get created and mounted.
   mounted() {
     console.log("Connection: mounted, websock_config:", this.websock_config)
     this.demo_connection = new DemoConnection(undefined, this.handleMsg)
