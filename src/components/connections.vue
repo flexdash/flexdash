@@ -13,7 +13,9 @@
       <span>Server connections</span>
     </v-tooltip>
 
-    <v-dialog v-model="show_dialog">
+    <!-- connections pop-up dialog, rendered eagerly 'cause we want those components to
+         do work for us from the get-go -->
+    <v-dialog eager v-model="show_dialog">
       <v-card>
         <v-card-title class="d-flex">
           <span>Server Connections</span>
@@ -22,59 +24,78 @@
             <v-icon>mdi-close</v-icon>
           </v-btn>
         </v-card-title>
-        <v-card-text>
-          <!--v-container-->
-            <v-row justify="space-between">
-             <websock-settings :connection="websock_connection" :config="websock_config">
-             </websock-settings>
-             <demo-settings :connection="demo_connection" :config="demo_config">
-             </demo-settings>
-              <v-col cols="12" md="5">
-                <h3>UIbuilder</h3>
-                Connect to Node-Red using UIbuilder's socket.io
-                <v-checkbox disabled label="enabled (not yet implemented)" hide-details>
-                </v-checkbox>
-                <v-text-field label="Node-Red server address" persistent-hint
-                    hint="http://localhost:1880/ws/fd">
-                </v-text-field>
-                <v-text-field label="UIbuilder namespace" persistent-hint
-                    hint="URL field in the uibuilder node's properties in node-red">
-                </v-text-field>
-              </v-col>
-            </v-row>
-          <!--/v-container-->
+        <v-card-text v-if="config_wait">
+          <v-chip small class="mr-1" color="error">error</v-chip>
+          {{config_source}} connected but server is not sending configuration
         </v-card-text>
+
+        <!-- individual types of connections -->
+        <masonry class="v-card__text">
+          <masonry-brick>
+            <div>
+              <h3 class="mb-1">Saving the dashboard config</h3>
+              <p>The dashboard's configuration is generally saved to the connection from
+              which it was initially loaded. If that is the demo then no saving occurs.<p>
+              <div>
+                <span class="font-weight-medium">Saving to:</span>
+                <v-chip class="ml-3">{{config_source_name}}</v-chip>
+              </div>
+            </div>
+          </masonry-brick>
+          <masonry-brick>
+            <sockio-settings :connection="connections['sockio'].conn" :config="sockio_config"
+                             @change="changeConfig('sockio', $event)">
+            </sockio-settings>
+          </masonry-brick>
+          <masonry-brick>
+            <demo-settings :connection="connections['demo'].conn" :config="demo_config"
+                           @change="changeConfig('demo', $event)">
+            </demo-settings>
+          </masonry-brick>
+          <masonry-brick>
+            <websock-settings :connection="connections['websocket'].conn" :config="websock_config"
+                              @change="changeConfig('websock', $event)">
+            </websock-settings>
+          </masonry-brick>
+        </masonry>
       </v-card>
     </v-dialog>
   </div>
-  
 </template>
 
 <script scoped>
 //import Uib from '@/components/uib'
+import Masonry from '/src/components/masonry.vue'
+import MasonryBrick from '/src/components/masonry-brick.vue'
 import DemoSettings from '/src/connections/demo-settings.vue'
 import DemoConnection from '/src/connections/demo.js'
 import WebsockSettings from '/src/connections/websock-settings.vue'
 import WebsockConnection from '/src/connections/websock.js'
+import SockioSettings from '/src/connections/sockio-settings.vue'
+import SockioConnection from '/src/connections/sockio.js'
 
 export default {
   name: "Connections",
 
-  components: { DemoSettings, WebsockSettings },
+  components: { Masonry, MasonryBrick, DemoSettings, WebsockSettings, SockioSettings },
 
   data: ()=> ({
     show_dialog: false, // modal dialog box to configure connections
-    demo_connection: null,
-    websock_connection: null,
+    connections: {
+      demo: { connClass: DemoConnection, settClass: DemoSettings },
+      websocket: { connClass: WebsockConnection, settClass: WebsockSettings },
+      sockio: { connClass: SockioConnection, settClass: SockioSettings },
+    },
+    config_source: null,
   }),
 
   computed: {
     // compute the color of the connections status icon
     icon_color() {
       let num_ok = 0, num_bad = 0
-      for (const c of [this.demo_connection, this.websock_connection]) {
-        if (!c) continue
-        switch (c.data.status) {
+      for (const c in this.connections) {
+        if (!('conn' in this.connections[c])) continue
+        switch (this.connections[c].conn.data.status) {
           case 'ok': num_ok++; break;
           case 'bad': num_bad++; break;
         }
@@ -85,8 +106,17 @@ export default {
       return num_bad ? "error" : "grey"
     },
 
+    gotConfig() { return this.$config.dash.title !== undefined },
+    config_wait() {
+      return !this.got_config && this.config_source && this.connections[this.config_source].conn
+             && this.connections[this.config_source].conn.data.status == "ok"
+    },
+
     demo_config() { return this.$config.conn ? this.$config.conn.demo : undefined },
-    websock_config() { return this.$config.conn ? this.$config.conn.websock : undefined },
+    websock_config() { return this.$config.conn ? this.$config.conn.websocket : undefined },
+    sockio_config() { return this.$config.conn ? this.$config.conn.sockio : undefined },
+
+    config_source_name() { return this.config_source || "none" },
   },
 
   inject: [ '$store', '$config' ],
@@ -96,60 +126,75 @@ export default {
   created() {
     console.log("Connection: created")
     const conn = this.$config.conn
-    this.$set(conn, 'demo', { enabled: true })
-    this.$set(conn, 'websock', { enabled: false, address: "" })
+    this.$set(conn, 'demo', { enabled: false })
+    this.$set(conn, 'websocket', { enabled: false, address: "" })
+    this.$set(conn, 'sockio', { enabled: false, hostname: "", path:"", tls:false })
+
+    // instantiate all the connection objects (they all wait for a start() call)
+    for (name in this.connections) {
+      const c = this.connections[name]
+      c.conn = new c.connClass(this.serverSend, this.handleMsg)
+    }
+    
     // check out query string of page load to see whether there's connection info
     const sp = this.$root.params
-    if (sp && sp.get('ws')) {
-      // got a websocket address string, turn off demo and enable websock
-      conn.demo.enabled = true // FIXME: change to false...
-      conn.websock.address = sp.get('ws')
-      conn.websock.enabled = true
+    if (sp && sp.get('sio')) {
+      // got a socketio address string, enable sockio
+      conn.sockio.address = sp.get('sio')
+      conn.sockio.enabled = true
+      this.config_source = "sockio"
+      this.$emit('src', 'sockio ' + conn.sockio.address)
+    } else if (sp && sp.get('ws')) {
+      // got a websocket address string, enable websock
+      conn.websocket.address = sp.get('ws')
+      conn.websocket.enabled = true
+      this.config_source = "websocket"
+      this.$emit('src', 'websocket ' + conn.websocket.address)
+    } else {
+      conn.demo.enabled = true
+      this.config_source = "demo"
+      this.$emit('src', 'demo')
     }
     console.log("Initial connection config:", JSON.stringify(conn))
-  },
-
-  // mounted is called after our data and computed variables have been initialized, we can
-  // now instantiate the connection objects and they will be ready by the time our child
-  // components, i.e. the connection settings, get created and mounted.
-  mounted() {
-    console.log("Connection: mounted, websock_config:", this.websock_config)
-    this.demo_connection = new DemoConnection(undefined, this.handleMsg)
-    if (this.demo_config && this.demo_config.enabled) this.demo_connection.start()
-    this.websock_connection = new WebsockConnection(undefined, this.handleMsg)
-    if (this.websock_config && this.websock_config.enabled && this.websock_config.address)
-      this.websock_connection.start(this.websock_config.address)
 
     // set a global variable with our serverSend method so the widget-wrapper can send
     // data on behalf of widgets
     // using a lambda here to get the correct 'this'
     this.$root.serverSend = (topic, payload) => this.serverSend(topic, payload)
+    this.$store.serverSend = (topic, payload) => this.serverSend(topic, payload)
+  },
+
+  mounted() {
+    //console.log("Connection: mounted")
+    // pop-up the connections dialog if nothing happens in 5 seconds
+    window.setTimeout(()=>{ if (!this.gotConfig) this.show_dialog = true }, 5000)
   },
 
   beforeDestroy() {
     console.log("Connection: beforeDestroy")
-    if (this.demo_connection) this.demo_connection.stop()
-    if (this.websock_connection) this.websock_connection.stop()
+    for (name in this.connections) {
+      const c = this.connections[name]
+      if (c.conn) c.conn.stop()
+    }
   },
 
   methods: {
     showDialog(ev) { this.show_dialog = true; ev.stopPropagation() },
 
+    // send full config to the server
+    sendConfig() {
+      for (let c in this.$config) {
+        this.serverSend("$config/" + c, this.$config[c])
+      }
+    },
+
     // Handle a msg event emitted by a server connection, process the message and
     // inject it into the store.
-    handleMsg(msg) {
-      // Ignore if there's not topic and payload
-      if (!('topic' in msg && 'payload' in msg)) {
-        console.log("Message w/out topic/payload:", msg)
-        return
-      }
-
+    handleMsg(topic, payload) {
       // Do some special handling of dashboard config messages
-      if (msg.topic === "$config") {
-        const p = msg.payload
-        console.log(`*** config for '${p.dash.title}' received:`,
-            `${Object.keys(p.tabs).length} tabs, ${Object.keys(p.grids).length} grids,`,
-            `${Object.keys(p.widgets).length} widgets`)
+      if (topic === "$config") {
+        const p = payload
+        console.log(`*** config for received:`, Object.keys(p))
 
         if (this.$config.dash.title) {
           console.log("Already got config, dropping message")
@@ -157,15 +202,16 @@ export default {
         }
 
         // sanity check the config for bootstrapping purposes
-        if (!msg.payload || !msg.payload.dash) {
-          console.log("*** No or broken config, clearing! (got:", msg.payload)
+        if (!payload || !payload.dash) {
+          console.log("*** No or broken config, clearing! (got:", payload)
           this.$store.initDash()
+          this.sendConfig()
           return
         }
       }
 
       // Insert into store.
-      this.$store.insertData(msg.topic, msg.payload)
+      this.$store.insertData(topic, payload)
     },
 
     // serverSend is used to send data from widgets to all servers we're connected to
@@ -174,13 +220,14 @@ export default {
     serverSend(topic, payload) {
       if (topic.startsWith('$demo')) {
         this.$store.insertData(topic, payload)
-      } else {
-        if (this.websock_connection) {
-          this.websock_connection.serverSend(topic, payload)
-        }
-        // add other connections here...
+      } else if (this.config_source) {
+          this.connections[this.config_source].conn.serverSend(topic, payload)
       }
 
+    },
+
+    changeConfig(conn, config) {
+      this.$config.conn[conn] = config
     },
 
   },

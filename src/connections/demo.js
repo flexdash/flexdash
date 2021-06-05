@@ -107,13 +107,13 @@ https://tve.github.io/flexdash/?ws=ws://localhost:1880/ws/flexdash#websock
 // risk of collisions.
 const demo_tabs = {
   // random data demo
-  "t0000": {
+  "Widget sampler": {
     "tabs": { "t0000": { "id":"t0000", "icon":"dice-multiple", "grids": ["g0000"] } }, // "view-dashboard"
     "grids": {
       "g0000": { "id": "g0000", "kind": "FixedGrid",
                  "widgets": [ "w0001", "w0000", "w0003", "w0002", "w0009", "w0006",
                               "w0007", "w0008", "w0010", "w0011", "w0012", "w0013",
-                              "w0014", "w0020", "w0021", "w0022", "w0023" ] } },
+                              "w0014", "w0020", "w0021", "w0022", "w0023", "w0024" ] } },
     "widgets": {
       "w0001": { "kind": "Markdown", "id": "w0001", "cols": 3, "rows": 5, "dynamic": {},
                   "static": { "title": "", "text": welcome_text } },
@@ -170,11 +170,14 @@ const demo_tabs = {
       "w0023": { "kind": "RandomArray", "id": "w0023", "output": "$demo/plot",
                   "static": { "title":"Rnd Plot", "min":50, "max":90, "seconds":7, "length":11 },
                   "dynamic": {}, "rows": 1, "cols": 1 },
+      "w0024": { "kind": "IFrame", "id": "w0024",
+                  "static": { "title":"", "url":"https://user-images.githubusercontent.com/19274367/45430032-b6a5a180-b6a4-11e8-9645-a0497ef044f3.png"},
+                  "rows": 2, "cols": 2 },
     }
   },
 
   // websocket demo
-  "t0001": {
+  "Websock": {
     "tabs": {
       "t0001": { "id":"t0001", "title":"websock", "icon":"resistor-nodes", "grids":["g0001"] } },
     "grids": {
@@ -193,7 +196,31 @@ const demo_tabs = {
                   "static": { "title": "Light", "unit": "" },
                   "dynamic": { "value": "light" }, "rows": 1, "cols": 1 },
     }
-  }
+  },
+
+  // iframe demo
+  "IFrame": {
+    "tabs": {
+      "t0002": { "id":"t0002", "title":"iframe", "icon":"grid", "grids":["g0002","g0003"] } },
+    "grids": {
+      "g0002": { "id": "g0002", "kind": "FixedGrid", "widgets": ["w0040"] },
+      "g0003": { "id": "g0003", "kind": "IFrameGrid",
+                 "url": "http://core.voneicken.com:1880/ui/#!/1" } },
+    "widgets": {
+      "w0040": { "kind": "Markdown", "id": "w0040", "cols": 4, "rows": 1, "dynamic": {},
+                  "static": { "title": "", "text": "Hello Iframe!" } },
+    }
+  },
+
+  // iframe demo #2
+  "Embed Node-Red": {
+    "tabs": {
+      "t0003": { "id":"t0003", "title":"veggie", "icon":"collage",
+                 "url": "http://core.voneicken.com:1880/ui/#!/1", "slot": "a" },
+      "t0004": { "id":"t0004", "title":"orchard", "icon":"collage",
+                 "url": "http://core.voneicken.com:1880/ui/#!/2", "slot": "a" },
+    },
+  },
 }
 
 const plot_opts = {
@@ -221,11 +248,13 @@ import store from '/src/store.js' // not happy about this...
 
 export default class DemoConnection {
   constructor (serverSend, storeInsert) {
+    this.name = "demo"
     this.storeInsert = storeInsert
     // data fed into the Vue reactivity system
     this.data = Vue.observable({
       status: 'off',
     })
+    this.demos = Object.keys(demo_tabs) // used in UI to choose demo to inject
     return this
   }
 
@@ -233,7 +262,13 @@ export default class DemoConnection {
   start() {
     this.data.status = 'ok'
     // send dashboard configuration
-    Object.keys(demo_tabs).sort().forEach((t)=> this.inject(t))
+    Object.keys(demo_tabs).forEach((t)=> this.inject(t))
+
+    // hack to add a bunch of node-red dashboard iframes
+    this.storeInsert(`$config/dash/nodered`, {
+      url: "http://core.voneicken.com:1880/ui/#!/",
+      count: 11,
+    })
 
   }
 
@@ -245,20 +280,21 @@ export default class DemoConnection {
     if (!store.config.dash.tabs) {
       const conn = store.config.conn || {}
       console.log("Demo injecting $config")
-      this.storeInsert({topic: `$config`, payload: {
-        dash: {title:"FlexDash", tabs:[]}, tabs:{}, grids:{}, widgets:{}, conn:conn}
+      this.storeInsert(`$config`, {
+        dash: {title:"FlexDash", tabs:[]}, tabs:{}, grids:{}, widgets:{}, conn:conn
       })
     }
     for (let type in demo_tabs[tab]) {
       for (let id in demo_tabs[tab][type]) {
         console.log(`Demo injecting $config/${type}/${id}`)
-        this.storeInsert({topic: `$config/${type}/${id}`, payload: demo_tabs[tab][type][id]})
+        this.storeInsert(`$config/${type}/${id}`, demo_tabs[tab][type][id])
+
+        if (type == "tabs" && !store.config.dash.tabs.includes(id)) {
+            const ix = store.config.dash.tabs.length
+            console.log(`Demo injecting $config/dash/tabs/${ix}`)
+            this.storeInsert(`$config/dash/tabs/${ix}`, id)
+        }
       }
-    }
-    if (!store.config.dash.tabs.includes(tab)) {
-      const ix = store.config.dash.tabs.length
-      console.log(`Demo injecting $config/dash/tabs/${ix}`)
-      this.storeInsert({topic: `$config/dash/tabs/${ix}`, payload: tab})
     }
   }
 

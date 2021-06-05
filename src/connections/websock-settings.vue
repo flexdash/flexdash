@@ -4,23 +4,28 @@
 -->
 
 <template>
-  <v-col cols="12" md="5">
+  <div>
     <div style="width:100%; display:flex; justify-content:space-between; align-items:baseline;">
       <h3>Websocket</h3>
       <v-chip small :color="status_color">{{status_txt}}</v-chip>
     </div>
-    <v-checkbox label="enabled" :disabled="disable"
-                :input-value="config.enabled" @change="handleEnabled" hide-details></v-checkbox>
-    <!--v-checkbox label="save config" persistent-hint
-        hint="save dashboard config via this connection"></v-checkbox-->
+    <p>The websocket uses JSON messages of the form
+    <code>{"topic":"...", "payload":...}</code>. Messages for the dashboard
+    configuration have topics starting with <code>$config/</code>.
+    </p>
+    <p>To load/save the config over websocket load the dashboard with a query string
+    of the form <code>?ws=&lt;websocket-url&gt;</code>.</p>
     <v-text-field label="websocket server address" persistent-hint clearable
         :value="config.address" @change="handleAddress" :rules="[validateAddress]"
         hint="wss://server.example.com/mydash, ws://localhost:1880/ws/fd">
     </v-text-field>
-    <v-text-field disabled persistent-hint hint="last message received"
-                  :value="last_msg">
-    </v-text-field>
-  </v-col>
+    <v-checkbox hide-details label="enable" :disabled="disable"
+                :input-value="config.enabled" @change="config.enabled=$event"></v-checkbox>
+    <div class="mt-3">
+      Reload the dashboard from this server (looses current config):
+      <v-btn :disabled="status_txt!='OK'" x-small @click="reload()">reload</v-btn>
+    </div>
+  </div>
 </template>
 
 <script scoped>
@@ -29,25 +34,18 @@ export default {
 
   props: {
     connection: null, // WebsockConnection object
-    config: { type: Object, default() { return { enabled: false, address: "" } } },
+    config: { type: Object, default() { return { enabled: false, address:
+    "wss://core2.voneicken.com:1880/ws/flexdash" } } },
   },
 
   created() { console.log("ws-settings created, config:", JSON.stringify(this.config),
       "connection:", JSON.stringify(this.connection)) },
 
   computed: {
-    // last message received to show activity
-    last_msg() {
-      if (!this.config.enabled) return "- disabled -"
-      if (!this.connection || !this.connection.data.last_msg.topic) return "- none -"
-      const payload = JSON.stringify(this.connection.data.last_msg.payload)
-      return `"${this.connection.data.last_msg.topic}" <- ${payload}`
-    },
-
     status_txt() {
       console.log("status_txt, this.config:", this.config)
       if (!this.config.enabled || !this.connection) return "disabled"
-      return this.connection.data.status_txt
+      return this.connection.data.status_txt || this.connection.data.status
     },
 
     status_color() {
@@ -60,24 +58,31 @@ export default {
     disable() { return !this.connection },
   },
 
-  methods: {
-    handleEnabled(ev) {
-      this.config.enabled = ev
-      if (ev) {
-        console.log("WS now enabled, addr:", this.config);
-        this.connection.start(this.config.address)
-      } else {
-        console.log("WS now disabled")
-        this.connection.stop()
-      }
+  watch: {
+    'config.enabled': {
+      immediate: true,
+      handler(en) {
+        if (en) {
+          console.log("WS now enabled, addr:", this.config.address);
+          if (this.validateAddress(this.config.address) === true)
+            this.connection.start(this.config.address)
+        } else {
+          console.log("WS now disabled")
+          this.connection.stop()
+        }
+      },
     },
+  },
 
+  methods: {
     handleAddress(addr) {
       this.config.address = addr
+      this.$emit('change', this.config)
       if (this.config.enabled) {
         console.log("WS: address changed, reconnecting")
         this.connection.stop()
-        this.connection.start(this.config.address)
+        if (this.validateAddress(this.config.address) === true)
+          this.connection.start(this.config.address)
       }
     },
 
@@ -85,6 +90,10 @@ export default {
       if (!addr.match(/^(ws|http)s?:[/][/]/)) return "address must start with ws:// or wss://"
       if (!addr.match(/^(ws|http)s?:[/][/][^/]+\//)) return "address must contain hostname and path"
       return true
+    },
+
+    reload() {
+      window.location.search = "ws=" + this.config.address
     },
   },
 

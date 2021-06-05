@@ -6,12 +6,16 @@
 import Vue from 'vue'
 import ReconnectingWebSocket from 'reconnecting-websocket'
 
+const state_txt = ['connecting', 'connected', 'closing', 'closed']
+
 export default class WebsockConnection {
   // config: { enabled: Boolean, address: String }
   constructor (sendMsg, recvMsg) {
     this.sendMsg = sendMsg
     this.recvMsg = recvMsg
     this.rws = null // ReconnectingWebSocket
+    this.checker = null // interval timer to check unsent messages
+    this.first_connect = true
 
     // data fed into the Vue reactivity system
     this.data = Vue.observable({
@@ -26,7 +30,6 @@ export default class WebsockConnection {
   start(addr) {
     console.log("WS: connecting to", addr)
     this.data.status = 'bad'
-    this.data.status_txt = "connecting"
     this.rws = new ReconnectingWebSocket(addr, [], { debug: false, startClosed: true })
     this.rws.addEventListener('open', ()=> this.onOpen())
     this.rws.addEventListener('close', ()=> this.onClose())
@@ -35,21 +38,36 @@ export default class WebsockConnection {
     this.rws.reconnect()
   }
 
+  setStatus() {
+    if (this.rws === null) {
+      this.data.status = 'off'
+      this.data.status_txt = "off"
+    } else if (this.rws.readyState == 3 /*closed*/) {
+      this.data.status = 'err'
+    } else if (this.rws.readyState == 1 /*open*/ && this.rws.bufferedAmount == 0) {
+      this.data.status = "ok"
+      this.data.status_txt = "OK"
+    } else {
+      this.data.status = 'bad'
+      this.data.status_txt = `${state_txt[this.rws.readyState]}, ${this.rws.bufferedAmount} queued`
+    }
+  }
+
   stop() {
     if (this.rws) {
       console.log("WS: closing")
       this.rws.close()
     }
     this.rws = null
-    this.data.status = 'off'
-    this.data.status_txt = "off"
+    this.setStatus()
   }
 
   onOpen() {
     console.log("WS opened")
-    this.data.status = 'ok'
-    this.data.status_txt = "connected"
-    this.rws.send('{"topic":"$ctrl", "payload":"start"}')
+    this.setStatus()
+    const msg = { topic:"$ctrl", payload:this.first_connect?"start":"continue" }
+    this.rws.send(JSON.stringify(msg))
+    this.first_connect = false
   }
 
   onClose() {
@@ -71,20 +89,28 @@ export default class WebsockConnection {
       return
     }
     console.log("WS rx:", m)
-    this.recvMsg(m)
-    this.data.status = 'ok'
-    this.data.status_txt = "connected"
+    this.recvMsg(m.topic, m.payload)
+    this.setStatus()
   }
 
   onError(err) {
-    console.log("WS rx error:", err.message || " ... no details")
-    this.data.status = 'bad'
+    //console.log("WS error:", err)
+    console.log("WS error:", err.message || " ... no details")
     this.data.status_txt = err.message ? `error: ${err.message}` : "error"
   }
 
   serverSend(topic, payload) {
     if (this.rws) {
       this.rws.send(JSON.stringify({topic, payload}))
+      if (this.rws.bufferedAmount > 0 && this.checker === null) {
+        this.checker = window.setInterval(()=> {
+          this.setStatus()
+          if (this.rws.bufferedAmount === 0) {
+            window.clearInterval(this.checker)
+            this.checker = null
+          }
+        }, 1000)
+      }
     }
   }
 }
