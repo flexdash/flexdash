@@ -12,7 +12,7 @@
           style="overflow: hidden">
 
     <!-- Widget title & buttons shown when the child component does _not_ show the title -->
-    <v-card-text v-if="!('title' in child_props)" class="d-flex pa-0 pt-1 mb-n1">
+    <v-card-text v-if="!('title' in child_props) && title" class="d-flex pa-0 pt-1 mb-n1">
       <!-- title and edit button -->
       <span v-if="title" class="mx-auto">{{title}}</span>
       <v-btn small icon class="justify-end align-start mt-n1" v-if="$root.editMode"
@@ -84,7 +84,7 @@ export default {
 
   computed: {
     // title shown by widget wrapper
-    title() { return this.bindings.title || "--" },
+    title() { return this.bindings.title || "" },
 
     // child_props holds a description of the properties of the child component, this is used to
     // convert types and raise warning messages. (Note that this is not reactive in the component

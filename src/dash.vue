@@ -7,7 +7,7 @@
 
     <!-- Navigation drawer opening from the left on small devices to show tabs -->
     <v-navigation-drawer v-model="sidebar" app mini-variant clipped v-if="gotConfig">
-      <div>
+      <div v-if="false">
       <v-tabs vertical v-model=tab_ix>
         <v-tab v-for="t in dash_tabs" :key="t" class="px-0" style="min-width: auto">
           <v-icon large>mdi-{{tabs[t].icon}}</v-icon>
@@ -31,7 +31,7 @@
 
       <!-- Tabs -->
       <v-tabs v-model=tab_ix icons-and-text center-active class="hidden-xs-only" v-if="gotConfig">
-        <v-tab v-for="(tid, ix) in dash_tabs" :key="tid+ix" :id="'tab-'+tid" :xhref="'#tab'+ix"
+        <v-tab v-for="(tid, ix) in dash_tabs" :key="tid+ix" :id="'tab-'+tid"
                :class="{'is-active': ix == tab_ix}">
                <!-- set class above as work-around for vuetify issue #11405-->
           <!-- Text and icon for the tab -->
@@ -46,7 +46,8 @@
           </div>
         </v-tab>
         <!-- Button to add a tab -->
-        <v-btn v-if="$root.editMode" x-small fab @click="addTab($event)" class="my-auto ml-6">
+        <v-btn v-if="$root.editMode" x-small fab class="my-auto ml-6" id="tab-add"
+               @click.stop="tab_add=!tab_add">
           <v-icon>mdi-plus</v-icon>
         </v-btn>
       </v-tabs>
@@ -64,11 +65,11 @@
         <span>undo {{ canUndo && $store.undo.buf[$store.undo.buf.length-1].tagline }}</span>
       </v-tooltip>
 
-      <!-- Connection icons -->
-      <connections></connections>
+      <!-- Connection icon -->
+      <connections @src="config_src=$event" ></connections>
 
       <!-- Settings menu at far right -->
-      <v-menu offset-x min-width="10em" v-model="settings_menu">
+      <v-menu offset-y min-width="10em" v-model="settings_menu">
         <!-- Menu activator, i.e. the button -->
         <template v-slot:activator="{ on, attrs }">
           <v-btn icon v-bind="attrs" v-on="on"><v-icon>mdi-cog</v-icon></v-btn>
@@ -85,80 +86,57 @@
       </v-menu>
     </v-app-bar>
 
-    <!-- Menu used to show editing panel-->
-    <v-menu v-model="tab_edit" offset-y allow-overflow :activator="'#tab-'+tab_id"
-            max-width="30ex" content-class="popup-spacer" :close-on-content-click="false">
-
-      <!-- Editing panel shown floating below tab -->
-      <v-card color="surface">
-        <v-card-text class="d-flex px-2">
-          <!-- move tab left/right -->
-          <v-tooltip bottom>
-            <template v-slot:activator="{ on }">
-              <v-btn small icon @click="moveTab(-1)" class="" v-on="on">
-                <v-icon>mdi-arrow-left-bold</v-icon></v-btn>
-            </template>
-            <span>Move tab left</span>
-          </v-tooltip>
-          <v-tooltip bottom>
-            <template v-slot:activator="{ on }">
-              <v-btn small icon @click="moveTab(1)" v-on="on">
-                <v-icon>mdi-arrow-right-bold</v-icon></v-btn>
-            </template>
-            <span>Move tab right</span>
-          </v-tooltip>
-          <v-spacer></v-spacer>
-
-          <!-- delete tab -->
-          <v-btn small @click="deleteTab" class="mx-auto">Delete tab</v-btn>
-          <v-spacer></v-spacer>
-
-          <!-- close dialog button -->
-          <v-btn small elevation=0 icon @click="tab_edit=false">
-            <v-icon>mdi-close</v-icon>
-          </v-btn>
-        </v-card-text>
-
-        <v-card-text class="d-flex flex-column">
-          <!-- icon selector -->
-          <v-text-field dense label="icon" persistent-hint hint="yes" class="flex-grow-0"
-                        :value="tab.icon" @input="handleEdit('icon', $event)">
-            <template v-slot:message>
-              <span>See
-                <a target="_blank" href='https://materialdesignicons.com'>
-                   materialdesignicons.com
-                   <v-icon color="primary" x-small>mdi-open-in-new</v-icon>
-                </a>
-              </span>
-            </template>
-          </v-text-field>
-
-          <!-- tab title -->
-          <v-text-field dense label="tab title" class="flex-grow-0 mt-6"
-                        :value="tab.title" @input="handleEdit('title', $event)">
-          </v-text-field>
-
-          <v-btn small @click="addGrid" class="mx-auto">Add grid</v-btn>
-        </v-card-text>
-
-      </v-card>
+    <!-- Menu used to show tab addition-->
+    <v-menu v-model="tab_add" offset-y allow-overflow activator="#tab-add">
+        <v-list dense>
+          <v-list-item @click="addTab('grid')">Grid with Widgets</v-list-item>
+          <v-list-item @click="addTab('iframe')">IFrame</v-list-item>
+        </v-list>
     </v-menu>
 
-    <v-main>
-      <v-tabs-items v-if="gotConfig" v-model="tab_ix">
-        <div :style="{ backgroundColor: $vuetify.theme.themes[theme].background}">
-          <v-tab-item v-for="(id) in dash_tabs" :key="id"
-                      :class="{'is-active': id == tab_id}">
-                      <!-- set class above as work-around for vuetify issue #11405-->
-            <component v-for="(g, ix) in tabs[id].grids" :key="g" :id="g"
-                       v-bind:is="grids[g].kind in palette.grids ? grids[g].kind : 'div'"
-                       @delete="deleteGrid(id, ix)">
-            </component>
-          </v-tab-item>
-        </div>
+    <!-- Menu used to show editing panel floating below tab -->
+    <v-menu v-model="tab_edit" offset-y allow-overflow :activator="'#tab-'+tab_id"
+            max-width="40ex" content-class="popup-spacer" :close-on-content-click="false">
+      <tab-edit v-model="tab_edit" :tab_ix="tab_ix" :tab_id="tab_id" @reload="reload"></tab-edit>
+    </v-menu>
+
+    <!-- main area of the page with content -->
+    <v-main :style="{ backgroundColor: $vuetify.theme.themes[theme].background}">
+      <!-- "normal" tabs with grids and widgets -->
+      <v-tabs-items v-if="gotConfig" :value="tab_ix" :class="tabs_items_class">
+        <v-tab-item v-for="(id) in dash_tabs" :key="id"
+                    :class="{'is-active': id == tab_id}">
+                    <!-- set class above as work-around for vuetify issue #11405-->
+          <!-- "normal" tab with grids with widgets -->
+          <component v-if="tabs[id].grids"
+                     v-for="(g, ix) in tabs[id].grids" :key="g" :id="g"
+                     v-bind:is="grids[g].kind in palette.grids ? grids[g].kind : 'div'"
+                     @delete="deleteGrid(id, ix)">
+          </component>
+        </v-tab-item>
       </v-tabs-items>
-      <div v-else>
-        LOADING...
+      <!-- iframe tabs, we have two "slots" where content can persist -->
+      <div v-if="gotConfig" :class="iframe_a_class">
+        <iframe v-if="iframe_a_src" :src="iframe_a_src"
+                frameborder="0" marginheight="0" marginwidth="0"></iframe>
+      </div>
+      <div v-if="gotConfig" :class="iframe_b_class">
+        <iframe v-if="iframe_b_src" :src="iframe_b_src"
+                frameborder="0" marginheight="0" marginwidth="0"></iframe>
+      </div>
+      <!-- loading... -->
+      <div v-if="!gotConfig">
+        <v-container style="height: 400px;">
+          <v-row class="fill-height" align-content="center" justify="center">
+            <v-col class="text-subtitle-1 text-center" cols="12">
+              Loading configuration from<br>{{config_src}}
+            </v-col>
+            <v-col cols="6">
+              <v-progress-linear color="primary" indeterminate rounded height="6">
+              </v-progress-linear>
+            </v-col>
+          </v-row>
+        </v-container>
       </div>
     </v-main>
 
