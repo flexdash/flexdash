@@ -145,13 +145,14 @@
 
 <script scoped>
 import Connections from '/src/components/connections.vue'
+import TabEdit from '/src/components/tab-edit.vue'
 import randomStepper from '/src/utils/random-stepper.js'
 //const J = JSON.stringify
 
 export default {
   name: 'Dash',
 
-  components: { Connections },
+  components: { Connections, TabEdit },
   inject: [ '$config', '$store', 'palette' ],
 
   data: () => ({
@@ -159,9 +160,15 @@ export default {
     sidebar: false, // disabled for now
     tab_ix: null, // which tab we're on
     tab_edit: false, // turns tab editing drawer on/off
+    tab_add: false, // turns add-a-tab menu on/off
+
+    iframe_a_src: null, // src URL for iframe
+    iframe_b_src: null, // src URL for iframe
 
     settings_menu: null, // whether settings menu is open or not
     settings: { edit: 'Edit mode', theme: 'Toggle theme' }, // options in the settings menu
+
+    config_src: "",
   }),
 
   computed: {
@@ -171,18 +178,31 @@ export default {
     dash() { return this.gotConfig ? this.$config.dash : {} },
     dash_tabs() { return this.dash.tabs || [] }, // tabs to show, handling init
     tab() { return this.tab_id ? this.tabs[this.tab_id] : {} },
-    tab_id() { return this.tab_ix != null ? this.dash_tabs[this.tab_ix] : null }, // current tab ID
+    tab_id() { return this.tab_ix != null ? this.dash_tabs[this.tab_ix] : "" }, // current tab ID
     tabs() { return this.gotConfig ? this.$config.tabs : {} }, // make accessible in template
     grids() { return this.gotConfig ? this.$config.grids : {} }, // make accessible in template
     theme() { return (this.$vuetify.theme.dark) ? 'dark' : 'light' },
     canUndo() { return this.$store.undo.buf.length > 0 },
+
+    iframe_a_show() { return this.tab.url && this.tab.slot == 'a' },
+    iframe_a_class() { return ["iframe-tab-wrap", {"iframe-a--active": this.iframe_a_show}] },
+    iframe_b_show() { return this.tab.url && this.tab.slot == 'b' },
+    iframe_b_class() { return ["iframe-tab-wrap", {"iframe-b--active": this.iframe_b_show}] },
+    tab_show() { return !!this.tab.grids },
+    tabs_items_class() { return {"tabs--active": this.tab_show} },
   },
 
   watch: {
     // ensure the current tab exists
-    tabs(tt) {
-      if (this.tab_ix >= tt.length) this.tab_ix = tt.length-1
-    },
+    tabs(tt) { if (this.tab_ix >= tt.length) this.tab_ix = tt.length-1 },
+    // adjust the iframe url when we display an iframe tab
+    tab: { deep: true, immediate: true, handler(t) {
+      if (t.url) {
+        if (t.slot == 'a') this.iframe_a_src = t.url
+        if (t.slot == 'b') this.iframe_b_src = t.url
+        console.log("iframe_a_src:", this.iframe_a_src)
+      }
+    }},
   },
 
   mounted() {
@@ -222,48 +242,26 @@ export default {
 
   methods: {
     // handle buttons for tab editing
-    addTab(ev) {
-      const tab_ix = this.$store.addTab()
-      ev.stopPropagation()
+    addTab(kind) {
+      const tab_ix = this.$store.addTab(kind)
       this.$nextTick(() => {
         this.tab_ix = tab_ix
         this.tab_edit = true // switch to editing the new tab
       })
     },
-    deleteTab() {
-      this.$store.deleteTab(this.tab_ix)
-      if (this.tab_ix >= this.$config.dash.tabs.length-1) // this.dash_tabs has not updated yet
-        this.tab_ix = this.$config.dash.tabs.length-1
-      this.tab_edit = false
-    },
-
-    // edit tab props, such as title
-    handleEdit(what, ev) {
-      console.log('handleEdit', what, ev)
-      const prop = {}; prop[what] = ev
-      this.$store.updateTab(this.tab_id, prop)
-    },
-
-    moveTab(dir) {
-      const ix = this.tab_ix
-      if (!(ix+dir >= 0 && ix+dir < this.dash.tabs.length)) return
-      let tt = [ ...this.dash.tabs ] // clone
-      let t = tt[ix]; tt[ix] = tt[ix+dir]; tt[ix+dir] = t // swap
-      this.$store.updateDash({ tabs: tt })
-      this.tab_ix += dir
-      // we need to force a full re-eval of the rendered stuff else the association between
-      // the tabs and the content is screwed-up
-      this.gotConfig = false
-      this.$nextTick( ()=> this.gotConfig = true )
-    },
-
-    addGrid() {
-      this.$store.addGrid(this.tab_id)
-    },
 
     // delete event coming up from the grid component
     deleteGrid(tab_id, grid_ix) {
       this.$store.deleteGrid(tab_id, grid_ix)
+    },
+
+    // force a full re-eval of the rendered stuff - invoked by TabEdit
+    // there's a bug in Vuetify's tab-items that causes the tabs and the content to be mixed-up
+    reload(tab_ix) {
+      this.tab_ix = tab_ix
+      this.$forceUpdate()
+      //this.gotConfig = false
+      //this.$nextTick( ()=> { this.gotConfig = true; this.tab_ix = tab_ix })
     },
   },
 
@@ -281,6 +279,23 @@ export default {
 .v-app-bar .v-tabs { overflow: auto }
 .v-app-bar .v-slide-group__prev { display: none !important; }
 .v-app-bar .v-slide-group__next { display: none !important; }
+
+/* make tab content 100% height so we can size iframe for iframe-grid to full page */
+.v-item-group { height: 100%; }
+.v-window-item { height: 100%; }
+
+/* hide tabs when showing an iframe */
+.v-tabs-items { display: none; }
+.v-tabs-items.tabs--active { display: block; }
+
+/* iframe for external tab content */
+.iframe-tab-wrap { position: relative; width: 100%; height: 100%; display: none; }
+.iframe-tab-wrap > iframe {
+  border: none; width:100%; height:100%;
+  display: block; object-position: center top;
+}
+.iframe-tab-wrap.iframe-a--active { display: block; }
+.iframe-tab-wrap.iframe-b--active { display: block; }
 
 /* Give menu a tiny bit of room between tab and top of menu */
 .popup-spacer { margin-top: 2px; margin-bottom: 3px; }

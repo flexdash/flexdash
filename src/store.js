@@ -55,7 +55,7 @@ export {walkTree}
 // ===== Store class
 
 // empty objects for addTab, addGrid, etc. The ID is missing and must be added!
-const empty_tab = { icon: 'rocket-launch', title: "", grids: [] }
+const empty_tab = { icon: 'rocket-launch', title: "" }
 const empty_grid = { kind: 'FixedGrid', title: "", widgets: [] }
 const empty_widget = { kind: 'Stat', rows:1, cols:1, static:{title:"Stat"}, dynamic:{} }
 
