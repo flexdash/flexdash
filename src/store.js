@@ -68,7 +68,6 @@ export class Store {
     })
     this.sd = this.root.sd // server data, i.e. the data being visualized by the dashboard
     this.config = this.root.$config // the dashboard's configuration
-    this.queue = [] // queue of mutations to send to the server
     this.undo = Vue.observable({ buf:[], at:null }) // undo steps
     return this
   }
@@ -180,7 +179,7 @@ export class Store {
   }
 
   // qMutation in the central function through which all mutations to the config must be
-  // funneled. It applies the mutation locally and queues it for sending to the server,
+  // funneled. It applies the mutation locally and sends it to the server,
   // then waits for an ack with a timeout.
   // It also records the mutation in the undo buffer.
   // The tagline is a string that goes into the undo buffer and is indended to help the user
@@ -198,7 +197,9 @@ export class Store {
     if (tagline) this.pushUndo(tagline, undo)
 
     // send the mutation to the server
-    // TODO!
+    for (const m of msgs) {
+      this.serverSend("$config/" + m[0], m[1])
+    }
   }
 
   // generate an id for a new item in a collection
@@ -273,17 +274,26 @@ export class Store {
 
   // ===== Operations on tabs
 
-  // addTab adds a new tab and initializes it with an empty grid
+  // addTab adds a new tab and initializes it either with an empty grid or empty URL
   // returns the index of the new tab
-  addTab() {
+  addTab(kind) {
       const tab_id = this.genId(this.config.tabs, "t")
-      const grid_id = this.genId(this.config.grids, "g")
       const tab_ix = this.config.dash.tabs.length
-      this.qMutation("add a tab", [
-        [`grids/${grid_id}`, {  ...cloneDeep(empty_grid), id: grid_id }],
-        [`tabs/${tab_id}`, { ...cloneDeep(empty_tab), id: tab_id, grids: [grid_id] }],
-        [`dash/tabs/${tab_ix}`, tab_id ],
-      ])
+      if (kind === 'grid') {
+        const grid_id = this.genId(this.config.grids, "g")
+        this.qMutation("add a grid tab", [
+          [`grids/${grid_id}`, {  ...cloneDeep(empty_grid), id: grid_id }],
+          [`tabs/${tab_id}`, { ...cloneDeep(empty_tab), id: tab_id, grids: [grid_id] }],
+          [`dash/tabs/${tab_ix}`, tab_id ],
+        ])
+      } else if (kind === 'iframe') {
+        this.qMutation("add an iframe tab", [
+          [`tabs/${tab_id}`, { ...cloneDeep(empty_tab), id: tab_id, slot: 'a', url: "" }],
+          [`dash/tabs/${tab_ix}`, tab_id ],
+        ])
+      } else {
+        throw new StoreError(`unknown tab type ${kind}`)
+      }
     return tab_ix
   }
 
