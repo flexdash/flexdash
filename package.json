@@ -17,7 +17,7 @@
     "@fontsource/roboto": "^4.4.2",
     "@mdi/font": "5.9.55",
     "reconnecting-websocket": "^4.4.0",
-    "socket.io-client": "^4.1.2",
+    "socket.io-client": "^4.1.0",
     "uplot": "^1.6.11",
     "vite-plugin-vue2": "^1.6.2",
     "vue": "^2.6.13",

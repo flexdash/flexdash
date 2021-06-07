@@ -42,20 +42,23 @@
               </div>
             </div>
           </masonry-brick>
+
           <masonry-brick>
             <sockio-settings :connection="connections['sockio'].conn" :config="sockio_config"
                              @change="changeConfig('sockio', $event)">
             </sockio-settings>
           </masonry-brick>
-          <masonry-brick>
-            <demo-settings :connection="connections['demo'].conn" :config="demo_config"
-                           @change="changeConfig('demo', $event)">
-            </demo-settings>
-          </masonry-brick>
+
           <masonry-brick>
             <websock-settings :connection="connections['websocket'].conn" :config="websock_config"
                               @change="changeConfig('websock', $event)">
             </websock-settings>
+          </masonry-brick>
+
+          <masonry-brick>
+            <demo-settings :connection="connections['demo'].conn" :config="demo_config"
+                           @change="changeConfig('demo', $event)">
+            </demo-settings>
           </masonry-brick>
         </masonry>
       </v-card>
