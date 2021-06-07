@@ -415,9 +415,10 @@ export default {
     // adjust number of rows spanned by widget (dir=-1/+1)
     adjustRows(dir) {
       const w = this.widget
-      w.rows = (w.rows||1) + dir
-      if (w.rows < 1) w.rows = 1
-      if (w.rows > 16) w.rows = 16
+      let r = (w.rows||1) + dir
+      if (r < 1) r = 1
+      if (r > 16) r = 16
+      this.$store.updateWidget(this.id, {rows: r})
       // reposition the edit window
       this.reposition = false; this.$nextTick(() => {this.reposition = true})
     },
@@ -425,9 +426,10 @@ export default {
     // adjust number of cols spanned by widget (dir=-1/+1)
     adjustCols(dir) {
       const w = this.widget
-      w.cols = (w.cols||1) + dir
-      if (w.cols < 1) w.cols = 1
-      if (w.cols > 16) w.cols = 16
+      let c = (w.cols||1) + dir
+      if (c < 1) c = 1
+      if (c > 16) c = 16
+      this.$store.updateWidget(this.id, {cols: c})
       this.reposition = false; this.$nextTick(() => {this.reposition = true})
     },
 

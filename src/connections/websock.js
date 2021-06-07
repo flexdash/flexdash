@@ -9,13 +9,13 @@ import ReconnectingWebSocket from 'reconnecting-websocket'
 const state_txt = ['connecting', 'connected', 'closing', 'closed']
 
 export default class WebsockConnection {
-  // config: { enabled: Boolean, address: String }
-  constructor (sendMsg, recvMsg) {
-    this.sendMsg = sendMsg
-    this.recvMsg = recvMsg
+
+  constructor (storeInsert) {
+    this.storeInsert = storeInsert
     this.rws = null // ReconnectingWebSocket
     this.checker = null // interval timer to check unsent messages
     this.first_connect = true
+    this.get_config = false // whether to get the config upon first connect
 
     // data fed into the Vue reactivity system
     this.data = Vue.observable({
@@ -27,8 +27,10 @@ export default class WebsockConnection {
     return this
   }
 
-  start(addr) {
+  // start a connection
+  start(addr, get_config) {
     console.log("WS: connecting to", addr)
+    this.get_config = get_config
     this.data.status = 'bad'
     this.rws = new ReconnectingWebSocket(addr, [], { debug: false, startClosed: true })
     this.rws.addEventListener('open', ()=> this.onOpen())
@@ -65,7 +67,10 @@ export default class WebsockConnection {
   onOpen() {
     console.log("WS opened")
     this.setStatus()
-    const msg = { topic:"$ctrl", payload:this.first_connect?"start":"continue" }
+    const msg = {
+      topic   : "$ctrl",
+      payload : this.get_config && this.first_connect ? "start" : "continue",
+    }
     this.rws.send(JSON.stringify(msg))
     this.first_connect = false
   }
@@ -89,7 +94,7 @@ export default class WebsockConnection {
       return
     }
     console.log("WS rx:", m)
-    this.recvMsg(m.topic, m.payload)
+    this.storeInsert(m.topic, m.payload)
     this.setStatus()
   }
 

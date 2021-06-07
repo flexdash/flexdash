@@ -82,23 +82,133 @@ of the stat node via Node-Red.
 
 The websocket demo flows mentioned above are available
 for [download](/flexdash/misc/ws-demo-flow.json).
+`
 
-### Opening the websocket at load
+const websock_save_text = `# Saving the config
 
-Instead of configuring the websocket connection each time the dashboard is loaded it is
-possible to encode the websocket address in the URL using a \`ws\` query string parameter,
-for example:
+To really use the dashboard its configuration needs to be saved somewhere, otherwise it
+comes up with the demo config every time, which is not much fun.
+To save the dashboard two things are necessary:
+- the dashboard needs to be launched such that it immediately connects to the server that holds the config
+- the server needs to have some code to save config changes and send the config when the dashboard starts up
+
+### Connecting via websocket at launch
+
+To connect to a server at launch the websocket address must be encoded in the URL
+query string using a \`ws\` query string parameter,
+for example, assuming the dashboard is launched from github and should connect to
+a local Node-RED instance, the URL might look as follows:
 
 https://tve.github.io/flexdash/?ws=ws://localhost:1880/ws/flexdash
 
-It is further possible to jump straight to a specific tab by adding the tab name or the
-tab's icon name as anchor, for example:
+A simple method for getting this URL is to configure and connect the websocket in the
+dashboard's network configuration and then use the \`reload\` button at the bottom of
+the config panel.
+
+Note that it is further possible to jump straight to a specific tab by adding the tab
+name or the tab's icon name as anchor, for example:
 
 https://tve.github.io/flexdash/?ws=ws://localhost:1880/ws/flexdash#websock
 
-### Saving the dashboard config over websocket
+### Saving the dashboard config on the server end
 
-... not yet implemented: stay tuned!
+The dashboard saves the configuration by sending messages to a topic starting with \`$config\`
+and a payload consisting of a JSON structure or \`null\` in order to prune the config.
+
+`
+
+const sockio_text = `# Socket.io server connection
+
+FlexDash can establish a socket.io connection to a server. This connection allows:
+- sending data from the server to FlexDash for display
+- sending user input from FlexDash to the server
+- persisting the FlexDash configuration on the server
+
+The socket.io connection is intended to be used with Node-RED but isn't really specific
+to Node-RED. The easiest way to get started is to install node-red-contrib-flexdash in Node-RED,
+load the [demo flow](/flexdash/misc/sio-demo-flow.json) and to open the network
+configuration panel here using the network icon in the upper-right corner and configure the
+socket.io connection to connect to Node-RED.
+
+### 1. Installation
+
+Choose your preferred method for installing nodes in Node-RED. The current package version is
+0.1.1 :-). The package is on npmjs: https://www.npmjs.com/package/node-red-contrib-flexdash
+
+Create a new flow with the demo set-up: [demo flow](/flexdash/misc/sio-demo-flow.json).
+You should check the options for the flexdash config node, the defaults should work...
+The flow should look as follows:
+
+![flexdash demo flow](/flexdash/misc/sio-demo-flow.png)
+
+### 2. Connect the dashboard to Node-RED
+
+Open the network configuration in FlexDash and point the socket.io connection at your Node-RED
+server. Don't forget the port with the hostname, e.g. \`localhost:1880\`. You should end up with
+a green OK after the socket.io heading. In case of failure, check the browser's developer console
+for error messages (yes, there's room for improvement here).
+
+### 3. Try the test nodes
+
+Once connected you can try out the test nodes: hitting the inject node should show "hello" in
+the stat widget in the dashboard. Flipping the light switch in the dashboard widget should output
+a message in the debug node in NR and the round-trip message should change the switch text as well
+as the adjoining stat node's text.
+
+### 4. Switch from demo to real dashboard
+
+When you brought up the dashboard it had no connection and established a "demo connection".
+The socket.io connection you added is only used as additional method for sending/receiving data.
+The dashboard configuration is not saved anywhere! So if you reload the browser you're back to
+demo square one.
+
+To work with a persistent configuration two things are necessary:
+1. load the dashboard from a real network connection that supports config saving
+2. ensure that the server at the other end actually persists the config
+
+For step 1 the dashboard needs to be loaded with a query string that configures the server
+connection from the get-go. For socket.io use a query string of the form
+\`sio=http://example.com:1234/path\`, which, assuming you're running Node-Red locally
+might look as follows:
+
+  https://tve.github.io/flexdash/?sio=http://localhost:1880/io/flexdash/
+
+Note that you can also use https for the socket.io and that the \`/io/flexdash\` path
+must match the flexdash configuration node options in Node-RED.
+
+If you use a URL as above, you should see the dashboard connect to your server and not show
+the demo stuff anymore. It's now your own config, which starts out empty. You can, however,
+add the demo tabs back using the inject buttons in the demo section of the server connections
+settings dialog.
+
+For step 2, i.e., to ensure that the server persists the dashboard configuration you may need to
+edit the Node-RED settings.js. Specifically, you need a context store that uses the local filesystem instead of just memory. See the guide on
+[working with context storage](https://nodered.org/docs/user-guide/context) for background, but the
+short is to locate the "contextStorage" setting in the \`settings.js\` and enable a context
+store with \`localfilesystem\`. Mine looks as follows, giving me a default memory context store
+and an optional persistent one:
+
+    contextStorage: {
+        default: { module: "memory" },
+        persistent: { module: "localfilesystem" }
+    },
+
+You then need to edit the FlexDash configuration node and set the context store name
+("persistent" in my case), unless you opted to make the default context store backed
+by the filesystem.
+
+After editing the settings you will have to restart Node-RED.
+(I wish there was an easier way to make all this happen.)
+
+Once all the above is done do test the result! An easy way is to pull up the empty dashboard
+and inject one of the demo tabs. Then reload the browser and it should come right back with
+the dashboard that has the added demo tab. Then restart Node-RED and reload the browser again
+and you should still get the same dashboard with the added demo tab. If the demo tab is gone
+the localfilesystem context store didn't work.
+
+At this point any changes you make to the dashboard are persistent. You can inspect the
+actual config in the Node-RED admin UI using the context store panel under the global
+context variables.
 `
 
 // Demo configuration with multiple tabs and help text.
@@ -176,13 +286,35 @@ const demo_tabs = {
     }
   },
 
+  // socket-io demo
+  "Socket.IO demo": {
+    "tabs": {
+      "t0005": { "id":"t0005", "title":"sockio", "icon":"lightning-bolt", "grids":["g0005"] } },
+    "grids": {
+      "g0005": { "id": "g0005", "kind": "FixedGrid",
+                  "widgets": ["w0030","w0031","w0032","w0033"] } },
+    "widgets": {
+      "w0030": { "kind": "Markdown", "id": "w0030", "cols": 4, "rows": 5, "dynamic": {},
+                  "static": { "title": "", "text": sockio_text } },
+      "w0031": { "kind": "Stat", "id": "w0031",
+                  "static": { "title": "ws_data", "unit": "" },
+                  "dynamic": { "value": "ws_data" }, "rows": 1, "cols": 1 },
+      "w0032": { "kind": "Toggle", "id": "w0032",
+                  "static": { "title": "Light switch", "on_value":"ON", "off_value":"OFF"},
+                  "dynamic": { "value": "light" }, "output": "switch", "rows": 1, "cols": 1 },
+      "w0033": { "kind": "Stat", "id": "w0033",
+                  "static": { "title": "Light", "unit": "" },
+                  "dynamic": { "value": "light" }, "rows": 1, "cols": 1 },
+    }
+  },
+
   // websocket demo
-  "Websock": {
+  "Websocket demo": {
     "tabs": {
       "t0001": { "id":"t0001", "title":"websock", "icon":"resistor-nodes", "grids":["g0001"] } },
     "grids": {
       "g0001": { "id": "g0001", "kind": "FixedGrid",
-                  "widgets": ["w0015","w0016","w0017","w0018"] } },
+                  "widgets": ["w0015","w0016","w0017","w0018","w0019"] } },
     "widgets": {
       "w0015": { "kind": "Markdown", "id": "w0015", "cols": 4, "rows": 5, "dynamic": {},
                   "static": { "title": "", "text": websock_text } },
@@ -195,9 +327,12 @@ const demo_tabs = {
       "w0018": { "kind": "Stat", "id": "w0018",
                   "static": { "title": "Light", "unit": "" },
                   "dynamic": { "value": "light" }, "rows": 1, "cols": 1 },
+      "w0019": { "kind": "Markdown", "id": "w0019", "cols": 4, "rows": 4, "dynamic": {},
+                  "static": { "title": "", "text": websock_save_text } },
     }
   },
 
+/*
   // iframe demo
   "IFrame": {
     "tabs": {
@@ -221,6 +356,7 @@ const demo_tabs = {
                  "url": "http://core.voneicken.com:1880/ui/#!/2", "slot": "a" },
     },
   },
+*/
 }
 
 const plot_opts = {
@@ -247,9 +383,8 @@ import randomStepper from '/src/utils/random-stepper.js'
 import store from '/src/store.js' // not happy about this...
 
 export default class DemoConnection {
-  constructor (serverSend, storeInsert) {
+  constructor (storeInsert) {
     this.name = "demo"
-    this.storeInsert = storeInsert
     // data fed into the Vue reactivity system
     this.data = Vue.observable({
       status: 'off',
@@ -264,11 +399,11 @@ export default class DemoConnection {
     // send dashboard configuration
     Object.keys(demo_tabs).forEach((t)=> this.inject(t))
 
-    // hack to add a bunch of node-red dashboard iframes
+    /* hack to add a bunch of node-red dashboard iframes
     this.storeInsert(`$config/dash/nodered`, {
       url: "http://core.voneicken.com:1880/ui/#!/",
       count: 11,
-    })
+    })*/
 
   }
 
@@ -277,25 +412,31 @@ export default class DemoConnection {
     if (!(tab in demo_tabs)) return
     // if the config is empty, we need to inject with topic==$config to set "gotConfig",
     // not liking this, but we'll see how the demo stuff evolves...
+    // We inject by using the store's qMutation directly such that if we have a connection
+    // the demo tab gets sent to the server.
     if (!store.config.dash.tabs) {
       const conn = store.config.conn || {}
       console.log("Demo injecting $config")
-      this.storeInsert(`$config`, {
-        dash: {title:"FlexDash", tabs:[]}, tabs:{}, grids:{}, widgets:{}, conn:conn
-      })
+      store.qMutation('demo init', [
+        [ 'dash', {title:"FlexDash", tabs:[]} ],
+        [ 'tabs', {} ],
+        [ 'grids', {} ],
+        [ 'widgets', {} ],
+        [ 'conn', conn ],
+      ])
     }
+
+    const tabs = Object.keys(demo_tabs[tab].tabs).filter(t => !(t in store.config.tabs))
+    if (tabs.length == 0) return
+    const mutation = [ [ "dash/tabs", store.config.dash.tabs.concat(tabs) ] ]
     for (let type in demo_tabs[tab]) {
       for (let id in demo_tabs[tab][type]) {
-        console.log(`Demo injecting $config/${type}/${id}`)
-        this.storeInsert(`$config/${type}/${id}`, demo_tabs[tab][type][id])
-
-        if (type == "tabs" && !store.config.dash.tabs.includes(id)) {
-            const ix = store.config.dash.tabs.length
-            console.log(`Demo injecting $config/dash/tabs/${ix}`)
-            this.storeInsert(`$config/dash/tabs/${ix}`, id)
-        }
+        mutation.push([`${type}/${id}`, demo_tabs[tab][type][id]])
       }
     }
+    //console.log(`Demo injecting demo tab ${tab}`)
+    //console.log("mutation", mutation)
+    store.qMutation(`demo tab ${tab}`, mutation)
   }
 
   stop() {
@@ -303,4 +444,6 @@ export default class DemoConnection {
     this.data.status = 'off'
   }
 
+  // send a message to the server -- we're a demo, we have no server...
+  serverSend(topic, payload) { }
 }

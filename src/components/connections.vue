@@ -111,7 +111,7 @@ export default {
 
     gotConfig() { return this.$config.dash.title !== undefined },
     config_wait() {
-      return !this.got_config && this.config_source && this.connections[this.config_source].conn
+      return !this.gotConfig && this.config_source && this.connections[this.config_source].conn
              && this.connections[this.config_source].conn.data.status == "ok"
     },
 
@@ -129,14 +129,14 @@ export default {
   created() {
     console.log("Connection: created")
     const conn = this.$config.conn
-    this.$set(conn, 'demo', { enabled: false })
-    this.$set(conn, 'websocket', { enabled: false, address: "" })
-    this.$set(conn, 'sockio', { enabled: false, hostname: "", path:"", tls:false })
+    this.$set(conn, 'demo', { enabled: false, config: false })
+    this.$set(conn, 'websocket', { enabled: false, config: false, address: "" })
+    this.$set(conn, 'sockio', { enabled: false, config: false, hostname:"", path:"", tls:false })
 
     // instantiate all the connection objects (they all wait for a start() call)
     for (name in this.connections) {
       const c = this.connections[name]
-      c.conn = new c.connClass(this.serverSend, this.handleMsg)
+      c.conn = new c.connClass(this.handleMsg)
     }
     
     // check out query string of page load to see whether there's connection info
@@ -145,16 +145,19 @@ export default {
       // got a socketio address string, enable sockio
       conn.sockio.address = sp.get('sio')
       conn.sockio.enabled = true
+      conn.sockio.config = true
       this.config_source = "sockio"
       this.$emit('src', 'sockio ' + conn.sockio.address)
     } else if (sp && sp.get('ws')) {
       // got a websocket address string, enable websock
       conn.websocket.address = sp.get('ws')
       conn.websocket.enabled = true
+      conn.websocket.config = true
       this.config_source = "websocket"
       this.$emit('src', 'websocket ' + conn.websocket.address)
     } else {
       conn.demo.enabled = true
+      conn.demo.config = true
       this.config_source = "demo"
       this.$emit('src', 'demo')
     }
@@ -197,7 +200,7 @@ export default {
       // Do some special handling of dashboard config messages
       if (topic === "$config") {
         const p = payload
-        console.log(`*** config for received:`, Object.keys(p))
+        console.log(`*** config received with keys:`, Object.keys(p))
 
         if (this.$config.dash.title) {
           console.log("Already got config, dropping message")
@@ -208,6 +211,17 @@ export default {
         if (!payload || !payload.dash) {
           console.log("*** No or broken config, clearing! (got:", payload)
           this.$store.initDash()
+          // add some welcome text
+          const tab = this.$config.dash.tabs[0]
+          const grid = this.$config.tabs[tab].grids[0]
+          const ix = this.$store.addWidget(grid, 'Markdown')
+          const widget = this.$config.grids[grid].widgets[ix]
+          this.$store.updateWidget(widget, { cols: 3, rows: 3 })
+          this.$store.updateWidgetProp(widget, 'static', 'title', '')
+          this.$store.updateWidgetProp(widget, 'static', 'text', `# Welcome to FlexDash
+This is an empty dashboard. You can add some demo/informational tabs by opening the
+connections panel using the network icon in the upper right and using the
+inject buttons in the demo section.`)
           this.sendConfig()
           return
         }
@@ -218,13 +232,23 @@ export default {
     },
 
     // serverSend is used to send data from widgets to all servers we're connected to
-    // topics starting with '$demo' are directly inserted into the store and not sent to servers
+    // topics starting with '$demo' are directly inserted into the store and not sent
+    // to servers
     // FIXME: decide whether to block $config
+    // FIXME: right now $config changes are sent to the "config_source" and others are
+    // broadcast to all conncetions. Some sanity needs to be brought into the situation,
+    // perhaps "secondary" connections should be mounted into the topic tree with a prefix?
     serverSend(topic, payload) {
       if (topic.startsWith('$demo')) {
         this.$store.insertData(topic, payload)
-      } else if (this.config_source) {
-          this.connections[this.config_source].conn.serverSend(topic, payload)
+      } else if (topic.startsWith('$config') && this.config_source) {
+        this.connections[this.config_source].conn.serverSend(topic, payload)
+      } else {
+        for (let c in this.connections) {
+          const conn = this.connections[c].conn
+          console.log(c, conn, this.$config.conn[c])
+          if (conn && this.$config.conn[c].enabled) conn.serverSend(topic, payload)
+        }
       }
 
     },

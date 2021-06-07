@@ -22,7 +22,6 @@ export default {
   name: "Masonry",
 
   mounted() {
-    console.log("Masonry mounted")
     this.resizeBricks()
     const ro = new ResizeObserver(()=> {
       //console.log("Masonry resized")
@@ -50,8 +49,8 @@ export default {
       const H = inner.clientHeight
       const rowSpan = Math.ceil((H+rowGap)/(rowHeight+rowGap))
       const span = 'span '+rowSpan
-      console.log(`Masonry: H=${Math.round(H)} R=${rowHeight} G=${rowGap}`,
-        `span=${brick.style.gridRowEnd} -> ${rowSpan}`)
+      //console.log(`Masonry: H=${Math.round(H)} R=${rowHeight} G=${rowGap}`,
+      //  `span=${brick.style.gridRowEnd} -> ${rowSpan}`)
 
       if (rowSpan > 0 && brick.style.gridRowEnd != span)
         brick.style.gridRowEnd = 'span '+rowSpan

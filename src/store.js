@@ -198,8 +198,22 @@ export class Store {
 
     // send the mutation to the server
     for (const m of msgs) {
-      this.serverSend("$config/" + m[0], m[1])
+      this.sendMutation(m[0])
     }
+  }
+
+  // sendMutation forwards the data touched by a mutation to the server for saving. To keep the
+  // server end simple we always send a top-level config topic or a complete object one level
+  // down (e.g. a complete tab, grid, widget).
+  sendMutation(topic) {
+    const tt = topic.split('/')
+    let t = '$config/' + tt[0]
+    let d = this.config[tt[0]]
+    if (tt.length > 1) {
+      t += '/' + tt[1]
+      d = d[tt[1]]
+    }
+    this.serverSend(t, d)
   }
 
   // generate an id for a new item in a collection
@@ -264,7 +278,7 @@ export class Store {
 
     this.insertData('$config/widgets', {})
     this.insertData('$config/grids', {
-      g00001: { id: 'g00001', kind: 'fixed-grid', widgets: [] },
+      g00001: { id: 'g00001', kind: 'FixedGrid', widgets: [] },
     })
     this.insertData('$config/tabs', {
       t00001: { id: 't00001', icon: "view-dashboard", grids: ["g00001"] }

@@ -34,16 +34,15 @@ export default {
 
   props: {
     connection: null, // WebsockConnection object
-    config: { type: Object, default() { return { enabled: false, address:
-    "wss://core2.voneicken.com:1880/ws/flexdash" } } },
+    config: { type: Object, default() { return { enabled: false, config: false, address: "" } } },
   },
 
-  created() { console.log("ws-settings created, config:", JSON.stringify(this.config),
-      "connection:", JSON.stringify(this.connection)) },
+  //created() { console.log("ws-settings created, config:", JSON.stringify(this.config),
+  //    "connection:", JSON.stringify(this.connection)) },
 
   computed: {
     status_txt() {
-      console.log("status_txt, this.config:", this.config)
+      //console.log("status_txt, this.config:", this.config)
       if (!this.config.enabled || !this.connection) return "disabled"
       return this.connection.data.status_txt || this.connection.data.status
     },
@@ -65,7 +64,7 @@ export default {
         if (en) {
           console.log("WS now enabled, addr:", this.config.address);
           if (this.validateAddress(this.config.address) === true)
-            this.connection.start(this.config.address)
+            this.connection.start(this.config.address, this.config.config)
         } else {
           console.log("WS now disabled")
           this.connection.stop()
@@ -82,7 +81,7 @@ export default {
         console.log("WS: address changed, reconnecting")
         this.connection.stop()
         if (this.validateAddress(this.config.address) === true)
-          this.connection.start(this.config.address)
+          this.connection.start(this.config.address, this.config.config)
       }
     },
 

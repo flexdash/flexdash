@@ -25,9 +25,10 @@
 
       <!-- Title -->
       <v-toolbar-title class="text-h4 font-weight-bold text--secondary flex-shrink-0 mr-3"
-                       style="font-variant: small-caps">
+                       style="font-variant: small-caps;">
         {{ gotConfig ? dash.title : "FlexDash" }}
       </v-toolbar-title>
+      <div class="version d-flex">alpha v0.1</div>
 
       <!-- Tabs -->
       <v-tabs v-model=tab_ix icons-and-text center-active class="hidden-xs-only" v-if="gotConfig">
@@ -104,9 +105,13 @@
     <v-main :style="{ backgroundColor: $vuetify.theme.themes[theme].background}">
       <!-- "normal" tabs with grids and widgets -->
       <v-tabs-items v-if="gotConfig" :value="tab_ix" :class="tabs_items_class">
-        <v-tab-item v-for="(id) in dash_tabs" :key="id"
+        <v-tab-item v-for="(id) in dash_tabs" :key="id" :ref="id"
+                    :style="{ backgroundColor: $vuetify.theme.themes[theme].background}"
                     :class="{'is-active': id == tab_id}">
                     <!-- set class above as work-around for vuetify issue #11405-->
+          <!-- key={{id}} grids:{{tabs[id].grids}}
+          <div v-for="(g, ix) in tabs[id].grids" :key="g">
+            Grid {{g}} kind {{grids[g].kind}} palette {{palette.grids}</div -->
           <!-- "normal" tab with grids with widgets -->
           <component v-if="tabs[id].grids"
                      v-for="(g, ix) in tabs[id].grids" :key="g" :id="g"
@@ -260,8 +265,11 @@ export default {
     reload(tab_ix) {
       this.tab_ix = tab_ix
       this.$forceUpdate()
-      //this.gotConfig = false
-      //this.$nextTick( ()=> { this.gotConfig = true; this.tab_ix = tab_ix })
+      /*
+      console.log("Trying to force an update")
+      const title = this.$config.dash.title
+      delete this.$config.dash.title
+      this.$nextTick( ()=> { this.$config.dash.title = title; this.tab_ix = tab_ix })*/
     },
   },
 
@@ -306,4 +314,14 @@ export default {
 .height100 { height: 100%; }
 .unit { font-size: 70%; vertical-align: 20%; margin-left: 0.1em; }
 
+.v-input__slot { margin-bottom: 4px !important; }
+
+</style>
+
+<style scoped>
+.version {
+  position: absolute; top: 0px; right: 14px; z-index: 2;
+  font-size: 9pt; font-weight: 700; color: #e5504d;
+  line-height: 10pt;
+}
 </style>

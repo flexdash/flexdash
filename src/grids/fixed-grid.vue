@@ -49,7 +49,7 @@
       <!-- grid title text field -->
       <v-tooltip bottom>
         <template v-slot:activator="{ on }">
-          <v-text-field single-line dense hide-details label="title" class="mr-6 flex-grow-0"
+          <v-text-field single-line dense hide-details label="grid title" class="mr-6 flex-grow-0"
                         v-on="on" :value="grid.title" @change="changeTitle" style="width: 20ex">
           </v-text-field>
         </template>
@@ -137,7 +137,7 @@ export default {
 
     // widgets provides the list of available widgets for the add-widget drop-down
     widgets() {
-      console.log("Palette:", this.palette.widgets);
+      //console.log("Palette:", this.palette.widgets);
       return Object.fromEntries(Object.keys(this.palette.widgets).sort().map(w =>
         [ w, (this.palette.widgets[w].help||"").replace(/^([^.\n]{0,80}).*/s, "$1") ]
       ))

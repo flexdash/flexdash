@@ -11,9 +11,8 @@ const state_txt = ['connecting', 'connected', 'closing', 'closed']
 const namespace = ""
 
 export default class SockioConnection {
-  // config: { enabled: Boolean, address: String }
-  constructor (sendMsg, recvMsg) {
-    this.sendMsg = sendMsg
+
+  constructor (recvMsg) {
     this.recvMsg = recvMsg
     this.sock = null
     this.checker = null // interval timer to check unsent messages
@@ -29,6 +28,8 @@ export default class SockioConnection {
     return this
   }
 
+  // start a connection, config is store.$config.conn.sockio
+  // has: enabled, config, hostname, path, tls
   start(config) {
     this.data.status = 'bad'
 
@@ -36,7 +37,7 @@ export default class SockioConnection {
     const method = config.tls ? "https" : "http"
 
     // connect
-    const opts = { path: config.path }
+    const opts = { path: config.path, } // transports:["polling","websocket"] }
     const url = method + '://' + config.hostname + '/' + namespace // not really a url...
     console.log("Socket IO server address:", url)
     console.log("Socket IO options:", JSON.stringify(opts))
@@ -63,16 +64,16 @@ export default class SockioConnection {
     this.sock.on("connect", () => {
       console.log("SIO connected")
       this.setStatus()
-      const msg = { topic:"$ctrl", payload:this.first_connect?"start":"continue" }
-      this.sock.emit("msg", msg)
+      this.sock.emit("msg", "$ctrl",
+          (config.config && this.first_connect) ? "start" : "continue")
       this.first_connect = false
     })
 
     // handle message received
     this.sock.on("msg", (topic, payload) => {
       console.log("SIO rx:", topic, payload)
-      if (typeof m.topic !== 'string' || m.payload === undefined) {
-        console.log("SIO rx: message is missing topic and/or payload", m)
+      if (typeof topic !== 'string' || payload === undefined) {
+        console.log("SIO rx: message is missing topic and/or payload", topic, payload)
         return
       }
       //console.log("SIO rx:", m)

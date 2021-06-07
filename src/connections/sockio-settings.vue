@@ -19,13 +19,13 @@
         :value="config.hostname" @change="handleHostname" :rules="[validateHostname]"
         hint="server.example.com, localhost:1880">
     </v-text-field>
-    <v-text-field label="socket.io path" persistent-hint clearable
+    <v-text-field label="socket.io path" persistent-hint clearable class="mt-2"
         :value="config.path" @change="handlePath" :rules="[validatePath]"
-        hint="webserver path where socket.io is mounted, ex: /io/flexdash">
+        hint="webserver path for socket.io, typ /io/flexdash">
     </v-text-field>
     <v-checkbox hide-details label="use https/wss"
                 :input-value="config.tls" @change="handleTls"></v-checkbox>
-    <v-checkbox hide-details label="enable" :disabled="disable"
+    <v-checkbox hide-details label="enable" :disabled="disable" class="mt-3"
                 :input-value="config.enabled" @change="config.enabled=$event"></v-checkbox>
     <div class="mt-3">
       Reload the dashboard from this server (looses current config):
@@ -42,8 +42,8 @@ export default {
     connection: null, // SockioConnection object
     config: { type: Object, default() { return {
       enabled: false,
-      hostname: "core2.voneicken.com:1880",
-      path: "/io/flexdash",
+      hostname: "",
+      path: "",
       tls: true,
     }}}
   },
@@ -59,16 +59,18 @@ export default {
         delete this.config.address
         this.$emit('change', JSON.parse(JSON.stringify(this.config)))
       }
+    } else {
+      if (!this.config.path) this.config.path = "/io/flexdash/"
     }
-    console.log("sio-settings created, config:", JSON.stringify(this.config),
-      "connection:", JSON.stringify(this.connection))
+    //console.log("sio-settings created, config:", JSON.stringify(this.config),
+    //  "connection:", JSON.stringify(this.connection))
     if (this.config.enabled && this.validateHostname(this.config.hostname) === true)
       this.connection.start(this.config)
   },
 
   computed: {
     status_txt() {
-      console.log("status_txt, this.config:", this.config)
+      //console.log("status_txt, this.config:", this.config)
       if (!this.config.enabled || !this.connection) return "disabled"
       return this.connection.data.status_txt || this.connection.data.status
     },
