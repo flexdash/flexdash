@@ -139,7 +139,7 @@ Create a new flow with the demo set-up: [demo flow](/flexdash/misc/sio-demo-flow
 You should check the options for the flexdash config node, the defaults should work...
 The flow should look as follows:
 
-![flexdash demo flow](/flexdash/misc/sio-demo-flow.png)
+![flexdash demo flow](/flexdash/img/sio-demo-flow.png)
 
 ### 2. Connect the dashboard to Node-RED
 
