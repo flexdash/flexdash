@@ -28,7 +28,7 @@
                        style="font-variant: small-caps;">
         {{ gotConfig ? dash.title : "FlexDash" }}
       </v-toolbar-title>
-      <div class="version d-flex">alpha v0.1</div>
+      <div class="version d-flex">alpha v0.1.2</div>
 
       <!-- Tabs -->
       <v-tabs v-model=tab_ix icons-and-text center-active class="hidden-xs-only" v-if="gotConfig">
