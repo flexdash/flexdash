@@ -140,14 +140,16 @@
                 <!-- array -->
                 <v-text-field v-else-if="prop_info[prop].type === Array"
                     :label="prop" dense
-                    :value="widget.static[prop]||prop_info[prop].default"
+                    :value="JSON.stringify(widget.static[prop]||prop_info[prop].default)"
+                    :rules="[validateArray]"
                     @input="handleEdit('static', prop, $event)">
                 </v-text-field>
                 <!-- object -->
                 <v-text-field v-else-if="prop_info[prop].type === Object"
                     :label="prop" dense
                     :hint="prop_info[prop].hint"
-                    :value="widget.static[prop]||prop_info[prop].default"
+                    :value="JSON.stringify(widget.static[prop]||prop_info[prop].default)"
+                    :rules="[validateObject]"
                     @input="handleEdit('static', prop, $event)">
                 </v-text-field>
                 <!-- string -->
@@ -272,9 +274,11 @@ export default {
       let type = cp[name].type || String
       if (![String, Number, Boolean, Array, Object].includes(type)) type = String
       let hint = cp[name].tip || type.name
-      if (cp[name].default !== undefined) hint += `, default: ${cp[name].default}`
+      let def = cp[name].default
+      if (typeof def === 'function') def = def() // array/obj prop defaults...
+      if (def !== undefined) hint += `, default: ${def}`
       let icon = icons[type.name]
-      pi[name] = {type, default: cp[name].default, validator: cp[name].validator,
+      pi[name] = {type, default: def, validator: cp[name].validator,
                   hint, icon, dynamic: cp[name].dynamic}
     }
     // FlexDash doesn't have any good place to tweak a freshly instantiated widget. It
@@ -391,6 +395,12 @@ export default {
         // handle Number coming in as String
         if (this.child_props[prop].type === Number && typeof value === 'string') {
           value = Number.parseFloat(value)
+        // handle Array and Object values
+        } else if (which == 'static' &&
+            (this.child_props[prop].type === Array || this.child_props[prop].type === Object))
+        {
+          try { value = JSON.parse(value)
+          } catch(e) { return }
         }
       }
 
@@ -400,6 +410,28 @@ export default {
     handleEditOutput(value) {
       console.log("edit: output:", value)
       this.$store.updateWidget(this.id, {output: value})
+    },
+
+    validateArray(v) {
+      let a
+      try {
+        a = JSON.parse(v)
+      } catch(e) {
+        return e.toString().replace(/^.*?parse:/, "")
+      }
+      if (!Array.isArray(a)) return "array required"
+      return true
+    },
+
+    validateObject(v) {
+      let a
+      try {
+        a = JSON.parse(v)
+      } catch(e) {
+        return e.toString().replace(/^.*?parse:/, "")
+      }
+      if (typeof a !== 'object') return "object required"
+      return true
     },
 
     // pop up a dialog box to edit a text field

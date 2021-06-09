@@ -192,8 +192,8 @@ export default {
           val = Number.parseFloat(val.toPrecision(4)) // FIXME: let the user specify precision
 
       } else if (type === String) {
-        if (typeof val === Number) val = val.toString()
-        else if (typeof val !== String) val = JSON.stringify(val)
+        if (typeof val === 'number') val = val.toString()
+        else if (typeof val !== 'string') val = JSON.stringify(val)
 
       } else if ((type === Array || type === Object) && typeof val === 'string') {
         try {
