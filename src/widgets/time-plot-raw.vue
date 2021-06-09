@@ -4,6 +4,9 @@
 
 <template>
   <div class="px-1 width100 flex-grow-1 flex-shrink-1">
+    <div v-if="error_message" class="uplot-message">
+      <div class="mx-auto">{{error_message}}</div>
+    </div>
     <!-- uPlot is injected here -->
   </div>
 </template>
@@ -43,6 +46,13 @@
 .u-tooltip { background: rgba(230, 230, 230, 0.8); }
 .theme--light .u-tooltip { background: rgba(230, 230, 230, 0.8); }
 .theme--dark  .u-tooltip { background: rgba(64, 64, 64, 0.8); }
+
+.uplot-message {
+  position: absolute; top: 24px; left: 0px; z-index: 2;
+  display: flex; width:100%; padding: 0 4px;
+  background: rgba(128, 0, 0, 0.4);
+  opacity: 0.8;
+}
 
 </style>
 
@@ -93,6 +103,7 @@ Note that this "row-wise" structure gets transposed to the columnar structure ex
     width: 40, // width in pixels
     chart_data: null, // actual data fed to uPlot (i.e. transposed from data)
     dark_watcher: null, // watcher on $vuetify.theme.dark used to adjust chart colors
+    error_message: null, // error message acros top of widget
   }; },
 
   watch: {
@@ -162,7 +173,7 @@ Note that this "row-wise" structure gets transposed to the columnar structure ex
       if (this.ro) this.ro() // .unobserve(this.ro_el)
       this.ro = null
 
-      const uplot = this.$el.children[0]
+      const uplot = this.$el.lastElementChild
       if (!uplot) {
         console.log("TPR: cannot observe: no uplot")
         return { width: 0, height: 0 }
@@ -260,6 +271,23 @@ Note that this "row-wise" structure gets transposed to the columnar structure ex
       opts.plugins = [ tooltip(uPlot) ]
       opts.legend = { live: false }
       console.log("uPlot options:", opts)
+
+      // check that the data has the right number of series
+      // FIXME: uPlot is OK with too much data, it just doesn't show it, prob should briefly show
+      // a warning?
+      if (opts.series.length > this.chart_data.length) {
+        this.error_message =
+          `uPlot error: options have ${opts.series.length} series (` +
+          opts.series.map(s=>s.label).join(", ") +
+          `), data has only ${this.chart_data.length}`
+        console.log(this.error_message)
+        console.log(`series labels are: ${opts.series.map(s=>s.label).join(", ")}`)
+        console.log(`first data values are: ${this.chart_data.map(d=>d[0]).join(", ")}`)
+        this.char_data = null // don't like doing this, but otherwise it won't recover
+        return
+      } else {
+        this.error_message = null
+      }
 
       this.chart = new uPlot(opts, this.chart_data, this.$el)
       this.$nextTick(() => this._observeSize())
