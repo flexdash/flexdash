@@ -39,7 +39,7 @@ const app = new Vue({
 
   data: { // https://stackoverflow.com/questions/51275301/how-to-react-to-a-global-variable-with-vue
     // editMode encodes whether the edit toggle is on/off, access anywhere as this.$root.editMode
-    editMode: true,
+    editMode: false,
     // current route, gets initialized with the initial location that loads FlexDash
     route: window.location.hash,
     params: (new URL(document.location)).searchParams,
