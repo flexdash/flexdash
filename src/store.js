@@ -137,7 +137,13 @@ export class Store {
       old = dir[t]
       if (payload !== undefined) {
         //console.log(`Updated ${topic} with:`, payload)
-        Vue.set(dir, t, payload) // $set 'cause we may add new props to dir
+        if (typeof dir[t] === 'object' && typeof payload === 'object') {
+          // hack, not really correct nor sufficient, should be recursive...
+          Object.keys(dir[t]).forEach(k => { if (!(k in payload)) delete dir[t][k] })
+          Object.keys(payload).forEach(k => Vue.set(dir[t], k , payload[k]))
+        } else {
+          Vue.set(dir, t, payload) // $set 'cause we may add new props to dir
+        }
       } else {
         //console.log(`Deleted ${topic}`)
         delete dir[t]
@@ -145,7 +151,7 @@ export class Store {
     } else {
       throw new StoreError(`${topic} is neither Array nor Object in server state`)
     }
-     return old
+    return old
   }
 
   // pushUndo pushes a mutation onto the undo buffer but coalesces consecutive mutations with the
