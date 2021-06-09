@@ -32,10 +32,12 @@ export default {
 
   help: `Time-series chart with simple options.
 TimePlot uses the TimePlotRaw widget to render a time-series plot and generates
-the uPlot options based on a set of relatively simple inputs. If you the full uPlot flexibility 
-you can use the output to see the options constructed as a starting point.
+the uPlot options based on a set of relatively simple inputs. If you need to switch to
+TimePlotRaw for the full uPlot flexibility you can use the widget output to see the options
+it constructs as a starting point.
 
-By default a single series is plotted without label (there's the title...). If any of the
+By default, with all array inputs (labels, colors, axes, ...) empty ([]) a single series
+is plotted without label. If any of the
 array inputs are specified the longest array determines the number of series.
 
 The default color sequence is blue, green, yellow, red, cyan, purple, orange, teal, pink, lime,
@@ -44,7 +46,9 @@ https://sashamaps.net/docs/resources/20-colors/
 
 The data must be input in the form of "data points" where a data point is an array consisting
 a unix timestamp (seconds since 1970-01-01) followed by a value per series. Null values are OK
-to designate missing data. Note: each an every data point must have one value per series.
+to designate missing data.
+**Important**: each and every data point must have _exactly_ one value per series, otherwise
+nothing will be plotted.
 
 Each data message may be either an array of data points or a single data point. If an array is
 provided then it replaces the entire dataset being shown. If a single point is provided
@@ -80,7 +84,7 @@ Note that this "row-wise" structure gets transposed to the columnar structure ex
 
   computed: {
     // generate options for uPlot based on the props
-    // this also outputs as a side-effect (not supposed to do that, oh well...)
+    // this also emits an event as a side-effect (not supposed to do that, oh well...)
     options() {
       const ns = Math.max(this.labels.length, this.colors.length, this.axis.length)
 
@@ -133,7 +137,7 @@ Note that this "row-wise" structure gets transposed to the columnar structure ex
 
       const opts = { series, axes, scales }
       console.log("Options for time-plot-raw:", opts);
-      // output in the next tick in order not to affect the dependency stuff
+      // emit in the next tick in order not to affect the dependency stuff
       this.$nextTick(() => { this.$emit('send', opts) })
       return opts
     },
