@@ -157,7 +157,7 @@ export class Store {
     if (u.at && u.buf.length > 0 && now-u.at < 60000 && tagline == u.buf[u.buf.length-1].tagline)
     {
       // coalesce FIXME: should also coalesce mutations that update the same thing...
-      console.log("undo coalesce")
+      //console.log("undo coalesce")
       u.buf[u.buf.length-1].mutation = [ ...mutation, ...u.buf[u.buf.length-1].mutation ]
     } else {
       // std push

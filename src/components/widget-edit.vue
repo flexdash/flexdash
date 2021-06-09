@@ -258,7 +258,7 @@ export default {
 
   created() {
     console.log("Created widget", this.id)
-    // fetch the widget from the store and perform some init
+    // fetch the widget config from the store and perform some init
     const w = this.$store.widgetByID(this.id) 
     if (w.static === undefined) w.static = {}
     if (w.dynamic === undefined) w.dynamic = {}

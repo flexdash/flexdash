@@ -71,7 +71,7 @@ export default class SockioConnection {
 
     // handle message received
     this.sock.on("msg", (topic, payload) => {
-      console.log("SIO rx:", topic, payload)
+      //console.log("SIO rx:", topic, payload)
       if (typeof topic !== 'string' || payload === undefined) {
         console.log("SIO rx: message is missing topic and/or payload", topic, payload)
         return
