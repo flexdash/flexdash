@@ -118,9 +118,9 @@ export default {
 
   methods: {
     // addDynBinding adds a dynamic binding of store.sd[var_name] -> bindings[key]
-    // TODO: perform type conversion and precision adjustment when assigning
     addDynBinding(key, var_name) {
       const self = this
+      if (!var_name) return ()=>{} // empty/null var_name happens during editing
       let path = var_name.split('/').filter(t => t.length > 0)
       if (path.length == 0) return null // can't bind to root
       const n = path.pop()
