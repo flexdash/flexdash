@@ -205,8 +205,7 @@ export default {
         }
       }
 
-      //console.log(`Updating ${this.config.kind}.${prop} as ${type&&type.name}`,
-      //    `with ${typeof val} ${val}`)
+//console.log(`Updating ${this.config.kind}.${prop}[${type&&type.name}] <- ${typeof val} ${val}`)
 
       this.$set(this.bindings, prop, val)
     },

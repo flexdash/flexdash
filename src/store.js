@@ -422,7 +422,7 @@ export class Store {
   // updateWidgetProp, which is static|dynamic, prop is key within that
   updateWidgetProp(widget_id, which, prop, value) {
     this.widgetByID(widget_id) // just for the sanity check
-    this.qMutation(`update widget prop ${which}:${prop}`,
+    this.qMutation(`update widget prop ${which}:${prop} <- ${value}`,
       [[`widgets/${widget_id}/${which}/${prop}`, value]]
     )
   }
