@@ -392,15 +392,17 @@ export default {
       if (prop != 'title') {
         if (!(prop in this.child_props)) return
 
-        // handle Number coming in as String
-        if (this.child_props[prop].type === Number && typeof value === 'string') {
-          value = Number.parseFloat(value)
-        // handle Array and Object values
-        } else if (which == 'static' &&
-            (this.child_props[prop].type === Array || this.child_props[prop].type === Object))
-        {
-          try { value = JSON.parse(value)
-          } catch(e) { return }
+        // for static values we get a string from the text_field and may need to convert
+        if (which == 'static') {
+          const type = this.child_props[prop].type
+          // handle Number coming in as String
+          if (type === Number && typeof value === 'string') {
+            value = Number.parseFloat(value)
+          // handle Array and Object values
+          } else if (type === Array || type === Object) {
+            try { value = JSON.parse(value)
+            } catch(e) { return }
+          }
         }
       }
 
