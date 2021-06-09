@@ -2,6 +2,8 @@ Demo
 ========
 
 For the demo, please use:
-- https: [https://s3.amazonaws.com/s3.voneicken.com/flexdash/0.1.2/index.html](https://s3.amazonaws.com/s3.voneicken.com/flexdash/0.1.2/index.html)
-- http:
-  [http://s3.amazonaws.com/s3.voneicken.com/flexdash/0.1.2/index.html](http://s3.amazonaws.com/s3.voneicken.com/flexdash/0.1.2/index.html)
+- https: [https://tve.github.io/flexdash/https.html](https://tve.github.io/flexdash/https.html)
+- http: [https://tve.github.io/flexdash/http.html](https://tve.github.io/flexdash/http.html)
+
+Both retrieve from http**s**://s3.amazonaws.com/s3.voneicken.com/flexdash/0.1.**X**/index.html
+and you can also pull from there to get a specific version.
