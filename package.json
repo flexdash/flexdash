@@ -1,6 +1,6 @@
 {
   "name": "flexdash",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Flexible self-contained web dashboard for Node-Red and IoT devices",
   "keywords": "node-red iot dashboard",
   "homepaqhe": "https://tve.github.io/flexdash",
@@ -8,7 +8,7 @@
   "license": "MIT",
   "scripts": {
     "dev": "vite --host 0.0.0.0",
-    "build": "vite build",
+    "build": "npm i --package-lock-only; vite build",
     "serve": "vite --host 0.0.0.0 preview",
     "test": "NODE_OPTIONS=--experimental-vm-modules npx jest",
     "watch": "NODE_OPTIONS=--experimental-vm-modules npx jest --watch --silent"

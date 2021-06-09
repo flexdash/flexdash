@@ -17,6 +17,10 @@ export default {
       gzipSize: true,
     }),
   ],
+  define: {
+    // pull-in the package version from package.json
+    'import.meta.env.PACKAGE_VERSION': JSON.stringify(process.env.npm_package_version)
+  },
   build: {
     rollupOptions: {
       output: {
