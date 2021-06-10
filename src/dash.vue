@@ -178,7 +178,15 @@ export default {
   }),
 
   computed: {
-    gotConfig() { return this.$config.dash.title !== undefined },
+    // gotConfig returns true once store.$config contains a full configuration,
+    // don't start to render tabs before everything is there
+    gotConfig() {
+      return this.$config.dash.title && this.$config.dash.tabs.length > 0
+        && Object.keys(this.$config.tabs).length > 0
+        && Object.keys(this.$config.grids).length > 0
+        && Object.keys(this.$config.widgets).length > 0
+        && Object.keys(this.$config.conn).length > 0
+    },
     // note: some of the following get evaluated before the config is loaded, the gotConfig
     // guard ensures that they do get re-evaluated when it is loaded despite Vue2 issues...
     dash() { return this.gotConfig ? this.$config.dash : {} },
