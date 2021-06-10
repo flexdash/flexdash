@@ -65,6 +65,8 @@
                 <v-btn small @click="$emit('delete')">Delete widget</v-btn>
               </v-col>
               <v-col class="d-flex" cols="6" sm="2">
+                <!-- clone widget -->
+                <v-btn small @click="$emit('clone')">Clone</v-btn>
                 <!-- move widget up/down -->
                 <v-tooltip bottom>
                   <template v-slot:activator="{ on }">

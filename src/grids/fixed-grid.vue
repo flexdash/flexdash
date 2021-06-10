@@ -99,7 +99,8 @@
     <v-container fluid v-if="!rolledup" class="g-grid-small pt-0">
       <widget-edit v-for="(w,ix) in grid.widgets" :key="w" :id="w" :grid_id="id"
                    :edit_active="ix == edit_ix" @edit="toggleEdit(ix, $event)"
-                   @move="moveWidget(ix, $event)" @delete="deleteWidget(ix)">
+                   @move="moveWidget(ix, $event)" @delete="deleteWidget(ix)"
+                   @clone="cloneWidget(ix)">
       </widget-edit>
     </v-container>
   </div>
@@ -157,6 +158,26 @@ export default {
     deleteWidget(ix) {
       this.$store.deleteWidget(this.id, ix)
       this.edit_ix = null
+    },
+
+    // handle widget clone event coming up from widget-edit
+    cloneWidget(ix) {
+      // start by adding a new widget of the same kind to the end of the grid
+      const old_w = this.$store.widgetByID(this.$store.widgetIDByIX(this.grid, ix))
+      const widget_ix = this.$store.addWidget(this.id, old_w.kind)
+      const widget_id = this.$store.widgetIDByIX(this.grid, widget_ix)
+      // copy the properties over
+      const props = JSON.parse(JSON.stringify(old_w)) // clone and clean of observers
+      delete props.id
+      this.$store.updateWidget(widget_id, props)
+      // move clone up to be just behind original
+      if (widget_ix != ix+1) {
+        let ww = [ ...this.grid.widgets ] // clone
+        ww.copyWithin(ix+2, ix+1) // shift widgets up
+        ww[ix+1] = widget_id
+        this.$store.updateGrid(this.id, { widgets: ww })
+      }
+      this.edit_ix = ix+1
     },
 
     // move a widget up/down (dir=-1/1)
