@@ -14,9 +14,8 @@
     <!-- Widget title & buttons shown when the child component does _not_ show the title -->
     <v-card-text v-if="!('title' in child_props) && title" class="d-flex pa-0 pt-1 mb-n1">
       <!-- title and edit button -->
-      <span v-if="title" class="mx-auto">{{title}}</span>
-      <v-btn small icon class="justify-end align-start mt-n1" v-if="$root.editMode"
-             @click="handleEdit">
+      <span v-if="title" class="mx-auto text-no-wrap">{{title}}</span>
+      <v-btn small icon class="edit-btn" v-if="$root.editMode" @click="handleEdit">
         <v-icon small>mdi-pencil</v-icon>
       </v-btn>
     </v-card-text>
@@ -26,7 +25,7 @@
       <!-- we need to make sure we're floating way above the widget content... -->
       <div v-else-if="$root.editMode"
            style="position:absolute; z-index:5; right:0; top:0.5ex;">
-        <v-btn small icon class="justify-end align-start mt-n1" @click="handleEdit">
+        <v-btn small icon class="edit-btn" @click="handleEdit">
           <v-icon small>mdi-pencil</v-icon>
         </v-btn>
       </div>
@@ -52,8 +51,11 @@
 .v-card { display: flex; flex-direction: column; justify-content: flex-start; align-items: center }
 .v-card.full-page { position: absolute; left: 1%; top: 1%; z-index: 10; width: 98%; height: 98% }
 .v-card.full-page .full-page-btn { z-index: 11 }
-.theme--light.v-btn--icon { background-color: #ffffff; }
-.theme--dark.v-btn--icon  { background-color: #1e1e1e; }
+.v-card .edit-btn {
+  position: absolute; right: 0px; top: 0px; z-index: 1;
+}
+.theme--light.v-btn--icon { background-color: rgba(255, 255, 255, 0.6); }
+.theme--dark.v-btn--icon  { background-color: rgba(30, 30, 30, 0.6); }
 </style>
 
 <script scoped>
