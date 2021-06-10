@@ -154,6 +154,12 @@
                     :rules="[validateObject]"
                     @input="handleEdit('static', prop, $event)">
                 </v-text-field>
+                <!-- color -->
+                <color-picker v-else-if="prop === 'color' || prop.endsWith('_color')"
+                    :label="prop" :hint="prop_info[prop].hint"
+                    :value="widget.static[prop]||prop_info[prop].default"
+                    @input="handleColorEdit(prop, $event)">
+                </color-picker>
                 <!-- string -->
                 <v-text-field v-else class="w-edit"
                     :label="prop" dense
@@ -224,11 +230,12 @@
 
 import WidgetWrap from '/src/components/widget-wrap.vue'
 import md from '/src/components/md.vue'
+import ColorPicker from '/src/components/color-picker.vue'
 
 export default {
   name: 'WidgetEdit',
 
-  components: { WidgetWrap, md },
+  components: { WidgetWrap, md, ColorPicker },
   inject: [ '$store', 'palette' ],
 
   props: {
@@ -409,6 +416,11 @@ export default {
       }
 
       this.$store.updateWidgetProp(this.id, which, prop, value)
+    },
+
+    handleColorEdit(prop, value) {
+      if (value == "") value = null
+      this.handleEdit('static', prop, value)
     },
 
     handleEditOutput(value) {
