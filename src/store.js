@@ -38,7 +38,7 @@ function walkTree(root, path) {
       node = node[ix]
     } else if (typeof node === 'object') {
       // need to handle undefined here because we explicitly set properties to undefined if
-      // we need to attach a watcher to a property that doesn't exist
+      // we need to attach a watcher to a property that doesn't exist FIXME: outdated?
       if (!(d in node) || typeof node[d] === 'undefined')
         Vue.set(node, d, {}) // allow new subtrees to be created
       node = node[d]
@@ -82,13 +82,6 @@ export class Store {
   // insertData returns the old value that got updated so it can be used to undo the
   // insertion (except that intermediate path elements that were created in the traversal
   // will not be deleted by this).
-  // TODO: this should throw an exception in case of error
-  // FIXME: we currently assign undefined in order to delete an item, which works for objects but
-  // not arrays, although technically it leaves the property in the object. Should figure out
-  // whether to actually delete object properties but that may interfere with reactive watchers.
-  // Undefined also serializes to null in JSON, so it's impossible to delete something from the
-  // server end. Update: gotta really delete stuff, at least in the $config, else we try to
-  // render deleted stuff...
   insertData(topic, payload) {
     let tt = topic.split("/") // split levels of hierarchy
     tt = tt.filter(t => t.length > 0) // remove empty components, e.g. leading slash
@@ -137,13 +130,7 @@ export class Store {
       old = dir[t]
       if (payload !== undefined) {
         //console.log(`Updated ${topic} with:`, payload)
-        if (typeof dir[t] === 'object' && typeof payload === 'object') {
-          // hack, not really correct nor sufficient, should be recursive...
-          Object.keys(dir[t]).forEach(k => { if (!(k in payload)) delete dir[t][k] })
-          Object.keys(payload).forEach(k => Vue.set(dir[t], k , payload[k]))
-        } else {
-          Vue.set(dir, t, payload) // $set 'cause we may add new props to dir
-        }
+        Vue.set(dir, t, payload) // $set 'cause we may add new props to dir
       } else {
         //console.log(`Deleted ${topic}`)
         delete dir[t]

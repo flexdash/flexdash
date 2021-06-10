@@ -123,18 +123,12 @@ export default {
       if (!var_name) return ()=>{} // empty/null var_name happens during editing
       let path = var_name.split('/').filter(t => t.length > 0)
       if (path.length == 0) return null // can't bind to root
+      console.log(`Dyn binding to ${JSON.stringify(path)}`)
       const n = path.pop()
-      const dir = walkTree(this.$store.sd, path)
-      // now bind to dir[n]
-      if (!(n in dir)) {
-        // in vue2 we can't add a watcher to something that doesn't exist
-        // so we create it as undefined and handle that properly when we eventually insert
-        // something *it's a hack*
-        self.$set(dir, n, undefined)
-      }
+      // create watcher, important: the walkTree has to happen in the watch query function
       const w = this.$watch(
-          () => dir[n],
-          (newVal) => { self.updateBindingValue(key, newVal) },
+          () => walkTree(this.$store.sd, path)[n],
+          (newVal, oldVal) => { if (newVal != oldVal) self.updateBindingValue(key, newVal) },
           {deep: true, immediate: true})
       return w
     },
