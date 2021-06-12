@@ -7,9 +7,9 @@
        the title is rendered as v-card-text while the value is rendered here as v-card-title,
        that's so the value is more prominent than the title... ma-auto applies auto margins all
        around, which centers the value. -->
-  <v-card-title class="headline pa-0">
+  <v-card-title class="headline pa-0 flex-grow-1">
     <span class="ma-auto" :style="statStyle">
-      {{valTxt}}
+      <span class="font-weight-medium" style="font-size: 125%; line-height: 125%;">{{valTxt}}</span>
       <span class="unit">{{unitTxt}}</span>
     </span>
   </v-card-title>
@@ -60,7 +60,7 @@ the high-threshold. For string values low and high colors are selected using reg
     numColor() {
       if (typeof this.value !== 'number') return this.color
       if (this.low_threshold !== null && this.value <= this.low_threshold) return this.low_color
-      if (this.high_threshold !== null && this.value >= this.high_threshold) return this.low_color
+      if (this.high_threshold !== null && this.value >= this.high_threshold) return this.high_color
       return this.color
     },
     // compute the color for text values
