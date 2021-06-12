@@ -118,13 +118,17 @@
                   <span>Toggle dynamic link vs. literal value</span>
                 </v-tooltip>
                 <!-- dynamic link -->
-                <v-combobox v-if="!prop_static[prop]"
+                <topic-tree v-if="!prop_static[prop]"
+                    :label="prop" hint='topic (/-separated path)' :value="widget.dynamic[prop]"
+                    @input="handleEdit('dynamic', prop, $event)">
+                </topic-tree>
+                <!--v-combobox v-if="!prop_static[prop]"
                     :label="prop" clearable dense persistent-hint
                     hint='topic (/-separated path)'
                     :items="sd_keys"
                     :value="widget.dynamic[prop]"
                     @input="handleEdit('dynamic', prop, $event)">
-                </v-combobox>
+                </v-combobox-->
                 <!-- number -->
                 <v-text-field v-else-if="prop_info[prop].type === Number"
                     :label="prop" type="number" dense
@@ -231,11 +235,12 @@
 import WidgetWrap from '/src/components/widget-wrap.vue'
 import md from '/src/components/md.vue'
 import ColorPicker from '/src/components/color-picker.vue'
+import TopicTree from '/src/components/topic-tree.vue'
 
 export default {
   name: 'WidgetEdit',
 
-  components: { WidgetWrap, md, ColorPicker },
+  components: { WidgetWrap, md, ColorPicker, TopicTree },
   inject: [ '$store', 'palette' ],
 
   props: {
