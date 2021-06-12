@@ -22,8 +22,8 @@ var color_names = [
 
 function color_by_name(name) {
   if (name.startsWith("#")) return name
-  if (name in color_names) return colors[color_names[name]]
-  return '#cccccc'
+  const ix = color_names.indexOf(name)
+  return ix >= 0 ? colors[ix] : '#cccccc'
 }
 
 
@@ -66,8 +66,10 @@ Note that this "row-wise" structure gets transposed to the columnar structure ex
 
     labels: { type: Array, default: ()=>[], tip: "array of labels for series" },
     colors: { type: Array, default: ()=>[], tip: "array of colors for series, names or #rrggbb" },
-    axis: { type: Array, default: ()=>[], tip: "array to assign series to 'left' or 'right' axis" },
-    width: { type: Array, default: ()=>[], tip: "array of stroke widths for series, default is 2" },
+    axes: { type: Array, default: ()=>[], tip: "array to assign series to 'left' or 'right' axis" },
+    widths: { type: Array, default: ()=>[], tip: "array of stroke widths for series, default is 2" },
+    span_gaps: { type: Array, default: ()=>[],
+        tip: "array of bool to span over nulls, default is false" },
     left_unit: { type: String, default: "", tip: "unit to label left axis" },
     right_unit: { type: String, default: "", tip: "unit to label right axis" },
     left_min: { type: Number, default: null, tip: "minimum for left axis" },
@@ -86,20 +88,22 @@ Note that this "row-wise" structure gets transposed to the columnar structure ex
     // generate options for uPlot based on the props
     // this also emits an event as a side-effect (not supposed to do that, oh well...)
     options() {
-      const ns = Math.max(this.labels.length, this.colors.length, this.axis.length)
+      const ns = Math.max(this.labels.length, this.colors.length, this.axes.length,
+          this.widths.length, this.span_gaps.length)
 
       // declare the series for them to show
       let got_r = false
       const series = [ { label: "time" } ]
       for (let s=0; s<ns; s++) {
-        const r = this.axis[s] && this.axis[s].match(/^[rR]/)
+        const r = this.axes[s] && this.axes[s].match(/^[rR]/)
         got_r ||= r
         const d = r ? this.right_decimals : this.left_decimals
         const u = r ? this.right_unit : this.left_unit
         const serie = {
           label: this.labels[s] || `series ${s+1}`,
           stroke: this.colors[s] ? color_by_name(this.colors[s]) : colors[s%colors.length],
-          width: this.width[s] || 2,
+          width: this.widths[s] || 2,
+          spanGaps: this.span_gaps[s],
           scale: r ? "R" : "L",
           value: `v.toFixed(${d}) + "${u}"`
         }
@@ -120,19 +124,20 @@ Note that this "row-wise" structure gets transposed to the columnar structure ex
         })
       }
 
-      // scales
-      const scales = { L: {} }
-      if (this.left_min !== null || this.left_max !== null) {
-        if (this.left_min !== null && this.left_max !== null) scales.L.auto = false
-        scales.L.range = {}
-        if (this.left_min !== null) scales.L.range.min = { hard: this.left_min }
-        if (this.left_max !== null) scales.L.range.max = { hard: this.left_max }
+      // scales, see also https://github.com/leeoniya/uPlot/issues/526
+      const scales = { L: { range: { min: {pad:0.1}, max: {pad:0.1} } } }
+      if (got_r) scales.R = { range: { min: {pad:0.1}, max: {pad:0.1} } }
+      if (Number.isFinite(this.left_min) || Number.isFinite(this.left_max)) {
+        if (Number.isFinite(this.left_min))
+          Object.assign(scales.L.range.min, { soft: this.left_min, mode: 1 })
+        if (Number.isFinite(this.left_max))
+          Object.assign(scales.L.range.max, { soft: this.left_max, mode: 1 })
       }
-      if (this.right_min !== null || this.right_max !== null) {
-        scales.R = { range: {} }
-        if (this.right_min !== null && this.right_max !== null) scales.R.auto = false
-        if (this.right_min !== null) axes[1].range.min = { hard: this.right_min }
-        if (this.right_max !== null) axes[1].range.max = { hard: this.right_max }
+      if (Number.isFinite(this.right_min) || Number.isFinite(this.right_max)) {
+        if (Number.isFinite(this.right_min))
+          Object.assign(scales.R.range.min, { soft: this.right_min, mode: 1 })
+        if (Number.isFinite(this.right_max)) 
+          Object.assign(scales.R.range.max, { soft: this.right_max, mode: 1 })
       }
 
       const opts = { series, axes, scales }

@@ -270,7 +270,8 @@ Note that this "row-wise" structure gets transposed to the columnar structure ex
       console.log("Tooltip:", tt)
       opts.plugins = [ tooltip(uPlot) ]
       opts.legend = { live: false }
-      console.log("uPlot options:", opts)
+      console.log(`uPlot data: ${this.chart_data.length}x${this.chart_data[0].length} options:`,
+      JSON.stringify(opts))
 
       // check that the data has the right number of series
       // FIXME: uPlot is OK with too much data, it just doesn't show it, prob should briefly show
