@@ -5,7 +5,8 @@
 
 <template>
   <div style="display: content;">
-    <v-text-field dense :label="label" :hint="hint" :value="value" @input="$emit('input',$event.hex)">
+    <v-text-field dense :label="label" :hint="hint" :value="value"
+                  @input="$emit('input',$event.hex)">
       <template v-slot:append-outer>
         <v-btn icon x-small @click="show_picker=!show_picker">
           <v-icon>mdi-palette</v-icon>
