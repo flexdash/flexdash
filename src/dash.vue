@@ -321,7 +321,6 @@ export default {
 .width100 { width: 100%; }
 .height80 { height: 80%; }
 .height100 { height: 100%; }
-.unit { font-size: 70%; vertical-align: 20%; margin-left: 0.1em; }
 
 .v-input__slot { margin-bottom: 4px !important; }
 

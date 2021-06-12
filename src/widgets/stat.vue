@@ -15,6 +15,10 @@
   </v-card-title>
 </template>
 
+<style scoped>
+.unit { vertical-align: 15%; margin-left: 0.1em; }
+</style>
+
 <script scoped>
 export default {
   name: 'Stat',
@@ -44,7 +48,7 @@ the high-threshold. For string values low and high colors are selected using reg
 
   computed: {
     // don't display a unit if there's no value
-    unitTxt() { return this.value === "--" ? "" : this.unit; },
+    unitTxt() { return this.valTxt === "--" ? "" : this.unit; },
     // round values to one decimal (should make that adjustable) and show "--" if the value is
     // null or undefined
     valTxt() {
