@@ -35,12 +35,9 @@
   </div>
 </template>
 
-<style scoped>
-.v-card { width: 300px; }
-</style>
 <style>
 .topic-tree .v-treeview--dense .v-treeview-node__root { min-height: 1.5rem !important; }
-.topic-tree .v-overlay__content { height: 95% }
+.topic-tree .v-overlay__content { height: 95%; width: 95%; max-width: 400px; }
 .topic-tree .v-card { height: 100%; }
 .topic-tree .v-treeview { flex-grow: 1; overflow-y: scroll; }
 </style>
@@ -90,9 +87,11 @@ export default {
         if (value === null || value === undefined) {
           ret = { name: `${name}: ${value}`, id }
         } else if (Array.isArray(value)) {
-          ret = { name, id, children: value.map((v,ix) => children(ix.toString(), id, v)) }
+          ret = { name, id,
+              children: value.sort().map((v,ix) => children(ix.toString(), id, v)) }
         } else if (typeof value === 'object') {
-          ret = { name, id, children: Object.entries(value).map(([k,v])=> children(k, id, v)) }
+          ret = { name, id,
+              children: Object.entries(value).sort().map(([k,v])=> children(k, id, v)) }
         } else {
           ret = { name: `${name}: ${value}`, id }
         }
@@ -100,7 +99,7 @@ export default {
         return ret
       }
       
-      return Object.entries(this.$store.sd).map(([k,v])=> children(k, null, v))
+      return Object.entries(this.$store.sd).sort().map(([k,v])=> children(k, null, v))
     },
 
     treeSelect(ev) {
