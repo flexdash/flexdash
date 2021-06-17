@@ -12,6 +12,8 @@ nodes in the
 [node-red-contrib-flexdash](https://www.npmjs.com/package/node-red-contrib-flexdash)
 npm package.
 
+![image](https://user-images.githubusercontent.com/39480/122461119-ca724680-cf67-11eb-8fd2-9f0114ba1287.png)
+
 In more detail:
 - The dashboard is built with Vue and Vuetify and uses web components to display
   typical IoT or home automation widgets: gauges, sparklines, plots, switches,
@@ -44,6 +46,7 @@ This section explains each of them in some detail. It's probably best to read th
 the demo...
 
 ### Topic tree
+<img src="https://user-images.githubusercontent.com/39480/122462037-f17d4800-cf68-11eb-8499-fae846292efb.png" width="200" align="right">
 
 The topic tree is the concept used by FlexDash to organize data and, in particular, to link
 data sent by the server with widgets that display it. The topic tree is similar to pub/sub
@@ -58,6 +61,9 @@ hierarchical using a slash as delimiter. A simple message might be something lik
 ```
 And you might have a gauge widget whose `value` input is linked to that topic and then
 displays the last received temperature.
+
+<img src="https://user-images.githubusercontent.com/39480/122461586-6308c680-cf68-11eb-8f9f-670b4df9afb9.png" width=300 align="left">
+<img src="https://user-images.githubusercontent.com/39480/122461817-b2e78d80-cf68-11eb-91a9-c9d66d562842.png" width=150>
 
 #### Arrays and objects
 
@@ -150,8 +156,6 @@ card.
 (To be exact, the panel's grid columns and rows _can_ expand slightly to fully fill the card,
 this happens as the outer grid's columns also expand slightly to fill the width of the page).
 
-The following screen shot shows: [TBD...]
-
 ### Iframes
 
 In addition to the normal tabs, grids, and widgets it is possible to embed content from other
@@ -179,6 +183,13 @@ other site can use the same iframe slot, which means they actually display the s
 and cause the tab switch to happen by navigating the content of the iframe. The result is that
 there is only a single copy of the other site and switching from one of its tabs to another is
 efficient.
+
+### Live editing and undo
+
+All editing in FlexDash is done live, i.e., changes occur immediately on the fully functioning
+dashboard. This makes it easy to try different settings and see the results. There is no
+"save" or "cancel" confirmation for anything. Instead, FlexDash has an undo button (in the
+top-nav on the right-hand side) which can quickly undo any mistake.
 
 ### User input and Output events
 
