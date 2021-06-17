@@ -53,6 +53,8 @@ nothing will be plotted.
 Each data message may be either an array of data points or a single data point. If an array is
 provided then it replaces the entire dataset being shown. If a single point is provided
 it is appended to the current dataset and an old data point may be rotated out.
+(Currently w/2 datapoints are kept where w is the width of the widget in pixels,
+this will be revisited.)
 Note that this "row-wise" structure gets transposed to the columnar structure expected by uPlot.
 `,
 
