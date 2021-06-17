@@ -9,6 +9,8 @@
 <template>
   <!--class="d-flex flex-column justify-start align-center"-->
   <v-card :color="color" :class="full_page ? 'full-page' : undefined"
+          :elevation="no_border ? 0 : undefined"
+          :outlined="no_border && $root.editMode"
           style="overflow: hidden">
 
     <!-- Widget title & buttons shown when the child component does _not_ show the title -->
@@ -24,7 +26,7 @@
     <!--div display:content v-else-if="$root.editMode"-->
       <!-- we need to make sure we're floating way above the widget content... -->
       <div v-else-if="$root.editMode"
-           style="position:absolute; z-index:5; right:0; top:0.5ex;">
+           style="position:absolute; z-index:5; right:0; top:0px;">
         <v-btn small icon class="edit-btn" @click="handleEdit">
           <v-icon small>mdi-pencil</v-icon>
         </v-btn>
@@ -41,7 +43,8 @@
     </div>
 
     <!-- actual component, pass in its bindings -->
-    <component :is="config.kind" v-bind="bindings" ref="comp" @send="sendData($event)">
+    <component :is="config.kind" :id="config.id" v-bind="bindings" ref="comp"
+               @send="sendData($event)" class="my-auto">
     </component>
   </v-card>
 </template>
@@ -66,8 +69,8 @@ export default {
   name: 'WidgetWrap',
 
   props: {
-    suppress_output: { type: Boolean, default: true }, // suppress child output reaching store.sd
     color: { type: String, default: undefined }, // background color to highlight the card
+    no_border: { type: Boolean, default: false }, // true causes no "card" border, used by panel
 
     // config specifies how each prop of the inner component gets set. It has "static bindings"
     // to literal values and it has "dynamic bindings" to server data fields, i.e. to
@@ -142,7 +145,7 @@ export default {
 
     // Generate bindings from store.sd -> bindings according to config. Collect watchers created.
     genBindings(config) {
-      //console.log("Generating bindings, config:", config)
+      console.log("Generating bindings, config:", JSON.stringify(config))
       this.removeWatchers()
       // generate bindings, dynamic overrides static
       this.bindings = {}
@@ -213,12 +216,10 @@ export default {
     // handler for 'send' events emitted by widget
     sendData(data) {
       let o = this.config.output
-      if (!this.suppress_output && o) {
+      if (o) {
         if (!o.startsWith("$demo"))
           console.log(`Widget ${this.config.kind}[${this.config.id}] sending ${o} <-`, data)
         this.$root.serverSend(o, data)
-      } else {
-        console.log(`Output of widget ${this.config.kind}[${this.config.id}] suppressed`)
       }
     },
   },

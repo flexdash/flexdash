@@ -57,30 +57,7 @@
       </v-tooltip>
 
       <!-- Menu to add widget -->
-      <div>
-        <v-menu offset-y v-model="add_menu">
-          <!-- Menu activator, i.e. the button -->
-          <template v-slot:activator="{ on:menu, attrs }">
-            <v-tooltip bottom>
-              <template v-slot:activator="{ on:tt }">
-                <v-btn small icon color="primary" v-bind="attrs" v-on="{...tt, ...menu}">
-                  <v-icon>mdi-card-plus</v-icon>
-                </v-btn>
-              </template>
-              <span>Add a widget to the end of the grid</span>
-            </v-tooltip>
-          </template>
-          <!-- Menu content -->
-          <v-list>
-            <v-subheader>Add Widget to the end of the grid</v-subheader>
-            <v-list-item v-for="(descr, kind) in widgets" :key="kind"
-                             @click="addWidget(kind)" link>
-                <v-list-item-title>{{kind}}</v-list-item-title>
-                <v-list-item-subtitle v-if="descr">{{descr}}</v-list-item-subtitle>
-            </v-list-item>
-          </v-list>
-        </v-menu>
-      </div>
+      <widget-menu @select="addWidget"></widget-menu>
 
       <v-spacer></v-spacer>
       <!-- Button to delete the grid -->
@@ -97,23 +74,25 @@
 
     <!-- Grid of widgets -->
     <v-container fluid v-if="!rolledup" class="g-grid-small pt-0">
-      <widget-edit v-for="(w,ix) in grid.widgets" :key="w" :id="w" :grid_id="id"
-                   :edit_active="ix == edit_ix" @edit="toggleEdit(ix, $event)"
-                   @move="moveWidget(ix, $event)" @delete="deleteWidget(ix)"
-                   @clone="cloneWidget(ix)">
-      </widget-edit>
+      <component v-for="(w,ix) in grid.widgets" :key="w" :id="w" :is="editComponent[w]"
+                 :edit_active="ix == edit_ix" @edit="toggleEdit(ix, $event)"
+                 @move="moveWidget(ix, $event)" @delete="deleteWidget(ix)"
+                 @clone="cloneWidget(ix)">
+      </component>
     </v-container>
   </div>
 </template>
 
 <script scoped>
 
+import PanelEdit from '/src/components/panel-edit.vue'
 import WidgetEdit from '/src/components/widget-edit.vue'
+import WidgetMenu from '/src/components/widget-menu.vue'
 
 export default {
   name: 'FixedGrid',
 
-  components: { WidgetEdit },
+  components: { PanelEdit, WidgetEdit, WidgetMenu },
   inject: [ '$store', '$config', 'palette' ],
 
   props: {
@@ -121,7 +100,6 @@ export default {
   },
 
   data() { return {
-    add_menu: null, // true while adding widget menu is shown
     edit_ix: null, // widget being edited
     rolledup: false, // whether grid is rolled-up
   }},
@@ -136,14 +114,12 @@ export default {
       return [ 'd-flex', 'roller', rm ]
     },
 
-    // widgets provides the list of available widgets for the add-widget drop-down
-    widgets() {
-      //console.log("Palette:", this.palette.widgets);
-      return Object.fromEntries(Object.keys(this.palette.widgets).sort().map(w =>
-        [ w, (this.palette.widgets[w].help||"").replace(/^([^.\n]{0,80}).*/s, "$1") ]
+    // editComponent returns the component used to edit a widget: widget-edit or panel-edit
+    editComponent() {
+      return Object.fromEntries(this.grid.widgets.map(wid =>
+        [ wid, this.$store.widgetByID(wid).kind.endsWith("Panel") ? "PanelEdit" : "WidgetEdit" ]
       ))
     },
-
   },
 
   methods: {
@@ -207,18 +183,7 @@ export default {
 .roller { width: 100% }
 .roller.roller__minimal { height: 22px; }
 
-/* reduce height of add-widget menu */
-.v-menu__content .v-list-item { min-height: 2rem; width: 500px;}
-.v-menu__content .v-list-item__title { flex: 0 0 auto; margin-right: 12px; }
-
-
 /* style to make grid happen */
-.g-grid-large {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(18em, 1fr));
-  gap: 0.5em;
-  grid-auto-flow: dense;
-}
 .g-grid-small {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(7em, 1fr));

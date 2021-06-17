@@ -27,7 +27,7 @@
 
       <!-- Widget proper -->
       <template v-slot:activator="on">
-        <widget-wrap :config="widget" :suppress_output="suppress_output && edit_active"
+        <widget-wrap :config="widget" :no_border="no_border"
                      @edit="toggleEdit" :color="edit_active?'highlight':''" :not-used="on">
         </widget-wrap>
       </template>
@@ -122,13 +122,6 @@
                     :label="prop" hint='topic (/-separated path)' :value="widget.dynamic[prop]"
                     @input="handleEdit('dynamic', prop, $event)">
                 </topic-tree>
-                <!--v-combobox v-if="!prop_static[prop]"
-                    :label="prop" clearable dense persistent-hint
-                    hint='topic (/-separated path)'
-                    :items="sd_keys"
-                    :value="widget.dynamic[prop]"
-                    @input="handleEdit('dynamic', prop, $event)">
-                </v-combobox-->
                 <!-- number -->
                 <v-text-field v-else-if="prop_info[prop].type === Number"
                     :label="prop" type="number" dense
@@ -191,10 +184,6 @@
                     @input="handleEditOutput($event)">
                 </v-combobox>
               </v-col>
-              <v-col class="d-flex" cols="12" sm="6" md="4">
-                <v-checkbox label="suppress output while editing" v-model="suppress_output">
-                </v-checkbox>
-              </v-col>
             </v-row>
 
           </v-container>
@@ -245,19 +234,17 @@ export default {
 
   props: {
     id: { type: String, required: true }, // my widget ID
-    grid_id: { type: String, require: true }, // the grid this widget is in
     edit_active: { type: Boolean, default: false }, // we're being edited
+    no_border: { type: Boolean, default: false }, // true causes no "card" border, used by panel
   },
 
   data() { return {
-    widget: {},
     prop_static: {}, // manual toggle between static and dynamic binding
     sd_keys: [], // list of keys from store.sd to show in editing combobox
     // hack to reposition the edit window when changing widget shape/position, this will go
     // away once we have dragging...
     reposition: true,
     edit_help: false, // more... help text expansion toggle
-    suppress_output: true, // toggle to suppress output during edit
     // child_props holds the description of the widget component's props
     child_props: {}, 
     // prop_info is child_props further massaged:
@@ -273,7 +260,7 @@ export default {
   created() {
     console.log("Created widget", this.id)
     // fetch the widget config from the store and perform some init
-    const w = this.$store.widgetByID(this.id) 
+    const w = JSON.parse(JSON.stringify(this.$store.widgetByID(this.id)))
     if (w.static === undefined) w.static = {}
     if (w.dynamic === undefined) w.dynamic = {}
     // inspect the component and extract child props
@@ -320,7 +307,7 @@ export default {
       }
     }
     // update instance variables
-    this.widget = w
+    this.$store.updateWidget(this.id, w)
     this.child_props = cp
     this.prop_info = pi
     // handle init edit_mode being active
@@ -359,6 +346,7 @@ export default {
       return `${row}; ${col};`
     },
 
+    widget() { return this.$store.widgetByID(this.id) },
   },
 
   watch: {

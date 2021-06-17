@@ -257,7 +257,14 @@ export class Store {
   widgetIDByIX(grid, ix) {
     if (typeof grid === 'string') grid = this.gridByID(grid)
     if (grid && ix >= 0 && ix < grid.widgets.length) return grid.widgets[ix]
-    throw new StoreError(`widget #${ix} does not exist in grid ${grid.id}`)
+    throw new StoreError(`widget #${ix} does not exist in grid ${grid&&grid.id}`)
+  }
+
+  // panel may be a panel_id (string) or a panel object
+  widgetIDByPanelIX(panel, ix) {
+    if (typeof panel === 'string') panel = this.widgetByID(panel)
+    if (panel && ix >= 0 && ix < panel.static.widgets.length) return panel.static.widgets[ix]
+    throw new StoreError(`widget #${ix} does not exist in panel ${panel&&panel.id}`)
   }
 
   // ===== Operations on the dash
@@ -387,6 +394,20 @@ export class Store {
     return widget_ix
   }
 
+  // addPanelWidget adds a new widget of the specified kind to a panel (which is a widget)
+  // returns the index of the new widget in the panel
+  addPanelWidget(panel_id, kind) {
+    const panel = this.widgetByID(panel_id)
+    const widget_id = this.genId(this.config.widgets, "w")
+    const widget_ix = panel.static.widgets.length
+    this.qMutation("add a widget", [ // FIXME: add tab name when implemented
+      [`widgets/${widget_id}`,
+        { ...cloneDeep(empty_widget), id: widget_id, kind, static:{title:kind}, dynamic:{} } ],
+      [`widgets/${panel_id}/static/widgets/${widget_ix}`, widget_id ],
+    ])
+    return widget_ix
+  }
+
   // deleteWidget with index ix from grid grid_id
   deleteWidget(grid_id, ix) {
     const grid = this.gridByID(grid_id)
@@ -394,6 +415,17 @@ export class Store {
     // construct mutation to delete the widget
     this.qMutation("delete a widget", [ // add tab title to the message once implemented
       [ `grids/${grid_id}/widgets`, grid.widgets.filter((w,i) => i != ix) ],
+      [ `widgets/${widget_id}`, undefined ],
+    ])
+  }
+
+  // deletePanelWidget with index ix from panel panel_id
+  deletePanelWidget(panel_id, ix) {
+    const panel = this.widgetByID(panel_id)
+    const widget_id = this.widgetIDByPanelIX(panel, ix)
+    // construct mutation to delete the widget
+    this.qMutation("delete a widget", [ // add tab title to the message once implemented
+      [ `widgets/${panel_id}/static/widgets`, panel.static.widgets.filter((w,i) => i != ix) ],
       [ `widgets/${widget_id}`, undefined ],
     ])
   }
