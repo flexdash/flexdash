@@ -152,6 +152,34 @@ this happens as the outer grid's columns also expand slightly to fill the width 
 
 The following screen shot shows: [TBD...]
 
+### Iframes
+
+In addition to the normal tabs, grids, and widgets it is possible to embed content from other
+sites into FlexDash using HTML IFrames. There are 3 different iframes to choose from: tab iframes,
+grid iframes and widget iframes.
+
+Widget iframes are the simplest: they have a URL input and create an iframe the size of the widget
+into which the content from the URL is loaded.
+
+Tab iframes are more complex in order to allow portions of sites with their own tabs to be embedded
+efficiently in FlexDash, this is particularly relevant to the std Node-RED dashboard.
+An iframe tab consists of
+a single iframe that takes up the entirety of the window below the top-nav bar. It is filled from a
+URL specified for the tab.
+
+A special feature is that FlexDash provides two "iframe slots", which are used to embed multiple
+tabs of a site. The purpose of the slots is to avoid double navigation bars, i.e., the FlexDash
+top-nav and the embedded site's top-nav. This works particularly well with the std Node-RED
+dashboard because its top-nac can be disabled and it can be navigated using "hash navigation".
+
+Without slots, if multiple tabs were created in FlexDash and each linked to 
+a tab of the other site the web page would contain multiple copies of that other site, one
+for each such iframe tab. By using slots all the FlexDash tabs that embed the
+other site can use the same iframe slot, which means they actually display the same HTML iframe
+and cause the tab switch to happen by navigating the content of the iframe. The result is that
+there is only a single copy of the other site and switching from one of its tabs to another is
+efficient.
+
 ### User input and Output events
 
 User input such as toggling a switch widget also involves messages with topics, but
@@ -230,9 +258,59 @@ hosted FlexDash from `https://tve.github.com` then the data server needs to resp
 `Access-Control-Allowed-Origins: *`). If you use the FlexDash NPM module in Node-RED then it
 has support for the CORS configuration and is permissive by default.
 
-### Server connections and saving the configuration
+### Server connections, URL navigation, and saving the configuration
 
-... _(Need to copy text from demo panels.)_
+_The text in this subsection is copied verbatim from the demo "guide", it needs to be rewritten._
+
+When you brought up the dashboard it had no connection and established a "demo connection".
+The socket.io connection you added is only used as additional method for sending/receiving data.
+The dashboard configuration is not saved anywhere! So if you reload the browser you're back to
+demo square one.
+
+FlexDash can connect to multiple servers to receive data and send user input but it uses only one
+connection to load its configuration from and save changes to. Since this connection is used to load
+the configuration it must be specified somehow when the dashboard is first loaded.
+This is accomplished by specifying a query string that configures the server
+connection from the get-go. For socket.io the query string has the form
+`sio=http://example.com:1234/path`, which, if running Node-Red locally
+might look as follows (__FIXME:__ _this example doesn't work due to http/https issues_):
+
+  http://tve.github.io/flexdash/?sio=http://localhost:1880/io/flexdash/
+
+To connect to a server using a plain websocket use a query string of the form
+`ws=wss://example.com:2000/path`.
+
+It is also possible to open a specific tab at start-up (instead of the first tab) by appending
+a hash URL extension with the name or the icon name of the tab. E.g., append `#mytab` to the URL.
+
+#### Persisting the configuration with Node-RED
+
+To ensure that Node-RED persists the dashboard configuration a context store that uses the local
+filesystem instead of just memory may need to be enabled. The guide on
+[working with context storage](https://nodered.org/docs/user-guide/context) has
+some background, but the short is to locate the "contextStorage" setting in the \`settings.js\`
+and enable a context store with \`localfilesystem\`.
+The following example configuration provides a default memory context store
+and an optional persistent one:
+
+    contextStorage: {
+        default: { module: "memory" },
+        persistent: { module: "localfilesystem" }
+    },
+
+After setting up the persistent context store its name needs to be entered into
+the FlexDash configuration node ("persistent" in the above example).
+After editing the settings Node-RED needs to be restarted for everything to take effect.
+
+Once all the above is done do test the result! An easy way is to pull up the empty dashboard
+and inject one of the demo tabs. Then reload the browser and it should come right back with
+the dashboard that has the added demo tab. Then restart Node-RED and reload the browser again
+and you should still get the same dashboard with the added demo tab. If the demo tab is gone
+the localfilesystem context store didn't work.
+
+At this point any changes made to the dashboard are persistent.
+The actual config can be found in the Node-RED admin UI using the context store panel
+and the global context variables.
 
 ## Getting and creating panels and widgets
 
@@ -294,21 +372,12 @@ just like you would use a downloaded widget (first section above).
   main way to customize FlexDash.
 - The top-level component is in `src/Dash.vue`, it manages the top-nav and
   plops down the appropriate grid for the selected tab.
-- The two icons at the top right next to the gear menu are the data connections.
-  Right now there's the demo from `src/components/demo.vue` and the
-  disabled uibuilder socket.io connection from `src/components/uib.vue`.
+- Data connections are accessed via a network icon in the top-nav and
+  the code is found in `src/connections`.
 - The grid is in `src/grids/fixed-grid.vue` and deals with laying out the
   widgets. It's a simple HTML grid currently. It also manages the editing,
   including the buttons in the toolbar at the top and dealing with
   cancel/save actions.
-- The way editing happens is that the grid has the saved config as well as
-  an edited config. When a widget is being edited the grid passes the edit config
-  down into it, which makes any change happen immediately.
-  If the user hits cancel the grid simply reverts to passing the saved config down.
-  If the user hits save, the grid sends the changes up via an event and
-  Dash.vue sends it off to the server. 
-  There the changes need to round-trip to ultimately update the 
-  saved config held by the grid.
 - The grid is populated by widgets, the top level of that is
   `src/components/widget-edit.vue` which implements the actual editing
   "drawer". It deals with figuring out the types of the inputs and 
