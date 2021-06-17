@@ -1,16 +1,8 @@
 <template>
-  <div class="text-body-1 text--primary font-weight-regular">
-    <v-row align='center'>
-      <v-col cols=3><slot></slot></v-col>
-      <v-spacer class="col col-1"></v-spacer>
-      <v-col cols=2 class="d-flex justify-center">
-        <v-btn icon elevation=2 @click="dec"><v-icon>mdi-minus</v-icon></v-btn></v-col>
-      <v-col cols=4 class="d-flex">
-        <v-chip class="justify-center text-body-1 font-weight-bold width100">
-          {{fmt()}}</v-chip></v-col>
-      <v-col cols=2 class="d-flex justify-center">
-        <v-btn icon elevation=2 @click="inc"><v-icon>mdi-plus</v-icon></v-btn></v-col>
-    </v-row>
+  <div class="d-flex justify-center align-center">
+    <v-btn x-small icon elevation=2 @click="dec"><v-icon>mdi-minus</v-icon></v-btn></v-col>
+    <v-chip small class="mx-1">{{fmt()}}</v-chip></v-col>
+    <v-btn x-small icon elevation=2 @click="inc"><v-icon>mdi-plus</v-icon></v-btn></v-col>
   </div>
 </template>
 
