@@ -13,6 +13,9 @@ import store from './store'
 
 Vue.config.productionTip = false
 
+// hack to explicitly import a widget when the error message is too obscure
+//const g = import.meta.glob('/src/widgets/thermostat.vue')['/src/widgets/thermostat.vue']()
+
 // use Vite's module glob import to load widgets and grids
 const palette = Vue.observable({ widgets: {}, grids: {}, count: 0 })
 function globImport(tgt, metaglob) {
