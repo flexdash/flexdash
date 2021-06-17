@@ -5,16 +5,16 @@
 -->
 
 <template>
-  <svg class="gauge" :view-box.camel="vbox" :preserve-aspect-ratio.camel=ar>
-    <circle class="gauge-base" cx=0 cy=0 fill="transparent"
+  <svg class="svggauge" :view-box.camel="vbox" :preserve-aspect-ratio.camel=ar>
+    <circle class="svggauge-base" cx=0 cy=0 fill="transparent"
             :r=stroke_radius :stroke=base_color :stroke-width=stroke_width
             :transform=xform :stroke-dasharray=stroke_bdash
     />
-    <circle class="gauge-stroke" cx=0 cy=0 fill="transparent"
+    <circle class="svggauge-stroke" cx=0 cy=0 fill="transparent"
             :r=stroke_radius :stroke=color :stroke-width=stroke_width
             :transform=xform :stroke-dasharray=stroke_sdash
     />
-    <line class="gauge-needle" :x1="needle_start" :y1=0 :x2=100 :y2=0 :stroke="needle_color"
+    <line class="svggauge-needle" :x1="needle_start" :y1=0 :x2=100 :y2=0 :stroke="needle_color"
           stroke-width=2 :transform="nform"
     />
   </svg>

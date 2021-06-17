@@ -3,21 +3,34 @@
 -->
 
 <template>
-  <div class="gauge-card d-flex">
-    <svg-gauge v-bind="$props" :value="value" :style="gauge_valign"></svg-gauge>
-    <div class="gauge-card--label d-flex flex-column mx-auto" :class="txt_valign">
-      <v-card-text class="gauge-value d-flex pa-0 width100">
+  <div class="gauge d-flex flex-column justify-top align-center">
+    <svg-gauge v-bind="$props" :value="value"></svg-gauge>
+    <div class="label d-flex flex-column mx-auto" :class="txt_class" :style="txt_style">
+      <v-card-text class="value d-flex pa-0 width100">
         <span class="mx-auto">{{valTxt}}<span class="unit">{{unitTxt}}</span></span>
       </v-card-text>
-      <v-card-text v-if="title" class="gauge-title d-flex pa-0">
+      <v-card-text v-if="title" class="g-title d-flex pa-0 mt-n1">
         <span class="mx-auto">{{title}}</span>
       </v-card-text>
     </div>
   </div>
 </template>
 
+<style scoped>
+.gauge { padding: 0.5ex; width:100%; min-height: 20px; position: relative; }
+.gauge svg { width: 100%; }
+.gauge .label.absolute { z-index: 1; position: absolute; }
+.gauge .label.below { margin-top: -2ex; margin-bottom: -4px; }
+.unit { vertical-align: 15%; margin-left: 0.1em; font-size: 80%; }
+
+/* need to incorporate this for large gauges
+.gauge-large .value { line-height: 3rem; font-size: 2rem; }
+.gauge-large .title { line-height: 1.5rem; font-size: 1rem; }
+*/
+</style>
+
 <script scoped>
-import SvgGauge from '/src/components/svg-gauge.vue';
+import SvgGauge from '/src/components/svg-gauge.vue'
 
 export default {
   name: 'Gauge',
@@ -34,11 +47,15 @@ export default {
     title: { type: String, default: "Gauge" },
     arc: { type: Number, default: 90, tip: "degrees spanned by the arc of the gauge",
            validator: (v) => v>10 && v<=360 },
-    center: { type: Boolean, default: false, tip: "center the text in the gauge, else bottom" },
+    // center: { type: Boolean, default: false, tip: "center the text in the gauge, else bottom" },
     //
     min: { type: Number, default: 0, tip: "minimum value" },
     max: { type: Number, default: 100, tip: "maximum value" },
     color: { type: String, default: 'green', tip: "color of filled segment" },
+    low_color: { type: String, default: "blue", tip: "color below low threshold" },
+    high_color: { type: String, default: "pink", tip: "color above high threshold" },
+    low_threshold: { type: Number, default: 62, tip: "threshold for low_color, null to disable" },
+    high_threshold:{ type: Number, default: 80, tip: "threshold for high_color, null to disable" },
     base_color: { type: String, default: 'lightgrey', tip: "color of unfilled segment" },
     needle_color: { type: String, default: 'white', tip: "color of needle" },
     radius: { type: Number, default: 70, tip: "inner radius, outer being 100" },
@@ -46,11 +63,18 @@ export default {
   },
 
   computed: {
-    txt_valign() {
-      let ctr = this.center !== null ? this.center : !(this.arc < 200)
-      return ctr ? "my-auto" : "mt-auto"
+    gaugeColor() {
+      if (typeof this.value !== 'number') return this.color
+      if (this.low_threshold !== null && this.value <= this.low_threshold) return this.low_color
+      if (this.high_threshold !== null && this.value >= this.high_threshold) return this.high_color
+      return this.color
     },
-    gauge_valign() { return this.arc < 180 ? "height:auto;" : "" },
+    txt_class() { return this.arc < 130 ? "below" : "absolute" },
+    txt_style() { // this needs more work...
+      if (this.arc < 130) return { }
+      if (this.arc < 220) return { bottom: "0px" }
+      return { top: "40%" }
+    },
     unitTxt() { return this.value === "--" ? "" : this.unit; },
     valTxt() {
       if (typeof this.value == 'number') return Math.round(this.value*10.0)/10.0
@@ -60,18 +84,3 @@ export default {
   },
 }
 </script>
-
-<style scoped>
-  div.gauge-card { padding: 0.5ex; width:100%; height: 100%; }
-  div.gauge-card svg {
-    width: 100%; height: 100%;
-    z-index: 1; position: absolute; padding: 0.5ex; top: 0ex; left: 0ex; box-sizing: border-box;
-  }
-  div.gauge-card--label div { z-index: 2; position: relative; }
-  div.gauge-card--label span { margin-bottom: -0.5ex; }
-
-/* need to incorporate this for large gauges
-.gauge-large .gauge-value { line-height: 3rem; font-size: 2rem; }
-.gauge-large .gauge-title { line-height: 1.5rem; font-size: 1rem; }
-*/
-</style>
