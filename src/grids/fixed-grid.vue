@@ -83,6 +83,30 @@
   </div>
 </template>
 
+<style scoped>
+/* style for button groups in the edit toolbar */
+.v-toolbar__content div { margin-right: 4ex; }
+
+/* style for roll-up/roll-down bar when there's no toolbar */
+.roller { width: 100% }
+.roller.roller__minimal { height: 22px; }
+
+/* style to make grid happen */
+.g-grid-small {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  grid-auto-rows: 78px;
+  gap: 8px;
+  grid-auto-flow: dense;
+}
+.g-grid-margin { margin: 0.5em; }
+
+</style>
+<style>
+.editmode.theme--light .v-toolbar__content { border-top: 1px solid #e0e0e0; }
+.editmode.theme--dark .v-toolbar__content { border-top: 1px solid #111; }
+</style>
+
 <script scoped>
 
 import PanelEdit from '/src/components/panel-edit.vue'
@@ -173,28 +197,3 @@ export default {
 }
 
 </script>
-
-<style scoped>
-
-/* style for button groups in the edit toolbar */
-.v-toolbar__content div { margin-right: 4ex; }
-
-/* style for roll-up/roll-down bar when there's no toolbar */
-.roller { width: 100% }
-.roller.roller__minimal { height: 22px; }
-
-/* style to make grid happen */
-.g-grid-small {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(7em, 1fr));
-  grid-auto-rows: 4.5em;
-  gap: 0.5em;
-  grid-auto-flow: dense;
-}
-.g-grid-margin { margin: 0.5em; }
-
-</style>
-<style>
-.editmode.theme--light .v-toolbar__content { border-top: 1px solid #e0e0e0; }
-.editmode.theme--dark .v-toolbar__content { border-top: 1px solid #111; }
-</style>

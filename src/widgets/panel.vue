@@ -3,7 +3,7 @@
 -->
 
 <template>
-  <div class="wpanel">
+  <div class="wpanel" :style="panel_style">
     <widget-menu v-if="$root.editMode" button_class="add-widget" @select="addWidget">
     </widget-menu>
     <component v-for="(w,ix) in widgets" :key="w" :id="w" :is="editComponent[w]"
@@ -16,11 +16,11 @@
 
 <style scoped>
 .wpanel {
-  width: 100%; flex-grow: 1; margin-top: 4px; padding: 4px;
+  width: 100%; flex-grow: 1; min-height: 10px; margin-top: 4px; padding: 0px;
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(3.375em, 1fr));
-  grid-auto-rows: minmax(2em, auto);
-  gap: 0.25em;
+  /*grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));*/
+  grid-auto-rows: auto;
+  gap: 0px;
 }
 </style>
 <style>
@@ -61,6 +61,13 @@ changes and thus the positioning of the widgets remains fixed.`,
       return Object.fromEntries(this.widgets.map(wid =>
         [ wid, this.$store.widgetByID(wid).kind.endsWith("Panel") ? "PanelEdit" : "WidgetEdit" ]
       ))
+    },
+    panel_style() {
+      const widget = this.$store.widgetByID(this.id)
+      return {
+        "grid-template-columns": `repeat(${2*widget.cols}, 1fr)`,
+        //"grid-template-rows": `repeat(${2*widget.rows}, 1fr)`,
+      }
     },
   },
 
