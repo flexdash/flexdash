@@ -62,6 +62,12 @@ import uPlot from 'uplot'
 import 'uplot/dist/uPlot.min.css'
 import tooltip from '/src/utils/uplot-tooltip.js'
 
+function deepCopy(obj) {
+  if (typeof obj !== 'object') return obj
+  if (Array.isArray(obj)) return obj.map(deepCopy)
+  return Object.fromEntries(Object.entries(obj).map(([k,v])=>[k,deepCopy(v)]))
+}
+
 export default {
   name: "TimePlotRaw",
 
@@ -115,45 +121,47 @@ Note that this "row-wise" structure gets transposed to the columnar structure ex
       this._create();
     },
 
-    data(data, /*prevData*/) { // FIXME: do we need to check that the data is new?
-      //console.log("Time-plot data changed:", data);
-      if (!data) return // handle init case where data is undefined
-      const replace = Array.isArray(data[0]) // replace entire dataset vs append
+    data: {
+      immediate: true,
+      handler(data, /*prevData*/) { // FIXME: do we need to check that the data is new?
+        console.log("Time-plot data changed:", data);
+        if (!data) return // handle init case where data is undefined
+        const replace = Array.isArray(data[0]) // replace entire dataset vs append
 
-      // if there's no chart yet, we need to create one
-      // recreate the chart if we are replacing all the data
-      if (!this.chart || !this.chart_data || replace) {
-        if (this.chart) this._destroy();
-        this.chart_data = this._transpose(replace ? data : [data])
-        this._create();
+        // if there's no chart yet, we need to create one
+        // recreate the chart if we are replacing all the data
+        if (!this.chart || !this.chart_data || replace) {
+          if (this.chart) this._destroy();
+          this.chart_data = this._transpose(replace ? data : [data])
+          if (this.$el) this._create(); // don't create if not mounted yet
 
-      // we're getting one data point, so append to chart (need to transpose)
-      } else {
-        const num_series = this.chart_data.length
-        for (let i=0; i<num_series; i++)
-          this.chart_data[i].push(data[i])
-        // prune the data when it reaches 1/2 the number of pixels we got in width
-        const max = Math.max(this.width/2, 20)
-        while (this.chart_data[0].length > max) {
+        // we're getting one data point, so append to chart (need to transpose)
+        } else {
+          const num_series = this.chart_data.length
           for (let i=0; i<num_series; i++)
-            this.chart_data[i].shift()
+            this.chart_data[i].push(data[i])
+          // prune the data when it reaches 1/2 the number of pixels we got in width
+          const max = Math.max(this.width/2, 20)
+          while (this.chart_data[0].length > max) {
+            for (let i=0; i<num_series; i++)
+              this.chart_data[i].shift()
+          }
+          console.log(`Time-plot data appended, got ${this.chart_data[0].length} rows, max:${max}`)
+          this.chart.setData(this.chart_data)
         }
-        //console.log(`Time-plot data appended, got ${this.chart_data[0].length} rows, max:${max}`)
-        this.chart.setData(this.chart_data)
       }
     }
   },
 
   mounted() {
-    this._create();
-    const self = this
+    if (this.chart) console.log("Error: uPlot chart created too early")//no resizeObs before mount!
+    this._create()
     this.dark_watcher = this.$watch(
-      ()=>self.$vuetify.theme.dark,
+      ()=> this.$vuetify.theme.dark,
       ()=>{ this._destroy(); this._create() })
   },
 
   beforeDestroy() {
-    console.log("BeforeDestroy uPlot", this.ro)
     if (this.ro) this.ro()
     this.ro = null;
     this._destroy()
@@ -184,26 +192,34 @@ Note that this "row-wise" structure gets transposed to the columnar structure ex
         return { width: 0, height: 0 }
       }
 
-      console.log("TPR: observing size")
-      this._onResize(uwrap)
+      //console.log("TPR: observing size")
       const ro = new ResizeObserver(()=>this._onResize(uwrap)).observe(uwrap)
       this.ro = () => ro && ro.unobserve(uwrap)
+      this.$nextTick(this._onResize(uwrap))
     },
 
     _calcSize(el) {
       let width = this.options.width || el.clientWidth
       let height = this.options.height || el.clientHeight
-      console.log(`Time-plot container sized to ${width}x${height}`)
       this.width = width
       return { width: width, height: height }
     },
 
     // receive resize event and change the size of the chart if necessary
+    // for some reason, this gets called twice most of the time, prob a bug somewhere...
     _onResize(el) {
-      if (!this.chart) return;
-      this.chart.setSize(this._calcSize(el));
+      const c = this.chart
+      console.log(`uPlot onResize`)
+      if (!c) return;
+      const newSz = this._calcSize(el)
+      console.log(`uPlot size chg ${c.width}x${c.height} -> ${newSz.width}x${newSz.height}`)
+      if (c.width == newSz.width && c.height == newSz.height) return
+      console.log(`uPlot resized ${c.width}x${c.height} -> ${newSz.width}x${newSz.height}`)
+      if (newSz.width == 0 || newSz.height == 0) return // this._destroy()
+      else c.setSize(newSz);
     },
 
+    // transpose from row format coming in to column format required by uPlot
     _transpose(data) {
       if (!data || data.length == 0) return []
       if (!data[0].map) debugger; //eslint-disable-line
@@ -222,9 +238,11 @@ Note that this "row-wise" structure gets transposed to the columnar structure ex
       if (!this.chart_data || this.chart_data.length === 0) return
       if (!this.options || !this.options.series || this.options.series.length < 2) return
 
-      // add size stuff to options
-      let opts = JSON.parse(JSON.stringify(this.options)) // deep clone and w/out reactivity
-      //Object.assign(opts, this._calcSize())
+      // clone this.options to get rid of reactivity crap and to be able to add/modify without
+      // altering original options
+      let opts = deepCopy(this.options)
+      opts.width = 200
+      opts.height= 150
 
       // fix-up series
       for (let s=1; s<opts.series.length; s++) {
@@ -251,10 +269,35 @@ Note that this "row-wise" structure gets transposed to the columnar structure ex
             ax.values = new Function('u', 'vv', 's', `"use strict";return (${ax.values})`)
         }
         // handle grid in dark mode
+        // FIXME: actually need to cause a redraw when switching between light&dark
         if (this.$vuetify.theme.dark) {
           if (!ax.grid) ax.grid = {}
           if (!ax.grid.stroke) ax.grid.stroke = '#444'
           if (!ax.stroke) ax.stroke = '#ccc'
+        }
+        // auto-size space for Y axes
+        if (!('size' in ax)) {
+          if (ax.side & 1 || !('side' in ax) && a > 0) {
+            ax.gap = 2 // redcue gap a tad from std 5
+            const tickSize = 10 // uPlot default, we're not setting it
+            // size function gets called by uPlot, has to return size in CSS pixels
+            // for max(values) + gap + tickSize
+            ax.size = (u, values, axisIdx, cycleNum) => {
+              if (cycleNum > 2) return u.axes[axisIdx]._size; // bail out, force convergence
+              const dfltSize = 40;
+              if (values == null) {
+                return null
+              } else {
+                // measure the text size of each axis value and take the max
+                u.ctx.font = u.axes[axisIdx].font[0]
+                const max_width = Math.max(...values.map(v=>u.ctx.measureText(v).width))
+                const sz = Math.max(dfltSize, max_width)
+                //console.log(`Size[${a}]=${sz} for ${values} (ml=${max_width} cyc=${cycleNum})`)
+                //console.log(`Font: ${u.ctx.font}`)
+                return sz/window.devicePixelRatio + ax.gap + tickSize // uPlot wants CSS pixels
+              }
+            }
+          }
         }
       }
 
@@ -271,7 +314,7 @@ Note that this "row-wise" structure gets transposed to the columnar structure ex
       opts.plugins = [ tooltip(uPlot) ]
       opts.legend = { live: false }
       console.log(`uPlot data: ${this.chart_data.length}x${this.chart_data[0].length} options:`,
-      JSON.stringify(opts))
+          JSON.stringify(opts))
 
       // check that the data has the right number of series
       // FIXME: uPlot is OK with too much data, it just doesn't show it, prob should briefly show

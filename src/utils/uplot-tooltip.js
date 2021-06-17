@@ -81,7 +81,7 @@ export default function (uplot) {
     u.series.forEach((s, i) => {
       if (s.show) {
         const yVal = u.data[i][idx]
-        const yTxt = s.value(u, yVal)
+        const yTxt = yVal != null ? s.value(u, yVal) : "?"
         if (i==0) html += `<tr><th colspan="2">${yTxt}</th></tr>`
         else      html += '<tr><td><div class="u-marker" style="border-color: ' + s._stroke +
                           `"></div>${s.label}</td><td>${yTxt}</td></tr>`
