@@ -37,7 +37,8 @@ value input: the toggle will be "on" if the value is equal to the "on_value" inp
     // actual bindings passed into v-switch, these are a bit of a massage of the props
     // 'cause of name changes and some heuristics
     bindings() { return {
-      value: this.val,
+      //value: this.val,
+      inputValue: this.val,
       disabled: !this.enabled,
       color: this.color,
       trueValue: this.on_value,
@@ -53,7 +54,7 @@ value input: the toggle will be "on" if the value is equal to the "on_value" inp
   },
 
   watch: {
-    value(v) { this.val = v },
+    value: { immediate: true, handler(v) { this.val = v } },
   },
 
   methods: {
