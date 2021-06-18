@@ -7,12 +7,15 @@
        the title is rendered as v-card-text while the value is rendered here as v-card-title,
        that's so the value is more prominent than the title... ma-auto applies auto margins all
        around, which centers the value. -->
-  <v-card-title class="headline pa-0 flex-grow-1">
+  <v-card-title v-if="!chip" class="headline pa-0 flex-grow-1">
     <span class="ma-auto" :style="statStyle">
       <span class="font-weight-medium" style="font-size: 125%; line-height: 125%;">{{valTxt}}</span>
       <span class="unit">{{unitTxt}}</span>
     </span>
   </v-card-title>
+  <div v-else class="flex-grow-1 d-flex justify-center align-center">
+    <v-chip :color="finalColor">{{valTxt}}<span class="unit">{{unitTxt}}</span></v-chip>
+  </div>
 </template>
 
 <style scoped>
@@ -35,15 +38,16 @@ the high-threshold. For string values low and high colors are selected using reg
   // field and also to convert data (ex: string to number). Dynamic is used to bind an input
   // to a data topic right when the widget is created so it animates tight off the bat.
   props: {
-    unit: String,
+    unit: { type: String, default: "", tip: "superscript after the value" },
     value: { default: null, dynamic: "$demo_random" },
-    color: { type: String, default: null }, // null -> text color
-    low_color: { type: String, default: null },
-    high_color: { type: String, default: null },
-    low_threshold: { type: Number, default: null },
-    high_threshold: { type: Number, default: null },
-    low_regexp: { type: String, default: null },
-    high_regexp: { type: String, default: null },
+    color: { type: String, default: null, tip: "value color, null->text color" },
+    low_color: { type: String, default: "blue", tip: "color below low threshold" },
+    high_color: { type: String, default: "pink", tip: "color above high threshold" },
+    low_threshold: { type: Number, default: null, tip: "threshold for low_color, null to disable" },
+    high_threshold:{ type: Number, default: null, tip: "threshold for high_color, null to disable" },
+    low_regexp: { type: String, default: null, tip: "match produces low_color for non-number value" },
+    high_regexp: { type: String, default: null, tip: "match produces high_color for non-number value" },
+    chip: { type: Boolean, default: false, tip: "display value in a chip/pill" },
   },
 
   computed: {
@@ -72,10 +76,10 @@ the high-threshold. For string values low and high colors are selected using reg
       if (this.highRegexp && this.highRegexp.test(this.value)) return this.low_color
       return this.color
     },
+    finalColor() { return (typeof this.value === 'number') ? this.numColor : this.textColor },
     // compute the CSS style for the value
     statStyle() {
-      const color = (typeof this.value === 'number') ? this.numColor : this.textColor
-      return color ? { color } : {}
+      return this.finalColor ? { color: this.finalColor } : {}
     },
   },
 
