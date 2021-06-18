@@ -54,8 +54,8 @@ export default {
     color: { type: String, default: 'green', tip: "color of filled segment" },
     low_color: { type: String, default: "blue", tip: "color below low threshold" },
     high_color: { type: String, default: "pink", tip: "color above high threshold" },
-    low_threshold: { type: Number, default: 62, tip: "threshold for low_color, null to disable" },
-    high_threshold:{ type: Number, default: 80, tip: "threshold for high_color, null to disable" },
+    low_threshold: { type: Number, default: null, tip: "threshold for low_color, null to disable" },
+    high_threshold:{ type: Number, default: null, tip: "threshold for high_color, null to disable" },
     base_color: { type: String, default: 'lightgrey', tip: "color of unfilled segment" },
     needle_color: { type: String, default: 'white', tip: "color of needle" },
     radius: { type: Number, default: 70, tip: "inner radius, outer being 100" },
@@ -70,7 +70,7 @@ export default {
       return this.color
     },
     txt_class() { return this.arc < 130 ? "below" : "absolute" },
-    txt_style() { // this needs more work...
+    txt_style() {
       if (this.arc < 130) return { }
       if (this.arc < 220) return { bottom: "0px" }
       return { top: "40%" }
