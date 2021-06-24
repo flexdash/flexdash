@@ -128,7 +128,7 @@ export default {
       if (!var_name) return ()=>{} // empty/null var_name happens during editing
       let path = var_name.split('/').filter(t => t.length > 0)
       if (path.length == 0) return null // can't bind to root
-      console.log(`Dyn binding to ${JSON.stringify(path)}`)
+      //console.log(`Dyn binding to ${JSON.stringify(path)}`)
       const n = path.pop()
       // create watcher, important: the walkTree has to happen in the watch query function
       const w = this.$watch(
@@ -145,13 +145,13 @@ export default {
 
     // Generate bindings from store.sd -> bindings according to config. Collect watchers created.
     genBindings(config) {
-      console.log("Generating bindings, config:", JSON.stringify(config))
+      //console.log("Generating bindings, config:", JSON.stringify(config))
       this.removeWatchers()
       // generate bindings, dynamic overrides static
       this.bindings = {}
       if (config) {
         Object.keys(config.static||{}).forEach(p => {
-          if (config.static[p] !== undefined)
+          if (config.static[p] !== undefined && config.dynamic[p] === undefined)
             this.$set(this.bindings, p, config.static[p])
         })
         Object.keys(config.dynamic||{}).forEach(p => {
