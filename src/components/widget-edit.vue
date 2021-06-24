@@ -178,7 +178,7 @@
                 <!--h4 class="mt-2 mr-3">Output binding:</h4-->
                 <v-combobox
                     label="output binding" clearable dense persistent-hint
-                    hint='topic (/-separated path)'
+                    :hint='output_tip'
                     :items="sd_keys"
                     :value="widget.output"
                     @input="handleEditOutput($event)">
@@ -251,6 +251,7 @@ export default {
     // {name:{type, default, validator, hint, icon, dynamic},...}
     // prop types: String, Number, Boolean, Array, Object, Date //, Function, Symbol
     prop_info: {},
+    output_tip: "",
 
     // pop-up dialog to edit string property full-page
     dialog: false,
@@ -258,11 +259,12 @@ export default {
   }},
 
   created() {
-    console.log("Created widget", this.id)
+    //console.log("Created widget", this.id)
     // fetch the widget config from the store and perform some init
     const w = JSON.parse(JSON.stringify(this.$store.widgetByID(this.id)))
-    if (w.static === undefined) w.static = {}
-    if (w.dynamic === undefined) w.dynamic = {}
+    let update = false // whether we need to update the widget
+    if (w.static === undefined) { w.static = {}; update = true }
+    if (w.dynamic === undefined) { w.dynamic = {}; update = true }
     // inspect the component and extract child props
     let cp = {}
     const p = this.palette.widgets
@@ -292,6 +294,7 @@ export default {
       // if the prop definition says it's dynamic and it's completely unset, then set it
       if (pi[p].dynamic && !(p in w.dynamic) && !(p in w.static)) {
         w.dynamic[p] = pi[p].dynamic
+        update = true
       }
     }
     // process any widget output binding
@@ -300,14 +303,14 @@ export default {
       const o = p[w.kind].output
       if (typeof o === 'string') {
         if (!('output' in w)) w.output = o
-        w.output_hint = null
       } else {
         if (!('output' in w)) w.output = p[w.kind].output.default || null
-        w.output_hint = p[w.kind].output.tip || null
+        if (p[w.kind].output.tip) this.output_tip += ", " + p[w.kind].output.tip
       }
     }
+    if (w.output_hint) { w.output_hint = null; update = true } // patch a bug
     // update instance variables
-    this.$store.updateWidget(this.id, w)
+    if (update) this.$store.updateWidget(this.id, w)
     this.child_props = cp
     this.prop_info = pi
     // handle init edit_mode being active

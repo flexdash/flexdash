@@ -172,10 +172,9 @@ export class Store {
   }
 
   // qMutation in the central function through which all mutations to the config must be
-  // funneled. It applies the mutation locally and sends it to the server,
-  // then waits for an ack with a timeout.
+  // funneled. It applies the mutation locally and sends it to the server.
   // It also records the mutation in the undo buffer.
-  // The tagline is a string that goes into the undo buffer and is indended to help the user
+  // The tagline is a string that goes into the undo buffer and is intended to help the user
   // identify what the undo will do. Msgs is an array of [path, value] tuples with the
   // leading "$config/" omitted from the path.
   // If tagline is null, no undo steps are recorded, this is primarily used to perform
