@@ -106,7 +106,7 @@ thereby alter the number of values shown).
     // watch the values coming in, if we get a number, append to array, if we get an array,
     // use that as data
     value(v) {
-      console.log(`SparkLine value: ${v.length || 1}`)
+      //console.log(`SparkLine value: ${v.length || 1}`)
       if (typeof v === 'number' || v === null) {
         this.data.push(v)
         while (this.data.length > 20) this.data.shift()
@@ -132,7 +132,7 @@ thereby alter the number of values shown).
       if (!this.$el.offsetParent) return
       this.height = this.$el.offsetParent.clientHeight - this.$el.offsetTop
       this.width = this.$el.offsetParent.clientWidth
-      console.log(`SparkLine resize ${this.width}x${this.height}`)
+      //console.log(`SparkLine resize ${this.width}x${this.height}`)
     },
 
     destroy() {
