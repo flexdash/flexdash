@@ -115,7 +115,7 @@ Note that this "row-wise" structure gets transposed to the columnar structure ex
   watch: {
 
     options(/*options, prevOptions*/) {
-      console.log("Time-plot options changed");
+      //console.log("Time-plot options changed");
       this._destroy();
       // FIXME: should massage chart_data if the number of series has changed
       this._create();
@@ -124,7 +124,7 @@ Note that this "row-wise" structure gets transposed to the columnar structure ex
     data: {
       immediate: true,
       handler(data, /*prevData*/) { // FIXME: do we need to check that the data is new?
-        console.log("Time-plot data changed:", data);
+        //console.log("Time-plot data changed:", data);
         if (!data) return // handle init case where data is undefined
         const replace = Array.isArray(data[0]) // replace entire dataset vs append
 
@@ -146,7 +146,7 @@ Note that this "row-wise" structure gets transposed to the columnar structure ex
             for (let i=0; i<num_series; i++)
               this.chart_data[i].shift()
           }
-          console.log(`Time-plot data appended, got ${this.chart_data[0].length} rows, max:${max}`)
+          //console.log(`Time-plot data appended, got ${this.chart_data[0].length} rows, max:${max}`)
           this.chart.setData(this.chart_data)
         }
       }
@@ -171,7 +171,7 @@ Note that this "row-wise" structure gets transposed to the columnar structure ex
   methods: {
     _destroy() {
       if (this.chart) {
-        console.log("Destroying uPlot")
+        //console.log("Destroying uPlot")
         this.chart.destroy()
         this.chart = null
       }
@@ -209,12 +209,12 @@ Note that this "row-wise" structure gets transposed to the columnar structure ex
     // for some reason, this gets called twice most of the time, prob a bug somewhere...
     _onResize(el) {
       const c = this.chart
-      console.log(`uPlot onResize`)
+      //console.log(`uPlot onResize`)
       if (!c) return;
       const newSz = this._calcSize(el)
-      console.log(`uPlot size chg ${c.width}x${c.height} -> ${newSz.width}x${newSz.height}`)
+      //console.log(`uPlot size chg ${c.width}x${c.height} -> ${newSz.width}x${newSz.height}`)
       if (c.width == newSz.width && c.height == newSz.height) return
-      console.log(`uPlot resized ${c.width}x${c.height} -> ${newSz.width}x${newSz.height}`)
+      //console.log(`uPlot resized ${c.width}x${c.height} -> ${newSz.width}x${newSz.height}`)
       if (newSz.width == 0 || newSz.height == 0) return // this._destroy()
       else c.setSize(newSz);
     },
@@ -234,7 +234,7 @@ Note that this "row-wise" structure gets transposed to the columnar structure ex
 
     _create() {
       const self = this
-      console.log("Creating uPlot")
+      //console.log("Creating uPlot")
       if (!this.chart_data || this.chart_data.length === 0) return
       if (!this.options || !this.options.series || this.options.series.length < 2) return
 
@@ -313,8 +313,8 @@ Note that this "row-wise" structure gets transposed to the columnar structure ex
       console.log("Tooltip:", tt)
       opts.plugins = [ tooltip(uPlot) ]
       opts.legend = { live: false }
-      console.log(`uPlot data: ${this.chart_data.length}x${this.chart_data[0].length} options:`,
-          JSON.stringify(opts))
+      //console.log(`uPlot data: ${this.chart_data.length}x${this.chart_data[0].length} options:`,
+      //    JSON.stringify(opts))
 
       // check that the data has the right number of series
       // FIXME: uPlot is OK with too much data, it just doesn't show it, prob should briefly show
