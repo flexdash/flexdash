@@ -211,6 +211,17 @@ actual config in the Node-RED admin UI using the context store panel under the g
 context variables.
 `
 
+const panel_text = `# Panel demo
+It is often desirable to arrange controls visually in a specific way and this can be achieved
+in FlexDash using either custom compound widgets or using panels. A compound widget is a vue
+component that primarily consists of an arrangement of other widgets. The three thermostat
+widgets on this tab are an example. An alternative is to use a panel and place existing
+widgets into the panel.
+
+The custom compound widget is more flexible but also more work to write and test. It is useful
+when additional custom logic is needed that a panel cannot provide.
+`
+
 // Demo configuration with multiple tabs and help text.
 // Note that the tabs, grid, widgets use IDs that have one less digit than the auto-generated ones
 // by the dashboard's edit functionality, this ensures the demo stuff can be injected without
@@ -338,9 +349,11 @@ const demo_tabs = {
       "t0006": { "id":"t0006", "title":"panel", "icon":"grid", "grids":["g0006"] } },
     "grids": {
       "g0006": { "id": "g0006", "kind": "FixedGrid",
-                  "widgets": [ "w07683","w05842","w05997","w08990","w0037","w0038","w0039" ],
+                  "widgets": [ "w07683","w05842","w05997","w0036","w08990","w0037","w0038","w0039" ],
     }},
     "widgets": {
+      "w0036": { "kind": "Markdown", "id": "w0036", "cols": 3, "rows": 2, "dynamic": {},
+                  "static": { "title": "", "text": panel_text } },
       "w07683": {"kind":"Thermostat","rows":3,"cols":1,"id":"w07683","output":null,
                  "static":{"title":"House","active":false,"active_label":"Heat"},
                  "dynamic":{"temperature":"$demo/panel/house"}},

@@ -73,7 +73,7 @@
     </v-toolbar>
 
     <!-- Grid of widgets -->
-    <v-container fluid v-if="!rolledup" class="g-grid-small pt-0">
+    <v-container fluid v-if="!rolledup" class="g-grid-small pt-0 px-2">
       <component v-for="(w,ix) in grid.widgets" :key="w" :id="w" :is="editComponent[w]"
                  :edit_active="ix == edit_ix" @edit="toggleEdit(ix, $event)"
                  @move="moveWidget(ix, $event)" @delete="deleteWidget(ix)"
