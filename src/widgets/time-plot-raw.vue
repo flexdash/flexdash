@@ -116,9 +116,9 @@ Note that this "row-wise" structure gets transposed to the columnar structure ex
 
     options(/*options, prevOptions*/) {
       //console.log("Time-plot options changed");
-      this._destroy();
+      this._destroy()
       // FIXME: should massage chart_data if the number of series has changed
-      this._create();
+      this._create()
     },
 
     data: {
@@ -131,9 +131,9 @@ Note that this "row-wise" structure gets transposed to the columnar structure ex
         // if there's no chart yet, we need to create one
         // recreate the chart if we are replacing all the data
         if (!this.chart || !this.chart_data || replace) {
-          if (this.chart) this._destroy();
+          if (this.chart) this._destroy()
           this.chart_data = this._transpose(replace ? data : [data])
-          if (this.$el) this._create(); // don't create if not mounted yet
+          if (this.$el) this._create() // don't create if not mounted yet
 
         // we're getting one data point, so append to chart (need to transpose)
         } else {
@@ -163,7 +163,7 @@ Note that this "row-wise" structure gets transposed to the columnar structure ex
 
   beforeDestroy() {
     if (this.ro) this.ro()
-    this.ro = null;
+    this.ro = null
     this._destroy()
     this.dark_watcher()
   },
@@ -310,7 +310,6 @@ Note that this "row-wise" structure gets transposed to the columnar structure ex
       // final hacks
       opts.padding = [8, null, null, null] // reduce padding at top
       const tt = tooltip()
-      console.log("Tooltip:", tt)
       opts.plugins = [ tooltip(uPlot) ]
       opts.legend = { live: false }
       //console.log(`uPlot data: ${this.chart_data.length}x${this.chart_data[0].length} options:`,
