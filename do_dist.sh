@@ -30,6 +30,7 @@ echo "RUN: git add ./docs; git commit -m 'publish ${version}'; git push"
 
 # --checksum: determine change based on hash and file size, mod time on S3 is bogus
 # --immutable: don't want to overwrite previous release
+set -x
 OPTS=(--progress --checksum --immutable)
 OPTS=("${OPTS[@]}" --config $HOME/.config/rclone/rclone.conf)
 rclone "${OPTS[@]}" sync dist s3-public:s3.voneicken.com/flexdash/${version}
