@@ -196,6 +196,7 @@ export default {
 
     // Handle a msg event emitted by a server connection, process the message and
     // inject it into the store.
+    // FIXME: this doesn't get triggered if the config isn't sent as one single message...
     handleMsg(topic, payload) {
       // Do some special handling of dashboard config messages
       if (topic === "$config") {
