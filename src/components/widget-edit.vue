@@ -65,6 +65,14 @@
                 <v-btn small @click="$emit('delete')">Delete widget</v-btn>
               </v-col>
               <v-col class="d-flex" cols="6" sm="2">
+                <!-- copy widget -->
+                <v-tooltip bottom>
+                  <template v-slot:activator="{ on }">
+                    <v-btn small icon @click="copyWidget" v-on="on">
+                      <v-icon>mdi-content-copy</v-icon></v-btn>
+                  </template>
+                  <span>Copy widget to clipboard</span>
+                </v-tooltip>
                 <!-- clone widget -->
                 <v-btn small @click="$emit('clone')">Clone</v-btn>
                 <!-- move widget up/down -->
@@ -225,6 +233,7 @@ import WidgetWrap from '/src/components/widget-wrap.vue'
 import md from '/src/components/md.vue'
 import ColorPicker from '/src/components/color-picker.vue'
 import TopicTree from '/src/components/topic-tree.vue'
+import copyToClipboard from '/src/utils/clipboard.js'
 
 export default {
   name: 'WidgetEdit',
@@ -480,6 +489,11 @@ export default {
     moveWidget(dir) {
       this.$emit('move', dir)
       this.reposition = false; this.$nextTick(() => {this.reposition = true})
+    },
+
+    copyWidget(dir) {
+      copyToClipboard(JSON.stringify(this.$store.widgetByID(this.id)))
+      // FIXME: need some visual feedback
     },
 
   },

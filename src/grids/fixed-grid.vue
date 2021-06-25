@@ -59,6 +59,20 @@
       <!-- Menu to add widget -->
       <widget-menu @select="addWidget"></widget-menu>
 
+      <!-- Paste button/text field -->
+      <v-tooltip bottom>
+        <template v-slot:activator="{ on }">
+          <v-btn small icon @click="pasting=!pasting" class="mc-auto" v-on="on">
+            <v-icon>mdi-content-paste</v-icon>
+          </v-btn>
+        </template>
+        <span>Paste a widget, adding it to the grid</span>
+      </v-tooltip>
+      <div ref="pasteDiv" class="d-flex">
+        <input type="text" v-if="pasting" size="15"
+               placeholder="paste widget here" class="pasteinput">
+      </div>
+
       <v-spacer></v-spacer>
       <!-- Button to delete the grid -->
       <v-tooltip bottom>
@@ -101,6 +115,11 @@
 }
 .g-grid-margin { margin: 0.5em; }
 
+.pasteinput {
+  margin: 0 4px; padding: 0 2px; min-width: 20ex;
+  color: #888;
+  border: 1px solid #888; border-radius: 4px;
+}
 </style>
 <style>
 .editmode.theme--light .v-toolbar__content { border-top: 1px solid #e0e0e0; }
@@ -126,6 +145,7 @@ export default {
   data() { return {
     edit_ix: null, // widget being edited
     rolledup: false, // whether grid is rolled-up
+    pasting: false, // controls display of paste div
   }},
 
   computed: {
@@ -143,6 +163,17 @@ export default {
       return Object.fromEntries(this.grid.widgets.map(wid =>
         [ wid, this.$store.widgetByID(wid).kind.endsWith("Panel") ? "PanelEdit" : "WidgetEdit" ]
       ))
+    },
+  },
+
+  watch: {
+    pasting(nv) {
+      if (nv) {
+        this.$refs.pasteDiv.addEventListener('paste', this.pasteWidget)
+        this.$nextTick(()=>this.$refs.pasteDiv.firstChild.focus())
+      } else {
+        this.$refs.pasteDiv.removeEventListener('paste', this.pasteWidget)
+      }
     },
   },
 
@@ -189,6 +220,35 @@ export default {
       this.$store.updateGrid(this.id, { widgets: ww })
       this.edit_ix += dir
     },
+
+    // paste a widget
+    pasteWidget(ev) {
+      // Stop data actually being pasted into div
+      ev.stopPropagation()
+      ev.preventDefault()
+      // Get pasted data via clipboard API
+      let clipboardData = ev.clipboardData || window.clipboardData
+      let pastedData = clipboardData.getData('Text')
+      this.pasting = false
+      // Validate pasted text
+      console.log(pastedData)
+      try {
+        let w = JSON.parse(pastedData)
+        if ('id' in w && 'kind' in w) {
+          if (w.kind in this.palette.widgets) {
+            const widget_ix = this.$store.addWidget(this.id, w.kind)
+            delete w.id
+            delete w.kind
+            this.$store.updateWidget(this.$store.widgetIDByIX(this.grid, widget_ix), w)
+          } else {
+            console.log(`Widget kind '${w.kind}' not found`)
+          }
+        }
+      } catch(e) {
+        console.log(e)
+      }
+    },
+    clearPasteDiv() { this.$refs.pasteDiv.firstChild.innerHTML = "" },
 
     toggleRoll() { this.rolledup = !this.rolledup },
     changeTitle(ev) { this.$store.updateGrid(this.id, { title: ev }) },
