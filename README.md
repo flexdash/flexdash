@@ -39,6 +39,8 @@ internally, just enough to be able to play around a little. The demo includes he
 guides you through the dashboard as well as setting up data connections. Most widgets also include
 help text that becomes visible when editing an instantiation of the widget.
 
+For info on how to "run" FlexDash more permanently, see the section on Loading FlexDash below.
+
 ## Concepts
 
 There are a few core concepts in FlexDash that drive its functioning as well as user interface.
@@ -232,18 +234,40 @@ connects to a server (or multiple) to receive data and send user input. The Flex
 be hosted anywhere subject to a few constraints due to the various "same origin" policies
 enforced by browsers.
 
-There are two hosted versions of FlexDash that can be accessed via `tve/github.io/flexdash` either
-using HTTP or using HTTPS. The details will probably undergo a few more changes in order to make
-everything more convenient...
+Options for loading and configuring FlexDash:
+- Point your browser at https://tve.github.io/flexdash and use the HTTP or HTTPS demo, you can
+  then interactively establish a data connection. This is great to try things out.
+- Point your browser at the demo and use a query string to tell FlexDash how to establish a
+  data connection. If you bookmark the URL with query string this is a workable solution,
+  but it doesn't look pretty in the address bar.
+- Copy the [start.html](https://github.com/tve/flexdash/blob/main/public/start.html) template
+  to your own web server (for example, Node-RED's static pages) and edit the `flexdash_options`.
+  This lets the browser load the hosted FlexDash files, but allows you to customize FlexDash
+  (title and theme) and pre-define the data connection.
+- Download the (_not yet available..._) FlexDash bundle and host it on your own web server.
+  This way you're independent of the hosted files. You can customize FlexDash by editing
+  index.html at the top level.
+- Clone the FlexDash repo, custommize to your heart's content, run `npm run build` and host the
+  resulting dist directory wherever you want to.
 
-Another recommended set-up is to serve the FlexDash files from the same server that will provide
-the data connection. When using Node-RED this can be done by enabling the static web server in
-the `settings.js` and unpacking the archive (_oops, not readily available yet_) in a directory.
+Underneath all this there are 2 ways to load FlexDash:
+- Using the `index.html` it loads as a normal single page web app, this is what happens
+  for the hosted demo version. It is possible to configure FlexDash options in the `index.html`
+  itself if you host all the files yourself.
+- Using the `start.js` script FlexDash "installs" itself onto the enclosing web page. This
+  allows for the top-level html page to be in one location where it can be customized and
+  for the FlexDash files to be elsewhere, for example, hosted. The `start.html` page is
+  a sample for using `start.js`.
 
 The "same origin" policies cause the following constraints:
 - If FlexDash is served by the same server that will also provide the data connection then
-  everything is easy, "same server" means same protocol (http vs https), same hostname or IP
+  everything is easy, "same server" means same protocol (http vs https), same hostname/IP
   address, and same port, if any of these differ it's not the "same origin".
+- The file relevant to "FlexDash is served by" is the top-level HTML file, it doesn't matter
+  where the actual assets come from. This means that
+  _the by far easiest way to deal with CORS restrictions is to serve the top-level HTML_
+  _file from the server that will provide the data connection._ The bulk of the FlexDash files
+  can come from elsewhere, if more convenient.
 - If FlexDash is served via HTTPS it is effectively impossible to establish a data connection via
   HTTP, instead, FlexDash has to be served via HTTP as well, or better yet, the data server should
   be upgraded to HTTPS.
