@@ -105,7 +105,8 @@ Note that this "row-wise" structure gets transposed to the columnar structure ex
 
   data() { return {
     chart: null, // uPlot object instance
-    ro: null, // function to cancel resize observer
+    ro: new ResizeObserver(()=>this._onResize()),
+    ro_uwrap: null, // element being observed
     width: 40, // width in pixels
     chart_data: null, // actual data fed to uPlot (i.e. transposed from data)
     dark_watcher: null, // watcher on $vuetify.theme.dark used to adjust chart colors
@@ -162,14 +163,15 @@ Note that this "row-wise" structure gets transposed to the columnar structure ex
   },
 
   beforeDestroy() {
-    if (this.ro) this.ro()
-    this.ro = null
+    this.ro.disconnect()
+    this.ro = null // being paranoid...
     this._destroy()
     this.dark_watcher()
   },
 
   methods: {
     _destroy() {
+      this.ro.disconnect()
       if (this.chart) {
         //console.log("Destroying uPlot")
         this.chart.destroy()
@@ -178,9 +180,7 @@ Note that this "row-wise" structure gets transposed to the columnar structure ex
     },
 
     _observeSize() {
-      if (this.ro) this.ro() // .unobserve(this.ro_el)
-      this.ro = null
-
+      this.ro.disconnect()
       const uplot = this.$el.lastElementChild
       if (!uplot) {
         console.log("TPR: cannot observe: no uplot")
@@ -191,11 +191,11 @@ Note that this "row-wise" structure gets transposed to the columnar structure ex
         console.log("TPR: cannot observe: no uwrap")
         return { width: 0, height: 0 }
       }
+      this.ro_uwrap = uwrap
 
       //console.log("TPR: observing size")
-      const ro = new ResizeObserver(()=>this._onResize(uwrap)).observe(uwrap)
-      this.ro = () => ro && ro.unobserve(uwrap)
-      this.$nextTick(this._onResize(uwrap))
+      this.ro.observe(uwrap)
+      this.$nextTick(this._onResize())
     },
 
     _calcSize(el) {
@@ -207,11 +207,11 @@ Note that this "row-wise" structure gets transposed to the columnar structure ex
 
     // receive resize event and change the size of the chart if necessary
     // for some reason, this gets called twice most of the time, prob a bug somewhere...
-    _onResize(el) {
+    _onResize() {
       const c = this.chart
       //console.log(`uPlot onResize`)
-      if (!c) return;
-      const newSz = this._calcSize(el)
+      if (!c || !this.ro_uwrap) return;
+      const newSz = this._calcSize(this.ro_uwrap)
       //console.log(`uPlot size chg ${c.width}x${c.height} -> ${newSz.width}x${newSz.height}`)
       if (c.width == newSz.width && c.height == newSz.height) return
       //console.log(`uPlot resized ${c.width}x${c.height} -> ${newSz.width}x${newSz.height}`)
