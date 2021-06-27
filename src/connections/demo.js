@@ -51,7 +51,7 @@ Before connecting to Node-Red the latter needs two nodes to send websocket data:
 "hello" or some number
 - the inject node connected to the websocket-out node
 
-This should look something like this: ![inject into websocket](/flexdash/img/howto-ws-2nodes.png)
+This should look something like this: ![inject into websocket](./img/howto-ws-2nodes.png)
 
 Now deploy those two nodes and open the connection editing panel here in FlexDash using the
 network icon at the top-right. Set the websocket address to the Node-Red server's hostname,
@@ -75,7 +75,7 @@ Sending user input from a toggle widget or a push button widget to Node-Red is s
 - Add a \`switch\` node set to filter the desired topic, switch" in this example.
 - Hook up a debug node to see the messages or, alternatively, add a \`change\` node to set the topic to "light" and feed that into a \`websocket-out\`, this second option might look like this:
 
-![feed switch into light](/flexdash/img/howto-ws-inout.png)
+![feed switch into light](./img/howto-ws-inout.png)
 
 If you use the "switch" and "light" topics the toggle node on this page should control the value
 of the stat node via Node-Red.
@@ -139,7 +139,7 @@ Create a new flow with the demo set-up: [demo flow](/flexdash/misc/sio-demo-flow
 You should check the options for the flexdash config node, the defaults should work...
 The flow should look as follows:
 
-![flexdash demo flow](/flexdash/img/sio-demo-flow.png)
+![flexdash demo flow](./img/sio-demo-flow.png)
 
 ### 2. Connect the dashboard to Node-RED
 
