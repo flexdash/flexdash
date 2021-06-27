@@ -285,6 +285,14 @@ export class Store {
     this.insertData('$config/dash', { title: "FlexDash", tabs: ['t00001'] })
   }
 
+  // updateDash given props to update (an object that gets merged into existing props)
+  updateDash(props) {
+    this.qMutation(`update dash ${Object.keys(props).join(",")}`,
+      Object.entries(props).map(([k,v]) => [`dash/${k}`, v])
+    )
+  }
+
+
   // ===== Operations on tabs
 
   // addTab adds a new tab and initializes it either with an empty grid or empty URL
