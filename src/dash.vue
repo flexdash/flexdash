@@ -39,8 +39,9 @@
           {{tabs[tid].title}}
           <v-icon :large="!tabs[tid].title" class="mb-0">mdi-{{tabs[tid].icon}}</v-icon>
           <!-- Button to edit the tab -->
-          <div style="position:absolute; z-index:5; right:0; top:0.5ex;">
-            <v-btn small icon v-if="$root.editMode && ix==tab_ix"
+          <div v-if="$root.editMode && ix==tab_ix"
+               style="position:absolute; z-index:5; right:0; top:0.5ex;">
+            <v-btn small icon
                    @click.stop="tab_edit=!tab_edit">
               <v-icon small>mdi-pencil</v-icon>
             </v-btn>
@@ -161,7 +162,6 @@ export default {
   inject: [ '$config', '$store', 'palette' ],
 
   data: () => ({
-    appTitle: 'FlexDash',
     sidebar: false, // disabled for now
     tab_ix: null, // which tab we're on
     tab_edit: false, // turns tab editing drawer on/off
