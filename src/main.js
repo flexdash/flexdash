@@ -7,11 +7,10 @@ import vuetify from './plugins/vuetify.js'
 import Dash from './dash.vue'
 import store from './store'
 
-// Load socket.io from the local npm package (i.e. tell webpack to include it) and stick it into
-// a global var so uibuilder finds it.
-//window.io = require('socket.io-client')
-
 Vue.config.productionTip = false
+
+if (!window.flexdash_options) window.flexdash_options = {}
+console.log("FlexDash options:", window.flexdash_options)
 
 // hack to explicitly import a widget when the error message is too obscure
 //const g = import.meta.glob('/src/widgets/thermostat.vue')['/src/widgets/thermostat.vue']()
@@ -35,7 +34,39 @@ function globImport(tgt, metaglob) {
   }
 }
 globImport(palette.widgets, import.meta.glob('/src/widgets/*.vue'))
-globImport(palette.grids, import.meta.glob('./grids/*.vue'))
+globImport(palette.grids, import.meta.glob('/src/grids/*.vue'))
+
+/*
+// custom module loading
+import { loadModule } from 'vue3-sfc-loader/dist/vue2-sfc-loader.js'
+const options = {
+  moduleCache: { vue: Vue, },
+
+  async getFile(url) {
+    const res = await fetch(url)
+    if (!res.ok)
+      throw Object.assign(new Error(res.statusText + ' ' + url), { res })
+    return {
+      getContentData: asBinary => asBinary ? res.arrayBuffer() : res.text(),
+    }
+  },
+
+  addStyle(textContent) {
+    const style = Object.assign(document.createElement('style'), { textContent })
+    const ref = document.head.getElementsByTagName('style')[0] || null
+    document.head.insertBefore(style, ref)
+  },
+}
+
+loadModule('/custom.vue', options)
+  .then(component => {
+    Vue.component(component.name, component)
+    Vue.set(palette.widgets, component.name, component)
+    console.log("Loaded /custom.vue")
+  }).catch(e => {
+    console.log("Error loading /custom.vue:", e)
+  })
+*/
 
 const app = new Vue({
   vuetify,
@@ -49,6 +80,8 @@ const app = new Vue({
     // sending of messages, this global variable is "provided" by the connections component
     // and primarily used by the widget-wrapper
     serverSend: null,
+    // dashboard title from options
+    dash_title: flexdash_options.title || "FlexDash",
   },
 
   provide: {
@@ -69,5 +102,3 @@ window.addEventListener('popstate', () => {
   app.route = window.location.hash
   app.params = sp
 })
-
-app.$mount('#app')
