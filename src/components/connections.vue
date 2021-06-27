@@ -138,24 +138,36 @@ export default {
       const c = this.connections[name]
       c.conn = new c.connClass(this.handleMsg)
     }
-    
-    // check out query string of page load to see whether there's connection info
-    const sp = this.$root.params
-    if (sp && sp.get('sio')) {
-      // got a socketio address string, enable sockio
-      conn.sockio.address = sp.get('sio')
+
+    const setup_sio = addr => {
+      conn.sockio.address = addr
       conn.sockio.enabled = true
       conn.sockio.config = true
       this.config_source = "sockio"
       this.$emit('src', 'sockio ' + conn.sockio.address)
-    } else if (sp && sp.get('ws')) {
-      // got a websocket address string, enable websock
-      conn.websocket.address = sp.get('ws')
+    }
+
+    const setup_ws = addr => {
+      conn.websocket.address = addr
       conn.websocket.enabled = true
       conn.websocket.config = true
       this.config_source = "websocket"
       this.$emit('src', 'websocket ' + conn.websocket.address)
+    }
+    
+    // check out query string of page load to see whether there's connection info
+    // if no query string then also look into the global options
+    const sp = this.$root.params
+    if (sp && sp.get('sio')) {
+      setup_sio(sp.get('sio')) // got a socketio address string, enable sockio
+    } else if (sp && sp.get('ws')) {
+      setup_ws(sp.get('ws')) // got a websocket address string, enable websock
+    } else if (window.flexdash_options.sio) {
+      setup_sio(window.flexdash_options.sio) // got global option for socketio
+    } else if (window.flexdash_options.ws) {
+      setup_sio(window.flexdash_options.ws) // got global option for websocket
     } else {
+      // no real network connection, set-up demo mode
       conn.demo.enabled = true
       conn.demo.config = true
       this.config_source = "demo"

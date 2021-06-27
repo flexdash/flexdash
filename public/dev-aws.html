@@ -1,26 +1,20 @@
 <!DOCTYPE html>
-<!-- This is a sample HTML page to load FlexDash with custom settings -->
+<!-- This load FlexDash from AWS for dev purposes with custom settings -->
 <html lang="en">
   <head>
-    <!-- where to load flexdash from, the filename at the end of the path is irrelevant
-         note that if a data connection to a HTTP/WS page is to be made then FlexDash itself
-         also has to come from HTTP, not HTTPS -->
-    <base href="https://s3.amazonaws.com/s3.voneicken.com/flexdash/0.2.3/index.html" />
+    <base href="https://s3.amazonaws.com/s3.voneicken.com/flexdash/0.2.3/" />
     <meta charset="UTF-8" />
     <link rel="icon" href="./favicon.ico" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <script>
       flexdash_options = {
         // dashboard title, shows up in top-nav and in browser window title
-        title: 'MyDash',
-
+        title: 'DevDash',
         // theme, default is light, alternative is dark
-        theme: 'dark',
-
-        // primary data connection, pick one of sio or ws
-        sio: 'https://localhost:1880/io/flexdash', // socket.io
+        theme: 'light',
+        // primary data connection, pick one of the following
+        sio: 'http://core.voneicken.com:1880/io/flexdash', // socket.io
         //ws: 'wss://core2.voneicken.com:1880/io/flexdash', // websocket
-
         // not yet implemented...
         //widgets: [ '/foo/bar' ],
       }

@@ -10,7 +10,12 @@ import store from './store'
 Vue.config.productionTip = false
 
 if (!window.flexdash_options) window.flexdash_options = {}
-console.log("FlexDash options:", window.flexdash_options)
+const fo = window.flexdash_options
+console.log("FlexDash options:", fo)
+if (!fo.title) fo.title = "FlexDash"
+document.getElementsByTagName('head')[0].insertAdjacentHTML('beforeend',
+  `<title>${fo.title}</title>`
+)
 
 // hack to explicitly import a widget when the error message is too obscure
 //const g = import.meta.glob('/src/widgets/thermostat.vue')['/src/widgets/thermostat.vue']()
@@ -80,8 +85,6 @@ const app = new Vue({
     // sending of messages, this global variable is "provided" by the connections component
     // and primarily used by the widget-wrapper
     serverSend: null,
-    // dashboard title from options
-    dash_title: flexdash_options.title || "FlexDash",
   },
 
   provide: {

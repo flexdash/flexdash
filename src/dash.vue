@@ -26,7 +26,7 @@
       <!-- Title -->
       <v-toolbar-title class="text-h4 font-weight-bold text--secondary flex-shrink-0 mr-3"
                        style="font-variant: small-caps;">
-        {{ gotConfig ? dash.title : "FlexDash" }}
+        {{ title }}
       </v-toolbar-title>
       <div class="version d-flex">alpha v{{version}}</div>
 
@@ -197,6 +197,7 @@ export default {
     grids() { return this.gotConfig ? this.$config.grids : {} }, // make accessible in template
     theme() { return (this.$vuetify.theme.dark) ? 'dark' : 'light' },
     canUndo() { return this.$store.undo.buf.length > 0 },
+    title() { return window.flexdash_options.title },
 
     iframe_a_show() { return this.tab.url && this.tab.slot == 'a' },
     iframe_a_class() { return ["iframe-tab-wrap", {"iframe-a--active": this.iframe_a_show}] },
@@ -217,6 +218,10 @@ export default {
         console.log("iframe_a_src:", this.iframe_a_src)
       }
     }},
+  },
+
+  created() {
+    this.$vuetify.theme.dark = window.flexdash_options.theme == "dark"
   },
 
   mounted() {
