@@ -86,7 +86,7 @@ function tfmarkdown(md, disableHtml) {
   md = md.replace(/^(\|.*\n)+/gm, function(a) {
     var rows = a.split(/\n/g);
     var out = ['<table>']
-    for (var i=0; i<rows.length-1; i++) {
+    for (var i=0; i<rows.length; i++) {
       out.push('<tr>');
       var cols = rows[i].split(/\|/g);
       for (var j=1; j<cols.length; j++) {
