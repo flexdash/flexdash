@@ -89,12 +89,13 @@ export default class WebsockConnection {
       console.log("WS rx:", e)
       return
     }
+    // FIXME: need to support set/unset/download message kinds
     if (typeof m !== 'object' || typeof m.topic !== 'string' || m.payload === undefined) {
       console.log("WS rx: message is missing topic and/or payload", m)
       return
     }
     console.log("WS rx:", m)
-    this.storeInsert(m.topic, m.payload)
+    this.storeInsert("set", m.topic, m.payload)
     this.setStatus()
   }
 

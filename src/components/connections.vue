@@ -209,39 +209,84 @@ export default {
     // Handle a msg event emitted by a server connection, process the message and
     // inject it into the store.
     // FIXME: this doesn't get triggered if the config isn't sent as one single message...
-    handleMsg(topic, payload) {
-      // Do some special handling of dashboard config messages
-      if (topic === "$config") {
-        const p = payload
-        console.log(`*** config received with keys:`, Object.keys(p))
+    // The root_url is the URL prefix of the socket.io or websocket "mount point", e.g. for a
+    // https://example.com/data/sio socket.io URL it would be everything before the sio part.
+    handleMsg(kind, ...params) {
+      if (kind === "set") {
+        // handleMsg("set", topic, payload)
+        if (params[0] === "$config") {
+          // config setting gets some special treatment
+          const payload = params[1] // payload
+          console.log(`*** config received with keys:`, Object.keys(p))
 
-        if (this.$config.dash.title) {
-          console.log("Already got config, dropping message")
-          return
+          if (this.$config.dash.title) {
+            console.log("Already got config, dropping message")
+            return
+          }
+
+          // sanity check the config for bootstrapping purposes
+          if (!payload || !payload.dash) {
+            console.log("*** No or broken config, clearing! (got:", payload)
+            this.$store.initDash()
+            // add some welcome text
+            const tab = this.$config.dash.tabs[0]
+            const grid = this.$config.tabs[tab].grids[0]
+            const ix = this.$store.addWidget(grid, 'Markdown')
+            const widget = this.$config.grids[grid].widgets[ix]
+            this.$store.updateWidget(widget, { cols: 3, rows: 3 })
+            this.$store.updateWidgetProp(widget, 'static', 'title', '')
+            this.$store.updateWidgetProp(widget, 'static', 'text', `# Welcome to FlexDash
+  This is an empty dashboard. You can add some demo/informational tabs by opening the
+  connections panel using the network icon in the upper right and using the
+  inject buttons in the demo section.`)
+            this.sendConfig()
+            return
+          }
         }
 
-        // sanity check the config for bootstrapping purposes
-        if (!payload || !payload.dash) {
-          console.log("*** No or broken config, clearing! (got:", payload)
-          this.$store.initDash()
-          // add some welcome text
-          const tab = this.$config.dash.tabs[0]
-          const grid = this.$config.tabs[tab].grids[0]
-          const ix = this.$store.addWidget(grid, 'Markdown')
-          const widget = this.$config.grids[grid].widgets[ix]
-          this.$store.updateWidget(widget, { cols: 3, rows: 3 })
-          this.$store.updateWidgetProp(widget, 'static', 'title', '')
-          this.$store.updateWidgetProp(widget, 'static', 'text', `# Welcome to FlexDash
-This is an empty dashboard. You can add some demo/informational tabs by opening the
-connections panel using the network icon in the upper right and using the
-inject buttons in the demo section.`)
-          this.sendConfig()
-          return
-        }
+        // Insert into store.
+        this.$store.insertData(params[0], params[1])
+        return
       }
 
-      // Insert into store.
-      this.$store.insertData(topic, payload)
+      // handleMsg("unset", topic)
+      if (kind === "unset") {
+        this.$store.insertData(params[0])
+        return
+      }
+
+      // handleMsg("download", url, filename, root_url)
+      if (kind === "download") {
+        console.log("*** got download request:", params)
+        this.download(params[0], params[1], params[2])
+        return
+      }
+
+      console.log("Unknown message kind:", kind, params)
+    },
+
+    download(url, filename, base) {
+      console.log("In download:", url, filename, base)
+      // tweak the URL so it points to the correct server, this is required because a simple
+      // URL without hostname points to where FlexDash was loaaded from, which may be a
+      // completely different server.
+      if (url.startsWith("http://") || url.startsWith("https://")) {
+        // leave as-is
+      } else if (url.startsWith("/")) {
+        let bb = base.split('/')
+        url = `${bb[0]}//${bb[2]}${url}`
+      } else {
+        url = base + url
+      }
+      // start creating a link element that we can virtually click on
+      const a = document.createElement('a')
+      a.href = url
+      a.download = filename || url.split('/').pop()
+      console.log("Downloading", a.href, "as", a.download)
+      // insert into DOM, click, and remove again
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
     },
 
     // serverSend is used to send data from widgets to all servers we're connected to

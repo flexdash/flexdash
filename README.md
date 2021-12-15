@@ -1,5 +1,5 @@
 FlexDash: A Flexible Web IoT Dashboard
-==================================
+======================================
 
 **WARNING: this is demoware at this point**
 
@@ -15,6 +15,7 @@ npm package.
 ![image](https://user-images.githubusercontent.com/39480/122461119-ca724680-cf67-11eb-8fd2-9f0114ba1287.png)
 
 In more detail:
+
 - The dashboard is built with Vue and Vuetify and uses web components to display
   typical IoT or home automation widgets: gauges, sparklines, plots, switches,
   data tables, etc.
@@ -32,7 +33,8 @@ In more detail:
   very independent of Node-RED and could be hooked up to something as
   simple as a microcontroller, such as an esp32.
 
-## Getting started
+Getting started
+---------------
 
 See the live demo at https://tve.github.io/flexdash. The data you see is randomly generated
 internally, just enough to be able to play around a little. The demo includes help text that
@@ -41,13 +43,15 @@ help text that becomes visible when editing an instantiation of the widget.
 
 For info on how to "run" FlexDash more permanently, see the section on Loading FlexDash below.
 
-## Concepts
+Concepts
+--------
 
 There are a few core concepts in FlexDash that drive its functioning as well as user interface.
 This section explains each of them in some detail. It's probably best to read this after trying out
 the demo...
 
 ### Topic tree
+
 <img src="https://user-images.githubusercontent.com/39480/122462037-f17d4800-cf68-11eb-8499-fae846292efb.png" width="200" align="right">
 
 The topic tree is the concept used by FlexDash to organize data and, in particular, to link
@@ -58,9 +62,11 @@ The short description is that the server sends data using JSON messages that con
 property and a payload property. Each widget in the dashboard is then linked (you could
 say "subscribes to") a topic and displays the data in the payload. Topics are
 hierarchical using a slash as delimiter. A simple message might be something like:
-```
+
+```json
 { "topic": "sensors/house/bedroom/temperature", "payload": 65 }
 ```
+
 And you might have a gauge widget whose `value` input is linked to that topic and then
 displays the last received temperature.
 
@@ -73,32 +79,38 @@ The topic tree does not have to contain just simple values, it can also contain 
 Unlike most pub/sub systems, a topic in FlexDash is really a path in a large JSON data structure and
 incoming messages insert or update data in that data structure. What this means is best described by
 example. Suppose the server sends a message like:
-```
+
+```json
 { "topic": "sensors/house/bedroom",
   "payload": { "temperature": 65, "humidity": 43, "temp_color": "green", "temp_unit": "°F" }
 }
 ```
+
 Here the payload is an object and it replaces the subtree rooted at `sensors/house/bedroom`.
 The gauge in the previous example can still be bound to `sensors/house/bedroom/temperature`
 but in addition, the gauge's _unit_ input can be bound to `sensors/house/bedroom/temp_unit`
 and its _color_ input to `sensors/house/bedroom/temp_color`.
 
 To display a time series plot the server might send a message like:
-```
+
+```json
 { "topic": "timeseries/house/temperatures/data",
   "payload": [ [ 1623846600, 65, 72 ], [ 1623846900, 65.5, 73 ], ..., [ 1623889200, 68, 66 ] ]
 }
 ```
+
 This data consists of an array of "rows" where each row has a unix epoch timestamp (seconds since
 1/1/1970) and two values.
 This type of data can be displayed by linking the input of a TimePlot widget to the above topic.
 The server can, in addition, send a second message with the names of the series being displayed,
 for example:
-```
+
+```json
 { "topic": "timeseries/house/temperatures/series",
   "payload": [ "bedroom", "living room" ]
 }
 ```
+
 and this can be linked to the _labels_ input of the TimePlot widget.
 
 (For completeness sake it should be noted that a Gauge input linked to
@@ -235,6 +247,7 @@ be hosted anywhere subject to a few constraints due to the various "same origin"
 enforced by browsers.
 
 Options for loading and configuring FlexDash:
+
 - Point your browser at https://tve.github.io/flexdash and use the HTTP or HTTPS demo, you can
   then interactively establish a data connection. This is great to try things out.
 - Point your browser at the demo and use a query string to tell FlexDash how to establish a
@@ -251,6 +264,7 @@ Options for loading and configuring FlexDash:
   resulting dist directory wherever you want to.
 
 Underneath all this there are 2 ways to load FlexDash:
+
 - Using the `index.html` it loads as a normal single page web app, this is what happens
   for the hosted demo version. It is possible to configure FlexDash options in the `index.html`
   itself if you host all the files yourself.
@@ -260,6 +274,7 @@ Underneath all this there are 2 ways to load FlexDash:
   a sample for using `start.js`.
 
 The "same origin" policies cause the following constraints:
+
 - If FlexDash is served by the same server that will also provide the data connection then
   everything is easy, "same server" means same protocol (http vs https), same hostname/IP
   address, and same port, if any of these differ it's not the "same origin".
@@ -328,10 +343,12 @@ and enable a context store with \`localfilesystem\`.
 The following example configuration provides a default memory context store
 and an optional persistent one:
 
+```json
     contextStorage: {
         default: { module: "memory" },
         persistent: { module: "localfilesystem" }
     },
+```
 
 After setting up the persistent context store its name needs to be entered into
 the FlexDash configuration node ("persistent" in the above example).
@@ -347,7 +364,47 @@ At this point any changes made to the dashboard are persistent.
 The actual config can be found in the Node-RED admin UI using the context store panel
 and the global context variables.
 
-## Getting and creating panels and widgets
+### Downloading files
+
+Downloading files from the server using dashboard widgets is supported but requires some
+gymnastics. The short form is that sending the dashboard a message with a `$download` topic
+and a target URL causes it to create a hidden button and to (cirtually) click that button,
+which starts a standard browser download process. The downloaded file is stored in the
+browser's download folder or the user is prompted, depending on browser settings.
+
+The `$download` message is not setting a value in the topic tree, it's specially handled
+message. The payload is either a URL string or a `{url: <url>, filename: <name>}` object, where
+the filename is used by the browser according to its download settings.
+
+Something that makes downloads difficult is the URL. A simple relative URL is interpreted
+by the browser relative to where FlexDash got loaded, not relative to the data connection.
+Yet, downloads generally come from the data server.
+On top of that, a dashboard can be connected to multiple data servers, so the "right one"
+has to be addressed. And if that wasn't enough, multiple dashboards could be connected to the
+same data server using different URLs. What all this means is that in order to initiate a
+download, a server should send a `$download` message either with a URL relative to its
+document root or relative to the data connection's mount point. FlexDash automatically
+prepends the appropriate protocol, hostname, port and possibly prefix upon message receipt.
+
+### End-to-end example
+
+This example assumes that the dashboard contains a `PushButton` widget that, when pressed,
+causes a file `/assets/sample53.jpg` to be downloaded and that it should be called
+`your_sample.jpg` on the user's machine.
+
+The overall flow is that the `PushButton` sends an output message to the server, for example
+by setting the output binding to `download` and the `output_value` to `sample`. On the server
+a handler must receive that message and "reply" by sending the dashboard a unicast message
+with `$download` and payload `{url: '/assets/sample53.jpg', filename: 'your_sample.jpg'}`.
+
+If the web server is mounted at a path other than `/` (for example using a reverse proxy) a
+slightly more reliable method is to use a relative path. Assume the server connection uses
+`socket.io` mounted at `/sio` then the `url` could be specified as `assets/sample53.jpg`.
+FlexDash interprets leading `../` so if the mount point were `/data/connections/sio` then
+a url of `../../assets/sample53.jpg` would work.
+
+Getting and creating panels and widgets
+---------------------------------------
 
 FlexDash comes with a small number of widgets built-in. In order to expand its functionality
 the following options are planned, from easiest to most complex...
@@ -394,7 +451,8 @@ widgets accumulate the lag will build up.
 For "production" use you will need to pre-process and bundle the widget and use it
 just like you would use a downloaded widget (first section above).
 
-## Quick architecture overview (OUTDATED)
+Quick architecture overview (OUTDATED)
+--------------------------------------
 
 - FlexDash uses the Vue 2 web framework and the Vuetify component
   library for the UI, not much else.
@@ -438,7 +496,8 @@ just like you would use a downloaded widget (first section above).
   mode can be found in `src/components/demo.vue`.
 - There a start at unit tests in `tests/unit` but they haven't kept up.
 
-## Scripts
+Scripts
+-------
 
 ```bash
   npm run dev # start dev server

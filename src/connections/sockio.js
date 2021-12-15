@@ -69,15 +69,40 @@ export default class SockioConnection {
       this.first_connect = false
     })
 
-    // handle message received
-    this.sock.on("msg", (topic, payload) => {
+    // handle set message
+    this.sock.on("set", (topic, payload) => {
       //console.log("SIO rx:", topic, payload)
-      if (typeof topic !== 'string' || payload === undefined) {
-        console.log("SIO rx: message is missing topic and/or payload", topic, payload)
+      if (typeof topic !== 'string') {
+        console.log("SIO rx: message is missing topic", topic)
         return
       }
       //console.log("SIO rx:", m)
-      this.recvMsg(topic, payload)
+      this.recvMsg("set", topic, payload)
+      this.setStatus()
+    })
+
+    // handle unset (delete) message
+    this.sock.on("unset", topic => {
+      //console.log("SIO rx:", topic, payload)
+      if (typeof topic !== 'string') {
+        console.log("SIO rx: message is missing topic", topic)
+        return
+      }
+      //console.log("SIO rx:", m)
+      this.recvMsg("unset", topic)
+      this.setStatus()
+    })
+
+    // handle download message
+    this.sock.on("download", (url, filename) => {
+      if (typeof url !== 'string') {
+        console.log("SIO rx download: message is missing url", url)
+        return
+      }
+      let base = method + '://' + config.hostname + config.path
+      base = base.replace(/[^/]*$/, '')
+      console.log("SIO rx download:", url, filename, base)
+      this.recvMsg("download", url, filename, base)
       this.setStatus()
     })
   }
