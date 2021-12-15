@@ -73,6 +73,28 @@
                placeholder="paste widget here" class="pasteinput">
       </div>
 
+      <!-- Selectors for minimum and maximum number of columns -->
+      <v-tooltip bottom>
+        <template v-slot:activator="{ on }">
+          <div class="d-flex flex-row mr-4" v-on="on">
+            <span class="mr-1">min-cols:</span>
+            <edit-plus-minus class="mr-0" :range="colRange" :value="minCols" @update:value="setMinCols">
+            </edit-plus-minus>
+          </div>
+        </template>
+        <span>Minimum number of columns to shrink grid to</span>
+      </v-tooltip>
+      <v-tooltip bottom>
+        <template v-slot:activator="{ on }">
+          <div class="d-flex flex-row mr-4" v-on="on">
+            <span class="mr-1">max-cols:</span>
+            <edit-plus-minus class="mr-0" :range="colRange" :value="maxCols" @update:value="setMaxCols">
+            </edit-plus-minus>
+          </div>
+        </template>
+        <span>Maximum number of columns to grow grid to</span>
+      </v-tooltip>
+
       <v-spacer></v-spacer>
       <!-- Button to delete the grid -->
       <v-tooltip bottom>
@@ -87,13 +109,13 @@
     </v-toolbar>
 
     <!-- Grid of widgets -->
-    <v-container fluid v-if="!rolledup" class="g-grid-small pt-0 px-2">
+    <div v-if="!rolledup" class="container foo g-grid-small pt-0 px-2" v-bind:style="gridStyle">
       <component v-for="(w,ix) in grid.widgets" :key="w" :id="w" :is="editComponent[w]"
                  :edit_active="ix == edit_ix" @edit="toggleEdit(ix, $event)"
                  @move="moveWidget(ix, $event)" @delete="deleteWidget(ix)"
-                 @clone="cloneWidget(ix)">
+                 @clone="cloneWidget(ix)" @teleport="teleportWidget">
       </component>
-    </v-container>
+    </div>
   </div>
 </template>
 
@@ -131,11 +153,15 @@
 import PanelEdit from '/src/components/panel-edit.vue'
 import WidgetEdit from '/src/components/widget-edit.vue'
 import WidgetMenu from '/src/components/widget-menu.vue'
+import EditPlusMinus from '/src/components/edit-plus-minus.vue'
+
+const COLW = 120 // min width of widgets in pixels
+const GAPW = 8   // gap between widgets in pixels
 
 export default {
   name: 'FixedGrid',
 
-  components: { PanelEdit, WidgetEdit, WidgetMenu },
+  components: { PanelEdit, WidgetEdit, WidgetMenu, EditPlusMinus },
   inject: [ '$store', '$config', 'palette' ],
 
   props: {
@@ -146,6 +172,7 @@ export default {
     edit_ix: null, // widget being edited
     rolledup: false, // whether grid is rolled-up
     pasting: false, // controls display of paste div
+    //colRange: ,
   }},
 
   computed: {
@@ -156,6 +183,20 @@ export default {
     rollerClasses() { // classes for mini roll-up div
       const rm = this.grid.widgets.length>0 &&  !this.rolledup && 'roller__minimal'
       return [ 'd-flex', 'roller', rm ]
+    },
+    maxWidget() { // width of widest widget (in columns)
+      return Math.max(...this.grid.widgets.map(id => this.$store.widgetByID(id).cols || 1))
+    },
+    colRange() {
+      return [...Array(21-this.maxWidget)].map((_, ix) => (this.maxWidget+ix))
+    },
+    minCols() { return this.grid.min_cols || 1 },
+    maxCols() { return this.grid.max_cols || 20 },
+    gridStyle() {
+      // min width to fit N widgets is N*COLW, plus gaps: (N-1)*GAPW, plus l/r padding: 2*GAPW
+      let min_width = this.minCols * COLW + (this.minCols+1) * GAPW
+      let max_width = this.maxCols * COLW + (this.maxCols+1) * GAPW + 118
+      return { minWidth: `${min_width}px`, maxWidth: `${max_width}px` }
     },
 
     // editComponent returns the component used to edit a widget: widget-edit or panel-edit
@@ -221,6 +262,13 @@ export default {
       this.edit_ix += dir
     },
 
+    // teleport the widget to a different grid or panel
+    teleportWidget(w_id, src_id, dest_id) {
+      console.log(`Teleport widget ${w_id} from ${src_id} to ${dest_id}`)
+      this.$store.moveWidget(w_id, src_id, dest_id)
+      this.edit_ix = null
+    },
+
     // paste a widget
     pasteWidget(ev) {
       // Stop data actually being pasted into div
@@ -252,6 +300,16 @@ export default {
 
     toggleRoll() { this.rolledup = !this.rolledup },
     changeTitle(ev) { this.$store.updateGrid(this.id, { title: ev }) },
+    setMinCols(ev) {
+      this.$store.updateGrid(this.id, { min_cols: ev })
+      console.log(`setMinCols ${ev} ${this.maxCols}`)
+      if (ev > this.maxCols) this.setMaxCols(ev)
+    },
+    setMaxCols(ev) {
+      this.$store.updateGrid(this.id, { max_cols: ev })
+      console.log(`setMaxCols ${ev} ${this.minCols}`)
+      if (ev < this.minCols) this.setMinCols(ev)
+    },
 
   },
 }

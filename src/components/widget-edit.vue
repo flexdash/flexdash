@@ -66,15 +66,30 @@
               </v-col>
               <v-col class="d-flex" cols="6" sm="2">
                 <!-- copy widget -->
-                <v-tooltip bottom>
+                <!--v-tooltip bottom>
                   <template v-slot:activator="{ on }">
                     <v-btn small icon @click="copyWidget" v-on="on">
                       <v-icon>mdi-content-copy</v-icon></v-btn>
                   </template>
                   <span>Copy widget to clipboard</span>
-                </v-tooltip>
+                </v-tooltip-->
+                <!-- move widget -->
+                <!--v-tooltip bottom>
+                  <template v-slot:activator="{ on }">
+                    <v-btn small icon @click="moveWidget" v-on="on">
+                      <v-icon>mdi-folder-move</v-icon></v-btn>
+                  </template>
+                  <span>Move widget to a different tab or a panel</span>
+                </v-tooltip-->
+                <widget-move :id="id" @move="teleport"></widget-move>
                 <!-- clone widget -->
-                <v-btn small @click="$emit('clone')">Clone</v-btn>
+                <v-tooltip bottom>
+                  <template v-slot:activator="{ on }">
+                    <v-btn small icon @click="$emit('clone')" v-on="on">
+                      <v-icon>mdi-folder-multiple</v-icon></v-btn>
+                  </template>
+                  <span>Duplicate/clone widget</span>
+                </v-tooltip>
                 <!-- move widget up/down -->
                 <v-tooltip bottom>
                   <template v-slot:activator="{ on }">
@@ -198,7 +213,8 @@
         </v-card-text>
 
         <!-- dialog box to edit a string input value full-page -->
-        <v-dialog v-model="dialog" content-class="height80 widget-edit-dialog" max-width="100ex">
+        <v-dialog v-model="dialog" content-class="height80 widget-edit-dialog"
+                  width="80%" max-width="100ex">
           <v-card v-if="dialog" class="d-flex flex-column height100">
             <v-card-title class="d-flex align-baseline">
               <span>Edit <span style="font-weight: 700">{{dialog_prop}}</span></span>
@@ -230,6 +246,7 @@
 <script scoped>
 
 import WidgetWrap from '/src/components/widget-wrap.vue'
+import WidgetMove from '/src/components/widget-move.vue'
 import md from '/src/components/md.vue'
 import ColorPicker from '/src/components/color-picker.vue'
 import TopicTree from '/src/components/topic-tree.vue'
@@ -238,7 +255,7 @@ import copyToClipboard from '/src/utils/clipboard.js'
 export default {
   name: 'WidgetEdit',
 
-  components: { WidgetWrap, md, ColorPicker, TopicTree },
+  components: { WidgetWrap, WidgetMove, md, ColorPicker, TopicTree },
   inject: [ '$store', 'palette' ],
 
   props: {
@@ -316,6 +333,7 @@ export default {
         if (!('output' in w)) w.output = p[w.kind].output.default || null
         if (p[w.kind].output.tip) this.output_tip += ", " + p[w.kind].output.tip
       }
+      update = true
     }
     if (w.output_hint) { w.output_hint = null; update = true } // patch a bug
     // update instance variables
@@ -491,10 +509,14 @@ export default {
       this.reposition = false; this.$nextTick(() => {this.reposition = true})
     },
 
-    copyWidget(dir) {
-      copyToClipboard(JSON.stringify(this.$store.widgetByID(this.id)))
-      // FIXME: need some visual feedback
-    },
+    teleport(src, dst) {
+      this.$emit('teleport', this.id, src, dst)
+    }
+
+    // copyWidget(dir) {
+    //   copyToClipboard(JSON.stringify(this.$store.widgetByID(this.id)))
+    //   // FIXME: need some visual feedback
+    // },
 
   },
 

@@ -14,7 +14,7 @@
       <!-- Panel proper inside a widget-wrap -->
       <template v-slot:activator="on">
         <widget-wrap :config="widget"
-                     @edit="toggleEdit" :color="edit_active?'highlight':''" :not-used="on">
+                     @edit="toggleEdit" :color="color" :not-used="on">
         </widget-wrap>
       </template>
 
@@ -46,11 +46,20 @@
           <v-container fluid class="pa-0">
             <!-- Display row with delete button, move buttons, and resize controls -->
             <v-row align="center">
-              <v-col class="d-flex" cols="6" sm="4">
+              <v-col class="d-flex" cols="4" sm="4">
                 <!-- delete panel -->
                 <v-btn small @click="$emit('delete')">Delete panel</v-btn>
               </v-col>
-              <v-col class="d-flex" cols="6" sm="2">
+              <v-col class="d-flex" cols="8" sm="2" md="4">
+                <!-- switch between solid vs grid -->
+                <v-tooltip bottom>
+                  <template v-slot:activator="{ on }">
+                    <v-switch dense flat hide-details label="solid" class="mt-0 mr-3" v-on="on"
+                        :input-value="widget.static.solid" @change="changeSolid">
+                    </v-switch>
+                  </template>
+                  <span>Solid panel background vs transparent panel</span>
+                </v-tooltip>
                 <!-- clone panel -->
                 <v-btn small @click="$emit('clone')">Clone</v-btn>
                 <!-- move panel up/down -->
@@ -152,6 +161,9 @@ export default {
       return `${row}; ${col};`
     },
 
+    // panel background color
+    color() { return this.edit_active ? 'highlight' : this.solid ? '' : '#0000' },
+
     widget() { return this.$store.widgetByID(this.id) },
   },
 
@@ -190,6 +202,11 @@ export default {
       this.$emit('move', dir)
       this.reposition = false; this.$nextTick(() => {this.reposition = true})
     },
+
+    changeSolid(value) {
+      this.$store.updateWidgetProp(this.id, 'static', 'solid', value)
+    },
+
   },
 }
 

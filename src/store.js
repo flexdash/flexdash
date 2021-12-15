@@ -129,11 +129,11 @@ export class Store {
     } else if (typeof(dir) === 'object') {
       old = dir[t]
       if (payload !== undefined) {
-        //console.log(`Updated ${topic} with:`, payload)
+        console.log(`Updated ${topic} with:`, payload)
         Vue.set(dir, t, payload) // $set 'cause we may add new props to dir
       } else {
-        //console.log(`Deleted ${topic}`)
-        delete dir[t]
+        console.log(`Deleted ${topic}`)
+        Vue.delete(dir, t)
       }
     } else {
       throw new StoreError(`${topic} is neither Array nor Object in server state`)
@@ -453,8 +453,41 @@ export class Store {
     )
   }
 
+  // move a widget from one container (grid or panel) to another
+  moveWidget(widget_id, src_id, dst_id) {
+    const w = this.widgetByID(widget_id)
+    const src_is_grid = src_id.startsWith('g')
+    const dst_is_grid = dst_id.startsWith('g')
+    // construct operation to remove widget from where it's now
+    if (src_is_grid) {
+      const src = this.gridByID(src_id)
+      var del_op = [ `grids/${src_id}/widgets`, src.widgets.filter((w) => w != widget_id) ]
+    } else {
+      const src = this.widgetByID(src_id) // get panel
+      var del_op = [ `widgets/${src_id}/static/widgets`, src.static.widgets.filter((w) => w != widget_id) ]
+    }
+    // construct operation to add widget to destination grid/panel
+    if (dst_is_grid) {
+      const dst = this.gridByID(dst_id)
+      const ix = dst.widgets.length
+      var add_op = [ `grids/${dst_id}/widgets/${ix}`, widget_id ]
+    } else {
+      const dst = this.widgetByID(dst_id) // get panel
+      const ix = dst.static.widgets.length
+      var add_op = [ `widgets/${dst_id}/static/widgets/${ix}`, widget_id ]
+    }
+    // resize if needed 'cause panel grid is half of regular grid
+    var resize_op = []
+    if (src_is_grid && !dst_is_grid) {
+      resize_op = [ `widgets/${widget_id}/cols`, w.cols*2]
+    } else if (!src_is_grid && dst_is_grid) {
+      resize_op = [ `widgets/${widget_id}/cols`, Math.ceil(w.cols/2)]
+    }
 
-
+    var ops = [ del_op, resize_op, add_op ].filter((o) => o != null)
+    console.log(`Widget move ops = ${JSON.stringify(ops)}`)
+    this.qMutation("move widget to another grid/panel", ops)
+  }
 
 }
 

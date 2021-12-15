@@ -3,13 +3,13 @@
 -->
 
 <template>
-  <div class="wpanel" :style="panel_style">
+  <div :class="panel_classes" :style="panel_style">
     <widget-menu v-if="$root.editMode" button_class="add-widget" @select="addWidget">
     </widget-menu>
     <component v-for="(w,ix) in widgets" :key="w" :id="w" :is="editComponent[w]"
                :edit_active="ix == edit_ix" :no_border="true"
                @edit="toggleEdit(ix, $event)" @move="moveWidget(ix, $event)"
-               @delete="deleteWidget(ix)" @clone="cloneWidget(ix)">
+               @teleport="teleportWidget" @delete="deleteWidget(ix)" @clone="cloneWidget(ix)">
     </component>
   </div>
 </template>
@@ -20,8 +20,9 @@
   display: grid;
   /*grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));*/
   grid-auto-rows: auto;
-  gap: 0px;
 }
+.wpanel.spanel { gap: 0px; }
+.wpanel.tpanel { gap: 4px; }
 </style>
 <style>
 .wpanel > .add-widget {
@@ -39,7 +40,11 @@ export default {
   help: `Rectangular container to create a custom arrangement of widgets.
 The panel widget contains a half-sized grid into which widgets can be placed.
 Unlike the outer grid, the panel does not resize itself with browser window
-changes and thus the positioning of the widgets remains fixed.`,
+changes and thus the positioning of the widgets remains fixed.
+
+A solid panel has the same background as a widget, and widgets within
+the panel are border-less. Transparent panels have no visual features and
+act only as a fixed arrangement of widgets.`,
 
 
   components: { PanelEdit, WidgetEdit, WidgetMenu },
@@ -48,6 +53,7 @@ changes and thus the positioning of the widgets remains fixed.`,
 
   props: {
     id: null, // panel's own widget id
+    solid: { type: Boolean, default: true }, // whether background is solid, as opposed to a grid
     widgets: { type: Array, default: ()=>([]) }, // list of widgets in this panel
   },
 
@@ -69,6 +75,7 @@ changes and thus the positioning of the widgets remains fixed.`,
         //"grid-template-rows": `repeat(${2*widget.rows}, 1fr)`,
       }
     },
+    panel_classes() { return this.solid ? ["wpanel", "spanel"] : ["wpanel", "tpanel"] },
   },
 
   methods: {
@@ -114,6 +121,14 @@ changes and thus the positioning of the widgets remains fixed.`,
       this.$store.updateWidgetProp(this.id, 'static', 'widgets', ww)
       this.edit_ix += dir
     },
+
+    // teleport the widget to a different grid or panel
+    teleportWidget(w_id, src_id, dest_id) {
+      console.log(`Teleport widget ${w_id} from ${src_id} to ${dest_id}`)
+      this.$store.moveWidget(w_id, src_id, dest_id)
+      this.edit_ix = null
+    },
+
   },
 }
 </script>
