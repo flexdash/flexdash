@@ -48,17 +48,39 @@ the high-threshold. For string values low and high colors are selected using reg
     low_regexp: { type: String, default: null, tip: "match produces low_color for non-number value" },
     high_regexp: { type: String, default: null, tip: "match produces high_color for non-number value" },
     chip: { type: Boolean, default: false, tip: "display value in a chip/pill" },
+    iso_prefix: { type: Boolean, default: true, tip: "display unit with ISO prefix (K, M, G, m, ...)" },
   },
 
   computed: {
     // don't display a unit if there's no value
-    unitTxt() { return this.valTxt === "--" ? "" : this.unit; },
+    unitTxt() { return this.valueUnitISO[1] },
     // round values to one decimal (should make that adjustable) and show "--" if the value is
     // null or undefined
-    valTxt() {
-      if (typeof this.value == 'number') return Math.round(this.value*10.0)/10.0
-      else if (this.value === null) return "--";
-      else return this.value;
+    valTxt() { return this.valueUnitISO[0] },
+    valueUnitISO() {
+      let v = this.value
+      if (typeof v == 'number') {
+        if (v >= 1 || v == 0) {
+          let prefix = ["", "K", "M", "G", "T", "P", "E", "Z", "Y"]
+          let i = 0
+          while (v >= 1000 && i < prefix.length) {
+            v /= 1000
+            i++
+          }
+          if (prefix[i] == "" && Number.isInteger(v))  return [v.toFixed(0), this.unit]
+          return [ v.toFixed(1), prefix[i] + this.unit]
+        } else if (v > 0) {
+          let prefix = ["m", "u", "n", "p", "f", "a", "z", "y"]
+          let i = 0
+          while (v < 1 && i < prefix.length) {
+            v *= 1000
+            i++
+          }
+          return [ v.toFixed(1), prefix[i] + this.unit]
+        }
+        return [ v.toFixed(1), this.unit ]
+      } else if (v === null) return [ "--", "" ]
+      else return [ v, "" ]
     },
     // compute the color for number values
     numColor() {
@@ -72,8 +94,8 @@ the high-threshold. For string values low and high colors are selected using reg
     highRegexp() { return this.high_regexp && new RegExp(this.high_regexp) },
     textColor() {
       if (typeof this.value !== 'string') return this.color
-      if (this.lowRegexp && this.lowRegexp.text(this.value)) return this.low_color
-      if (this.highRegexp && this.highRegexp.test(this.value)) return this.low_color
+      if (this.lowRegexp && this.lowRegexp.test(this.value)) return this.low_color
+      if (this.highRegexp && this.highRegexp.test(this.value)) return this.high_color
       return this.color
     },
     finalColor() { return (typeof this.value === 'number') ? this.numColor : this.textColor },
