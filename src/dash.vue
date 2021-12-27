@@ -7,7 +7,7 @@
 
     <!-- Navigation drawer opening from the left on small devices to show tabs -->
     <v-navigation-drawer v-model="sidebar" app mini-variant clipped v-if="gotConfig">
-      <div v-if="false">
+      <div v-if="true">
       <v-tabs vertical v-model=tab_ix>
         <v-tab v-for="t in dash_tabs" :key="t" class="px-0" style="min-width: auto">
           <v-icon large>mdi-{{tabs[t].icon}}</v-icon>
@@ -114,11 +114,12 @@
           <div v-for="(g, ix) in tabs[id].grids" :key="g">
             Grid {{g}} kind {{grids[g].kind}} palette {{palette.grids}</div -->
           <!-- "normal" tab with grids with widgets -->
-          <component v-if="tabs[id].grids"
-                     v-for="(g, ix) in tabs[id].grids" :key="g" :id="g"
-                     v-bind:is="grids[g].kind in palette.grids ? grids[g].kind : 'div'"
-                     @delete="deleteGrid(id, ix)">
-          </component>
+          <div v-if="tabs[id].grids">
+            <component v-for="(g, ix) in tabs[id].grids" :key="g" :id="g"
+                      v-bind:is="grids[g].kind in palette.grids ? grids[g].kind : 'div'"
+                      @delete="deleteGrid(id, ix)">
+            </component>
+          </div>
         </v-tab-item>
       </v-tabs-items>
       <!-- iframe tabs, we have two "slots" where content can persist -->
