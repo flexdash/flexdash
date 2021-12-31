@@ -43,14 +43,14 @@ value input: the toggle will be "on" if the value is equal to the "on_value" inp
       color: this.color,
       trueValue: this.on_value,
       falseValue: this.off_value,
-      label: this.show_value ? this.label : undefined,
+      label: this.show_value ? this.val : undefined,
     }},
 
     // use the v-switch label to display the current value
-    label() {
-      const v = this.val == this.on_value ? this.on_value : this.off_value
-      return `${v}`
-    },
+    // label() {
+    //   const v = this.val == this.on_value ? this.on_value : this.off_value
+    //   return `${v}`
+    // },
   },
 
   watch: {
