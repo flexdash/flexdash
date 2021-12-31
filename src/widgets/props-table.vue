@@ -112,7 +112,7 @@ Each change is sent to the configured topic with payload \`[ key, new_value]\`.`
 
   methods: {
     handleEdit() { this.editing = true },
-    handleCancel() { this.editing = false, this.new_values = {} },
+    handleCancel() { this.editing = false; this.new_values = {} },
     handleSave() {
       this.editing = false;
       this.$emit('send', this.new_values)
