@@ -2,11 +2,11 @@
      Copyright ©2021 Thorsten von Eicken, MIT license, see LICENSE file
 -->
 <template>
-  <div style="width:100%; height:100%;overflow-y:scroll;">
+  <div class="d-flex flex-column width100 height100">
     <v-card-text v-if="title" class="font-weight-bold px-0 pt-1 mb-n1 d-flex">
       <span class="mx-auto">{{title}}</span>
     </v-card-text>
-    <v-card-text class="pt-0">
+    <v-card-text class="pt-0 flex-grow-1 flex-shrink-1 overflow-auto">
       <md class="pt-1" style="width:100%">{{text}}</md>
     </v-card-text>
   </div>

@@ -16,10 +16,11 @@
 
 <style scoped>
 .wpanel {
-  width: 100%; flex-grow: 1; min-height: 10px; margin-top: 4px; padding: 0px;
+  width: 100%; flex-grow: 1; flex-shrink: 1; min-height: 10px; margin-top: 4px; padding: 0px;
   display: grid;
-  /*grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));*/
-  grid-auto-rows: auto;
+  /* auto: largest minimal size as specified by min-height
+   * 1fr: spread extra space equally among all elements */
+  grid-auto-rows: minmax(auto, 1fr);
 }
 .wpanel.spanel { gap: 0px; }
 .wpanel.tpanel { gap: 4px; }

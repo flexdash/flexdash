@@ -371,9 +371,11 @@ export default {
     widgetStyle() {
       // note: if rows/cols don't exist when the widget is created the widgetStyle will not
       // recompute in Vue2
-      const row = `grid-row-start: span ${this.widget.rows||1}`
-      const col = `grid-column-start: span ${this.widget.cols||1}`
-      return `${row}; ${col};`
+      return {
+        'grid-row-start': `span ${this.widget.rows||1}`,
+        'grid-column-start': `span ${this.widget.cols||1}`,
+        'min-height': '1em', // works with grid-auto-rows to create small minimum height
+      }
     },
 
     widget() { return this.$store.widgetByID(this.id) },
