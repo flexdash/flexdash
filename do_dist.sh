@@ -34,3 +34,6 @@ set -x
 OPTS=(--progress --checksum --immutable)
 OPTS=("${OPTS[@]}" --config $HOME/.config/rclone/rclone.conf)
 rclone "${OPTS[@]}" sync dist s3-public:s3.voneicken.com/flexdash/${version}
+set +x
+tar czf flexdash-${version}.tar.gz -C dist .
+rclone "${OPTS[@]}" copy flexdash-${version}.tar.gz s3-public:s3.voneicken.com/flexdash/
