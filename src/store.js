@@ -129,7 +129,7 @@ export class Store {
     } else if (typeof(dir) === 'object') {
       old = dir[t]
       if (payload !== undefined) {
-        console.log(`Updated ${topic} with:`, payload)
+        //console.log(`Updated ${topic} with:`, payload)
         Vue.set(dir, t, payload) // $set 'cause we may add new props to dir
       } else {
         console.log(`Deleted ${topic}`)
