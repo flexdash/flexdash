@@ -88,7 +88,7 @@ export default {
           ret = { name: `${name}: ${value}`, id }
         } else if (Array.isArray(value)) {
           ret = { name, id,
-              children: value.sort().map((v,ix) => children(ix.toString(), id, v)) }
+              children: Array.from(value).sort().map((v,ix) => children(ix.toString(), id, v)) }
         } else if (typeof value === 'object') {
           ret = { name, id,
               children: Object.entries(value).sort().map(([k,v])=> children(k, id, v)) }
