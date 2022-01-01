@@ -49,6 +49,7 @@ the high-threshold. For string values low and high colors are selected using reg
     high_regexp: { type: String, default: null, tip: "match produces high_color for non-number value" },
     chip: { type: Boolean, default: false, tip: "display value in a chip/pill" },
     iso_prefix: { type: Boolean, default: true, tip: "display unit with ISO prefix (K, M, G, m, ...)" },
+    zoom: { type: Number, default: 1, tip: "zoom factor for value text" },
   },
 
   computed: {
@@ -101,7 +102,9 @@ the high-threshold. For string values low and high colors are selected using reg
     finalColor() { return (typeof this.value === 'number') ? this.numColor : this.textColor },
     // compute the CSS style for the value
     statStyle() {
-      return this.finalColor ? { color: this.finalColor } : {}
+      const style = { fontSize: `${this.zoom * 100}%`, lineHeight: `${this.zoom * 100}%` }
+      if (this.finalColor) style.color = this.finalColor
+      return style
     },
   },
 
