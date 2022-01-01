@@ -20,14 +20,13 @@
       <span class="mr-auto"></span>
     </v-card-text>
 
-    <!--div style="width:100%; height:100%;"-->
-      <!-- not editing... -->
-      <v-card-text v-if="!editing" class="pt-1 flex-grow-1 flex-shrink-1 overflow-auto">
-        <pre>{{text}}</pre>
-      </v-card-text>
-      <!-- editing... -->
-      <v-textarea dense solo full-width flat hide-details v-if="editing" :value=text></v-textarea>
-    <!--/div-->
+    <!-- not editing... -->
+    <v-card-text v-if="!editing" class="pt-1 flex-grow-1 flex-shrink-1 overflow-auto">
+      <pre>{{text}}</pre>
+    </v-card-text>
+
+    <!-- editing... -->
+    <textarea v-if="editing" v-bind:value="text" wrap="off" ref="ta"></textarea>
   </div>
 </template>
 
@@ -38,7 +37,14 @@
   .theme--dark .v-btn--icon  { background-color: rgba(30, 30, 30, 0.6); }
   .theme--light .v-card__text { color: rgba(0, 0, 0, 0.6); }
   .theme--dark .v-card__text  { color: rgba(255, 255, 255, 0.7); }
-  textareaxx { width:100%; height:100%; max-width:100%; cursor:text; overflow:auto; }
+  textarea {
+    flex-grow: 1; flex-shrink: 1;
+    width:100%;
+    cursor:text; overflow: auto;
+    font-family: monospace; font-size: 75%; line-height: 125%;
+    border-style: none !important; outline: none; padding: 4px;
+    -moz-box-shadow:none; -webkit-box-shadow:none; box-shadow:none;
+  }
 </style>
 
 <script scoped>
@@ -57,6 +63,8 @@ export default {
     editable: { type: Boolean, default: false, tip: "allow editing of the text"},
   },
 
+  output: { default: null },
+
   data() { return {
     editing: false,
   }},
@@ -65,9 +73,8 @@ export default {
     handleEdit() { this.editing = true },
     handleCancel() { this.editing = false },
     handleSave() {
+      if (this.editing) this.$emit('send', this.$refs.ta.value)
       this.editing = false;
-      this.$emit('send', this.new_values)
-      this.new_values = {}
     },
   },
 
