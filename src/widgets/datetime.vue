@@ -47,7 +47,9 @@ export default {
   },
 
   data() { return {
-    mode: this.start_mode % 3,
+    mode: this.start_mode % 3, // 0=local, 1=UTC, 2=ago
+    timer: null, // timer for "ago" mode
+    now: Date.now(), // for "ago" mode, updated by timer, triggers re-rendering
   }},
 
   computed: {
@@ -55,9 +57,9 @@ export default {
     valMs() { return this.value < 915177600000 ? this.value*1000 : this.value},
     // generate "ago" time string
     valAgo() {
-      const dt = Date.now() - this.valMs
+      const dt = this.now - this.valMs
       const dta = dt < 0 ? 0 : dt
-      const info = dta < 1000 ? [ "", 0 ] :
+      const info = dta < 1000 ? [0, 0 ] :
         dta < 120000 ? [ dta/1000, 1 ] :
         dta < 5400000 ? [ dta/60000, 2 ] :
         dta < 129600000 ? [ dta/3600000, 3 ] :
@@ -65,6 +67,7 @@ export default {
         dta < 4838400000 ? [ dta/604800000, 5 ] :
         [ dta/2635200000, 6 ]
       return info[1] == 0 ? this.units[0] :
+      info[0] == 0 ? "now" :
         dta < 0 ? "in " + info[0].toFixed(1) + " " + this.units[info[1]] :
         info[0].toFixed(1) + " " + this.units[info[1]] + " ago"
     },
@@ -86,9 +89,22 @@ export default {
     zoomStyle() { return { fontSize: this.zoom + "%", 'line-height': this.zoom + "%" } },
   },
 
+  watch: {
+    mode: { immediate: true, handler() { this.kick_timer() } },
+    valMs() { this.kick_timer() },
+  },
+
   methods: {
     click() {
       this.mode = (this.mode + 1) % 3
+    },
+    kick_timer() {
+      if (this.timer) clearTimeout(this.timer)
+      this.timer = null
+      if (this.mode != 2) return
+      this.now = Date.now()
+      const delay = this.now-this.valMs < 5*60*1000 ? 3000 : 60000
+      this.timer = setTimeout(() => { this.kick_timer() }, delay)
     },
   },
 
