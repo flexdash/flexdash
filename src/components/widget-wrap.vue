@@ -173,6 +173,8 @@ export default {
       }
       let type = this.child_props[prop].type // note: may be undefined...
 
+      //console.log("Updating binding", prop, "to", val, "of type", type)
+
       if (type === Boolean) {
         if (typeof val === 'number') {
           val = !!val
@@ -204,12 +206,12 @@ export default {
         }
       }
 
-//console.log(`Updating ${this.config.kind}.${prop}[${type&&type.name}] <- ${typeof val} ${val}`)
+      //console.log(`Updating ${this.config.kind}.${prop}[${type&&type.name}] <- ${typeof val} ${val}`)
 
       this.$set(this.bindings, prop, val)
     },
 
-    handleEdit() { console.log(`handleEdit() in widget-wrap`); this.$emit('edit', 'toggle') },
+    handleEdit() { this.$emit('edit', 'toggle') },
 
     toggleFullPage() { this.full_page = !this.full_page },
 

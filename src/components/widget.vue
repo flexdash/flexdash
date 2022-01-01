@@ -168,7 +168,7 @@ export default {
       let cp = []
       if (this.$refs.comp && this.$refs.comp._isVue)
         cp = self.propNames(this.$refs.comp.$props)
-      cp = cp.sort()
+      cp.sort()
       self.childProps = cp
       //console.log(`childProps: ${self.childProps.join(",")}`)
 

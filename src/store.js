@@ -180,7 +180,7 @@ export class Store {
   // If tagline is null, no undo steps are recorded, this is primarily used to perform
   // undo steps themselves.
   qMutation(tagline, msgs) {
-    console.log("queueing mutation", tagline)
+    console.log("queueing mutation", tagline) //, JSON.stringify(msgs))
     // apply the mutation locally and save the undo steps
     let undo = []
     for (const m of msgs) {
@@ -493,6 +493,7 @@ export class Store {
 
 let instance = new Store()
 export default instance
+window.store = instance // for debugging only
 
 // for unit test purposes...
 export function StoreReinit() { Object.assign(instance, new Store()) }
