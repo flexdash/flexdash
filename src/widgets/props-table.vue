@@ -79,8 +79,12 @@ export default {
   // help displayed in the UI: the first line is used in the widgets menu and is always shown in
   // the edit card. Successive lines can be expanded in the card and are markdown-formatted.
   help: `Display key-value pairs in tabular form.
+If the \`fields\` property is empty the table shows all data field in alphanumeric order.
+If the \`fields\` property is set, the table shows only the listed fields in the order specified.
+
 The table can be set as editable which allows the user to change the property values.
-Each change is sent to the configured topic with payload \`[ key, new_value]\`.`,
+\`send_all\` controls whether only the edited fields or all fields are sent to the
+\`output\` topic.`,
 
   // properties are inputs to the widget, these can be set to static values or bound to dynamic
   // data by topic in the FlexDash UI. The type is used to display the appropriate kind of input
@@ -91,6 +95,10 @@ Each change is sent to the configured topic with payload \`[ key, new_value]\`.`
     data: { type: Object, default: () => ({ "key1": "value1", "key2": "value2" }),
             tip: "simple key-value pairs to show in table"},
     editable: { type: Boolean, default: false, tip: "allow editing of the table"},
+    fields: { type: Array, default: () => ['key1', 'key2'],
+              tip: "fields to show in table in order, show all if empty"},
+    send_all: { type: Boolean, default: false,
+              tip: "send all fields to topic, not just changed ones"},
   },
 
   output: { default: null },
@@ -102,7 +110,7 @@ Each change is sent to the configured topic with payload \`[ key, new_value]\`.`
 
   computed: {
     // sort property keys alphabetically
-    keys() { return Object.keys(this.data).sort() },
+    keys() {  return this.fields && this.fields.length ? this.fields : Object.keys(this.data).sort() },
     kind() { return ObjectMap(this.data, (k,v) => typeof v) },
     value() { return ObjectMap(this.data, (k,v) => {
       if (typeof v == 'string') return v
