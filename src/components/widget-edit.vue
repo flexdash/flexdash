@@ -285,12 +285,12 @@ export default {
   }},
 
   created() {
-    //console.log("Created widget", this.id)
+    console.log("Created widget", this.id)
     // fetch the widget config from the store and perform some init
-    const w = JSON.parse(JSON.stringify(this.$store.widgetByID(this.id)))
-    let update = false // whether we need to update the widget
-    if (w.static === undefined) { w.static = {}; update = true }
-    if (w.dynamic === undefined) { w.dynamic = {}; update = true }
+    const wj = JSON.stringify(this.$store.widgetByID(this.id))
+    const w = JSON.parse(wj)
+    if (w.static === undefined) w.static = {}
+    if (w.dynamic === undefined) w.dynamic = {}
     // inspect the component and extract child props
     let cp = {}
     const p = this.palette.widgets
@@ -316,11 +316,16 @@ export default {
     // The defaults for the widget inputs (props) are currently handled by
     // Vue's prop defaults, so the store just setting static={} works, except for dynamic
     // default. We hack them here.
+    //
+    // FIXME! this needs to be fixed because is causes a race condition when there are multiple
+    // dashboards connected 'cause they all go through this logic and then all send 'corrections'
+    // to each other while the original creator may make further edits (for example when cloning
+    // a widget)
     for (const p in pi) {
       // if the prop definition says it's dynamic and it's completely unset, then set it
       if (pi[p].dynamic && !(p in w.dynamic) && !(p in w.static)) {
         w.dynamic[p] = pi[p].dynamic
-        update = true
+        console.log("Need update: dynamic")
       }
     }
     // process any widget output binding
@@ -333,11 +338,13 @@ export default {
         if (!('output' in w)) w.output = p[w.kind].output.default || null
         if (p[w.kind].output.tip) this.output_tip += ", " + p[w.kind].output.tip
       }
-      update = true
     }
-    if (w.output_hint) { w.output_hint = null; update = true } // patch a bug
+    if (w.output_hint) w.output_hint = null // patch a bug
     // update instance variables
-    if (update) this.$store.updateWidget(this.id, w)
+    if (wj != JSON.stringify(w)) {
+      console.log(`UPDATE ${w0} -> ${JSON.stringify(w)}`)
+      this.$store.updateWidget(this.id, w)
+    }
     this.child_props = cp
     this.prop_info = pi
     // handle init edit_mode being active
@@ -402,8 +409,9 @@ export default {
 
     // value of a property: either config if set, else default
     propVal(prop) {
-      if (this.widget.static[prop] !== undefined) return this.widget.static[prop]
-      else return this.prop_info[prop].default
+      const val = this.widget.static[prop] !== undefined ? this.widget.static[prop]
+                                                         : this.prop_info[prop].default
+      return val
     },
 
     // toggle static vs. dynamic for a specific prop
@@ -414,7 +422,8 @@ export default {
       if (val) this.widget.dynamic[prop] = undefined
     },
 
-    // toggle edit handles the edit event from the child component
+    // toggle edit handles the edit event from the child component which turns editing on/off,
+    // this just gets propagated up to the grid where it round-trips into the edit_active property
     toggleEdit() { this.$emit('edit', !this.edit_active) },
     // cancel button in edit panel
     endEdit() { this.$emit('edit', false) },
