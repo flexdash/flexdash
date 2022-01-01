@@ -2,7 +2,7 @@
      Copyright ©2021 Thorsten von Eicken, MIT license, see LICENSE file
 -->
 <template>
-  <v-simple-table dense fixed-header class="simple-table">
+  <v-simple-table dense fixed-header class="simple-table mt-2">
     <template v-slot:default>
       <thead><tr>
         <th class="px-2" v-for="col in col_labels" :key="col">{{col}}</th>
