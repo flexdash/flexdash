@@ -123,7 +123,7 @@ The table can be set as editable which allows the user to change the property va
     handleCancel() { this.editing = false; this.new_values = {} },
     handleSave() {
       this.editing = false;
-      this.$emit('send', this.new_values)
+      this.$emit('send', this.send_all ? {...this.data, ...this.new_values} : this.new_values)
       this.new_values = {}
     },
     handleInput(key, ev) { this.new_values[key] = ev.target.value },
