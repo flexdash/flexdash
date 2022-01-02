@@ -342,7 +342,7 @@ export default {
     if (w.output_hint) w.output_hint = null // patch a bug
     // update instance variables
     if (wj != JSON.stringify(w)) {
-      console.log(`UPDATE ${w0} -> ${JSON.stringify(w)}`)
+      console.log(`UPDATE ${wj} -> ${JSON.stringify(w)}`)
       this.$store.updateWidget(this.id, w)
     }
     this.child_props = cp
