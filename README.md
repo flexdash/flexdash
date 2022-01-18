@@ -451,6 +451,59 @@ widgets accumulate the lag will build up.
 For "production" use you will need to pre-process and bundle the widget and use it
 just like you would use a downloaded widget (first section above).
 
+Authentication
+--------------
+
+- Use passportjs
+- Requirements:
+  - Auth via socket.io (or other data connection) so FlexDash can be loaded from site A and can
+    access data on site B and in that process auth with B.
+  - Support user/pass auth but also OpenID (and maybe OAuth). OpenID uses Oauth but is focused on
+    letting users log in ("log in using your google ID"). OAuth is more general and can allow a
+    4rd-party app to access some web API.
+  - Sucessful auth needs to result in a cookie so the user can refresh the page or come back a
+    little later and still be authenticated.
+- Some realities:
+  - User/pass authentication can be done simply by popping up a form, sending the data to the
+    server, getting a cookie, and marching on. The websocket/socket.io may have to be reconnected
+    to get the opportunity to xmit the cookie.
+  - Any delegated authentication (OpenID, OAuth) will require redirecting the user (the full page)
+    to the auth site and then eventually getting a redirect back which will reload FlexDash.
+    It's basically impossible to avoid this reload, this is a general single-page app problem,
+    not specific to FlexDash.
+  - In the case of delegated authentication, in addition to redirecting the user, there
+    generally needs to be some direct server-to-server communication to verify the assertion
+    issued by the auth.
+- The relationship between authentication, authorization, and socket.io rooms is a bit unclear.
+  Should there be a public room? An authenticated room? And perhaps additional rooms depending on
+  authorizations? Should tabs map to rooms?
+
+### How it works
+
+This section describes how username/password authentication works with socket.io.
+This is the only authentication implemented so far.
+
+- FlexDash opens a socket.io connection.
+- The server needs to fail/error the connection using some middleware and "return" an
+  `ExtendedError` that describes how to authenticate.
+- To do this, the middleware should have code like:
+```
+    let err = Error("unauthorized"); err.data = { }
+    err.data = {
+        message: 'unauthorized', realm: 'My cool dashboard',
+        url: '/login', strategy: 'user-password',
+    }
+    next(err)
+```
+- FlexDash keys off the 'unauthorized' message to know it has to put up some dialog box
+  for the user to auth. It keys off the `strategy` to select a Vue component to actually
+  show the dialog box and perform the auth steps.
+- The outcome of the auth must be a session cookie set by the server that identifies future
+  requests as authenticated. In username/password auth this cookie is set by the response of
+  the login POST request.
+- Once auth succeeds, FlexDash restarts the socket.io connection which causes a fresh request
+  with the cookie which then should cause the server's middleware to accept the connection.
+
 Quick architecture overview (OUTDATED)
 --------------------------------------
 

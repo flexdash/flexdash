@@ -12,8 +12,9 @@ const namespace = ""
 
 export default class SockioConnection {
 
-  constructor (recvMsg) {
+  constructor (recvMsg, doAuth) {
     this.recvMsg = recvMsg
+    this.doAuth = doAuth
     this.sock = null
     this.checker = null // interval timer to check unsent messages
     this.first_connect = true
@@ -37,7 +38,7 @@ export default class SockioConnection {
     const method = config.tls ? "https" : "http"
 
     // connect
-    const opts = { path: config.path, } // transports:["polling","websocket"] }
+    const opts = { path: config.path, withCredentials: true} // transports:["polling","websocket"] }
     const url = method + '://' + config.hostname + '/' + namespace // not really a url...
     console.log("Socket IO server address:", url)
     console.log("Socket IO options:", JSON.stringify(opts))
@@ -45,9 +46,16 @@ export default class SockioConnection {
 
     // handle connection error
     this.sock.on("connect_error", (err) => {
-      console.log("SIO connect error:", err)
+      console.log("SIO connect error:", err, err.data)
+      let message = err.data?.message || err.toString()
       this.data.status = 'err'
-      this.data.status_txt = err
+      this.data.status_txt = message
+      if (message == 'unauthorized') {
+        this.stop()
+        if (err.data?.url && !err.data.url.startsWith('http'))
+          err.data.url = method + '://' + config.hostname + err.data.url
+        this.doAuth(err.data)
+      }
     })
 
     // handle final disconnection

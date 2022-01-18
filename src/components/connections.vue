@@ -16,7 +16,10 @@
     <!-- connections pop-up dialog, rendered eagerly 'cause we want those components to
          do work for us from the get-go -->
     <v-dialog eager v-model="show_dialog">
-      <v-card>
+      <!-- prioritize showing the4 authentication dialog -->
+      <v-component v-if="show_auth" :is="show_auth" :config="auth_config" @change="authDone($event)">
+      </v-component>
+      <v-card v-else>
         <v-card-title class="d-flex">
           <span>Server Connections</span>
           <v-spacer></v-spacer>
@@ -63,11 +66,14 @@
         </masonry>
       </v-card>
     </v-dialog>
+
+    <v-dialog eager :value="show_auth">
+    </v-dialog>
   </div>
 </template>
 
 <script scoped>
-//import Uib from '@/components/uib'
+import Vue from 'vue'
 import Masonry from '/src/components/masonry.vue'
 import MasonryBrick from '/src/components/masonry-brick.vue'
 import DemoSettings from '/src/connections/demo-settings.vue'
@@ -76,6 +82,16 @@ import WebsockSettings from '/src/connections/websock-settings.vue'
 import WebsockConnection from '/src/connections/websock.js'
 import SockioSettings from '/src/connections/sockio-settings.vue'
 import SockioConnection from '/src/connections/sockio.js'
+
+var auth_strategies = []
+const auth_modules = import.meta.glob('/src/components/auth-*.vue')
+for (const path in auth_modules) {
+  const name = path.split('/').pop().replace('.vue', '')
+  if (name !== 'unknown') auth_strategies.push(name.replace('auth-', ''))
+  Vue.component(name, auth_modules[path])
+  console.log("imported " + name)
+}
+console.log("auth strategies: " + auth_strategies)
 
 export default {
   name: "Connections",
@@ -90,6 +106,8 @@ export default {
       sockio: { connClass: SockioConnection, settClass: SockioSettings },
     },
     config_source: null,
+    show_auth: null, // component to show for authentication
+    auth_config: null, // config for the auth component
   }),
 
   computed: {
@@ -134,9 +152,9 @@ export default {
     this.$set(conn, 'sockio', { enabled: false, config: false, hostname:"", path:"", tls:false })
 
     // instantiate all the connection objects (they all wait for a start() call)
-    for (name in this.connections) {
+    for (let name in this.connections) {
       const c = this.connections[name]
-      c.conn = new c.connClass(this.handleMsg)
+      c.conn = new c.connClass(this.handleMsg, how => this.doAuth(name, how))
     }
 
     const setup_sio = addr => {
@@ -265,6 +283,9 @@ export default {
       console.log("Unknown message kind:", kind, params)
     },
 
+    // Initiate the download of a file from the server. This happens outside of the normal connection
+    // using a plain HTTP request so the browser's regular download machinery is invoked.
+    // This is not all peachy 'cause it seems to disconnect all websockets...
     download(url, filename, base) {
       console.log("In download:", url, filename, base)
       // tweak the URL so it points to the correct server, this is required because a simple
@@ -313,6 +334,36 @@ export default {
 
     changeConfig(conn, config) {
       this.$config.conn[conn] = config
+    },
+
+    // Callback from connection telling us that the user needs to authenticate, so we need to
+    // put up a diaglog box or something.
+    doAuth(conn, how) {
+      this.show_dialog = true
+      this.auth_config = how
+      this.auth_conn = conn
+      this.$config.conn[conn].enabled = false // disable in case user cancels auth so it doesn't retry
+      if (how.strategy && auth_strategies.includes(how.strategy)) {
+        this.show_auth = "auth-" + how.strategy
+      } else {
+        console.log("Unknown auth strategy:", how.strategy, "known:", auth_strategies)
+        this.show_auth = "auth-unknown"
+      }
+    },
+
+    authDone(ev) {
+      console.log("Auth done:", ev)
+      this.show_auth = null
+      if (ev == 'success') {
+        this.$config.conn[this.auth_conn].enabled = true
+        this.show_dialog = false
+        if (!this.gotConfig) 
+          window.setTimeout(()=>{ if (!this.gotConfig) this.show_dialog = true }, 5000)
+      } else {
+        this.show_dialog = !this.gotConfig
+      }
+      this.auth_conn = null
+      this.auth_config = null
     },
 
   },
