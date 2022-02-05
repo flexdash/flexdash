@@ -6,14 +6,13 @@
   <v-app>
 
     <!-- Navigation drawer opening from the left on small devices to show tabs -->
-    <v-navigation-drawer v-model="sidebar" app mini-variant clipped v-if="gotConfig">
-      <div v-if="true">
-      <v-tabs vertical v-model=tab_ix>
-        <v-tab v-for="t in dash_tabs" :key="t" class="px-0" style="min-width: auto">
-          <v-icon large>mdi-{{tabs[t].icon}}</v-icon>
+    <v-navigation-drawer v-model="sidebar" app mini-variant mini-variant-width=auto clipped v-if="gotConfig">
+      <v-tabs vertical slider-size="6" v-model=tab_ix>
+        <v-tab v-for="t in dash_tabs" :key="t" class="ml-0 mr-auto px-0 d-flexx flex-columnx" style="min-width: auto">
+          <v-icon large class="mx-1">mdi-{{tabs[t].icon}}</v-icon>
+          <span class="mr-1">{{tabs[t].title}}</span>
         </v-tab>
       </v-tabs>
-      </div>
     </v-navigation-drawer>
 
     <!-- Top title/navigation bar -->
