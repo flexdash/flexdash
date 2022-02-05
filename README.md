@@ -1,8 +1,6 @@
 FlexDash: A Flexible Web IoT Dashboard
 ======================================
 
-**WARNING: this is demoware at this point**
-
 FlexDash is a dashboard that runs in the browser and is fully self-contained:
 feed it data over a websocket and save its config as a blob on the server and
 you have an IoT dashboard.
