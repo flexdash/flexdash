@@ -241,6 +241,7 @@
 .widget-edit .popup-spacer { margin-top: 3px; margin-bottom: 3px; }
 .widget-edit .w-edit > .v-input__append-outer { margin-left: 4px !important; }
 .widget-edit-dialog .v-input.height100 div { height: 100% !important; } 
+div.widget-edit { max-width: 100%; }
 </style>
 
 <script scoped>
