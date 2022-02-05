@@ -33,6 +33,7 @@
       </div>
     <!--/div-->
 
+    <!-- Icon to show widget full-page -->
     <div v-if="can_full_page && !$root.editMode" class="full-page-btn"
          style="position:absolute; right:0; top:0.5ex;">
         <v-btn small icon @click="toggleFullPage"
@@ -52,7 +53,7 @@
 <style scoped>
 .v-card { height: 100%; width: 100% }
 .v-card { display: flex; flex-direction: column; justify-content: flex-start; align-items: center }
-.v-card.full-page { position: absolute; left: 1%; top: 1%; z-index: 10; width: 98%; height: 98% }
+.v-card.full-page { position: fixed; left: 1%; top: 1%; z-index: 10; width: 98%; height: 98% }
 .v-card.full-page .full-page-btn { z-index: 11 }
 .v-card .edit-btn {
   position: absolute; right: 0px; top: 0px; z-index: 1;
