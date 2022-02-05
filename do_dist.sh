@@ -1,4 +1,13 @@
 #! /bin/bash -e
+#
+# To make a release:
+# - Update the version in packages.json
+# - Run npm i --package-lock-only
+# - Run npm run build
+# - Run this script
+# - Git commit and push
+# - Create a new tag on github
+
 v1=`egrep version\": package.json`
 v2=`egrep version\": package-lock.json | head -1`
 if [[ "$v1" != "$v2" ]]; then
