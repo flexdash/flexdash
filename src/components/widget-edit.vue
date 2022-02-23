@@ -356,10 +356,10 @@ export default {
     // list of keys from store.sd to show in editing combobox
     //sd_keys() { return Object.keys(this.$store.sd).sort() }, // reactivity failure...
 
-    // list of child prop names for editing, excluding title
+    // list of child prop names for editing, excluding title and output_binding
     edit_props() {
       const cp = Object.keys(this.child_props)
-      return cp.filter(p => p !== 'title').sort()
+      return cp.filter(p => p !== 'title' && p !== 'output_binding').sort()
     },
 
     // handle a non-vue-standard "help" option in a widget
@@ -433,7 +433,7 @@ export default {
       console.log("edit:", which, prop, value)
       if (!(which in this.widget)) return
 
-      if (prop != 'title') {
+      if (prop != 'title' && prop != 'output_binding') {
         if (!(prop in this.child_props)) return
 
         // for static values we get a string from the text_field and may need to convert

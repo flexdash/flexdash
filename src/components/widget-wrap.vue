@@ -151,6 +151,7 @@ export default {
       // generate bindings, dynamic overrides static
       this.bindings = {}
       if (config) {
+        if (config.output) this.$set(this.bindings, 'output_binding', config.output)
         Object.keys(config.static||{}).forEach(p => {
           if (config.static[p] !== undefined && config.dynamic[p] === undefined)
             this.$set(this.bindings, p, config.static[p])
