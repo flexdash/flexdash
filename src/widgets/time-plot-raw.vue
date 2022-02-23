@@ -163,7 +163,7 @@ Note that this "row-wise" structure gets transposed to the columnar structure ex
   },
 
   beforeDestroy() {
-    this.ro.disconnect()
+    if (this.ro) this.ro.disconnect()
     this.ro = null // being paranoid...
     this._destroy()
     this.dark_watcher()
@@ -171,7 +171,7 @@ Note that this "row-wise" structure gets transposed to the columnar structure ex
 
   methods: {
     _destroy() {
-      this.ro.disconnect()
+      if (this.ro) this.ro.disconnect()
       if (this.chart) {
         //console.log("Destroying uPlot")
         this.chart.destroy()
