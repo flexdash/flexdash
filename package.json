@@ -1,6 +1,6 @@
 {
   "name": "flexdash",
-  "version": "0.3.6",
+  "version": "0.3.7",
   "description": "Flexible self-contained web dashboard for Node-Red and IoT devices",
   "keywords": "node-red iot dashboard",
   "homepaqhe": "https://tve.github.io/flexdash",
@@ -18,6 +18,7 @@
     "@mdi/font": "5.9.55",
     "reconnecting-websocket": "^4.4.0",
     "socket.io-client": "^4.4.0",
+    "socketio-file-upload": "^0.7.3",
     "uplot": "^1.6.17",
     "vite-plugin-vue2": "^1.9.0",
     "vue": "^2.6.14",
