@@ -59,7 +59,7 @@ export default {
   props: {
     title: { type: String, default: 'TextView' },
     text: { type: String, default: "Hi there!" },
-    autoscroll: { type: Boolean, default: false, tip: "Auto-scroll to bottom" },
+    //autoscroll: { type: Boolean, default: false, tip: "Auto-scroll to bottom" },
     editable: { type: Boolean, default: false, tip: "allow editing of the text"},
   },
 
