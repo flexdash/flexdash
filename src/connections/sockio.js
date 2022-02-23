@@ -18,6 +18,8 @@ export default class SockioConnection {
     this.sock = null
     this.checker = null // interval timer to check unsent messages
     this.first_connect = true
+    this.reqId = 100
+    this.requests = {}
 
     // data fed into the Vue reactivity system
     this.data = Vue.observable({
@@ -113,6 +115,17 @@ export default class SockioConnection {
       this.recvMsg("download", url, filename, base)
       this.setStatus()
     })
+
+    // handle resp message (response to request)
+    this.sock.on("resp", (id, payload) => {
+      console.log("SIO resp:", id, payload)
+      if (this.requests[id]) {
+        this.requests[id](payload)
+        delete this.requests[id]
+      }
+      this.setStatus()
+    })
+
   }
 
   setStatus() {
@@ -138,9 +151,11 @@ export default class SockioConnection {
     this.setStatus()
   }
 
-  serverSend(topic, payload) {
+  // send a "regular" one-way message to the server with a topic and a payload
+  serverSend(topic, payload, kind="msg") {
+    console.log("serverSend, kind=" + kind)
     if (this.sock) {
-      this.sock.emit("msg", topic, payload)
+      this.sock.emit(kind, topic, payload)
       if (this.sock.sendBuffer.length > 0 && this.checker === null) {
         this.checker = window.setInterval(()=> {
           this.setStatus()
@@ -152,4 +167,23 @@ export default class SockioConnection {
       }
     }
   }
+
+  // send a request to the server with a topic and a payload and resolve the promise when a
+  // response comes back or reject it on timeout. serverQuery returns a promise!
+  serverQuery(topic, payload, kind="req") {
+    console.log("serverQuery, kind=" + kind)
+    return new Promise((resolve, reject) => {
+      if (!this.sock) return reject("SIO: not connected")
+      let id = this.reqId++
+      this.requests[id] = resolve
+      this.sock.emit(kind, id, topic, payload)
+      setTimeout(() => {
+        if (this.requests[id]) {
+          delete this.requests[id]
+          reject("SIO: timeout")
+        }
+      }, 30000) // FIXME: hardcoded timeout
+    })
+  }
+
 }

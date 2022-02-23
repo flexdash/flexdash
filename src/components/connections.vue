@@ -16,7 +16,7 @@
     <!-- connections pop-up dialog, rendered eagerly 'cause we want those components to
          do work for us from the get-go -->
     <v-dialog eager v-model="show_dialog">
-      <!-- prioritize showing the4 authentication dialog -->
+      <!-- prioritize showing the authentication dialog -->
       <v-component v-if="show_auth" :is="show_auth" :config="auth_config" @change="authDone($event)">
       </v-component>
       <v-card v-else>
@@ -196,8 +196,9 @@ export default {
     // set a global variable with our serverSend method so the widget-wrapper can send
     // data on behalf of widgets
     // using a lambda here to get the correct 'this'
-    this.$root.serverSend = (topic, payload) => this.serverSend(topic, payload)
-    this.$store.serverSend = (topic, payload) => this.serverSend(topic, payload)
+    this.$root.serverSend = this.serverSend.bind(this)
+    this.$store.serverSend = this.serverSend.bind(this)
+    this.$store.serverQuery = this.serverQuery.bind(this) // async!
   },
 
   mounted() {
@@ -286,6 +287,7 @@ export default {
     // Initiate the download of a file from the server. This happens outside of the normal connection
     // using a plain HTTP request so the browser's regular download machinery is invoked.
     // This is not all peachy 'cause it seems to disconnect all websockets...
+    // Try using https://github.com/eligrey/FileSaver.js in the future
     download(url, filename, base) {
       console.log("In download:", url, filename, base)
       // tweak the URL so it points to the correct server, this is required because a simple
@@ -315,21 +317,32 @@ export default {
     // to servers
     // FIXME: decide whether to block $config
     // FIXME: right now $config changes are sent to the "config_source" and others are
-    // broadcast to all conncetions. Some sanity needs to be brought into the situation,
+    // broadcast to all connections. Some sanity needs to be brought into the situation,
     // perhaps "secondary" connections should be mounted into the topic tree with a prefix?
-    serverSend(topic, payload) {
+    serverSend(topic, payload, kind) {
       if (topic.startsWith('$demo')) {
         this.$store.insertData(topic, payload)
       } else if (topic.startsWith('$config') && this.config_source) {
-        this.connections[this.config_source].conn.serverSend(topic, payload)
+        this.connections[this.config_source].conn.serverSend(topic, payload, kind)
       } else {
         for (let c in this.connections) {
           const conn = this.connections[c].conn
           console.log(c, conn, this.$config.conn[c])
-          if (conn && this.$config.conn[c].enabled) conn.serverSend(topic, payload)
+          if (conn && this.$config.conn[c].enabled) conn.serverSend(topic, payload, kind)
         }
       }
+    },
 
+    // serverQuery sends a request to the server and asynchronously returns the response,
+    // it really returns a Promise that gets resolved on response with a payload
+    // or rejected on timeout
+    serverQuery(topic, payload, kind) {
+        for (let c in this.connections) {
+          const conn = this.connections[c].conn
+          if (conn && this.$config.conn[c].enabled) {
+            return conn.serverQuery(topic, payload, kind) // returns a promise!
+          }
+        }
     },
 
     changeConfig(conn, config) {
