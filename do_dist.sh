@@ -2,8 +2,6 @@
 #
 # To make a release:
 # - Update the version in packages.json
-# - Run npm i --package-lock-only
-# - Run npm run build
 # - Run this script
 # - Git commit and push
 # - Create a new tag on github
@@ -12,8 +10,8 @@ v1=`egrep version\": package.json`
 v2=`egrep version\": package-lock.json | head -1`
 if [[ "$v1" != "$v2" ]]; then
   echo Version mismatch: $v1 vs $v2
-  echo Run npm i --package-lock-only
-  exit 1
+  npm i --package-lock-only
+  npm run build
 fi
 version=`echo $v1 | sed -E 's/.*"([0-9]\..*)".*/\1/'`
 echo "Pushing version ${version}"
