@@ -6,13 +6,16 @@
 # - Git commit and push
 # - Create a new tag on github
 
+# OUTDATED
+exit 1
+
 v1=`egrep version\": package.json`
 v2=`egrep version\": package-lock.json | head -1`
 if [[ "$v1" != "$v2" ]]; then
   echo Version mismatch: $v1 vs $v2
   npm i --package-lock-only
-  npm run build
 fi
+npm run build
 version=`echo $v1 | sed -E 's/.*"([0-9]\..*)".*/\1/'`
 echo "Pushing version ${version}"
 
@@ -33,14 +36,18 @@ http://s3.amazonaws.com/s3.voneicken.com/flexdash/${version}/index.html</a>
 </body></html>
 EOF
 
-echo "RUN: git add ./docs; git commit -m 'publish ${version}'; git push"
+git add ./docs
+git commit -m 'publish ${version}'
+git push
 
-# --checksum: determine change based on hash and file size, mod time on S3 is bogus
-# --immutable: don't want to overwrite previous release
-set -x
-OPTS=(--progress --checksum --immutable)
-OPTS=("${OPTS[@]}" --config $HOME/.config/rclone/rclone.conf)
-rclone "${OPTS[@]}" sync dist s3-public:s3.voneicken.com/flexdash/${version}
-set +x
-tar czf flexdash-${version}.tar.gz -C dist .
-rclone "${OPTS[@]}" copy flexdash-${version}.tar.gz s3-public:s3.voneicken.com/flexdash/
+
+
+# # --checksum: determine change based on hash and file size, mod time on S3 is bogus
+# # --immutable: don't want to overwrite previous release
+# set -x
+# OPTS=(--progress --checksum --immutable)
+# OPTS=("${OPTS[@]}" --config $HOME/.config/rclone/rclone.conf)
+# rclone "${OPTS[@]}" sync dist s3-public:s3.voneicken.com/flexdash/${version}
+# set +x
+# tar czf flexdash-${version}.tar.gz -C dist .
+# rclone "${OPTS[@]}" copy flexdash-${version}.tar.gz s3-public:s3.voneicken.com/flexdash/
