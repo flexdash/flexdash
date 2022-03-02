@@ -6,7 +6,7 @@ env:
   # Upload to AWS uses OIDC for federated auth:
   # https://docs.github.com/en/actions/deployment/security-hardening-your-deployments/configuring-openid-connect-in-amazon-web-services
   S3_PATH: s3.voneicken.com/flexdash
-  S3_REGION: us-east-2
+  S3_REGION: us-east-1
   AWS_ROLE: arn:aws:iam::635201719205:role/github-actions-s3.voneicken.com
 
 permissions:
@@ -57,4 +57,4 @@ jobs:
       - name: Upload package to S3 repo
         run: |
           tar czf flexdash-${{env.VERSION}}.tar.gz -C dist .
-          aws s3 copy --acl public-read flexdash-${{env.VERSION}}.tar.gz s3://${{env.S3_PATH}}/
+          aws s3 cp --acl public-read flexdash-${{env.VERSION}}.tar.gz s3://${{env.S3_PATH}}/
