@@ -1,0 +1,60 @@
+name: Build FlexDash
+
+on: [push]
+
+env:
+  # Upload to AWS uses OIDC for federated auth:
+  # https://docs.github.com/en/actions/deployment/security-hardening-your-deployments/configuring-openid-connect-in-amazon-web-services
+  S3_PATH: s3.voneicken.com/flexdash
+  S3_REGION: us-east-2
+  AWS_ROLE: arn:aws:iam::635201719205:role/github-actions-s3.voneicken.com
+
+permissions:
+  id-token: write
+  contents: write
+
+jobs:
+  build-all:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          path: .
+
+      # use branch or tag name in S3 upload path
+      - run: |
+          echo VERSION=$(egrep version.: package.json) | sed -E 's/=.*"([0-9]\..*)".*/=\1/' >>$GITHUB_ENV
+
+      - name: npm build
+        run: |
+          npm install --only=dev
+          npm run build
+      
+      # - name: Produce html files
+      # This is a mess 'cause it then requires a pull & merge, and also it prevents re-running the action'
+      #   run: |
+      #     ./gen_html.sh
+      #     git config --global user.name 'FlexDash'
+      #     git config --global user.name 'flexdash@users.noreply.github.com'
+      #     git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/$GITHUB_REPOSITORY
+      #     git add ./docs
+      #     git commit -m 'gen html for ${{env.VERSION}}'
+      #     git push
+
+      - name: Configure AWS Credentials
+        # See https://docs.github.com/en/actions/deployment/security-hardening-your-deployments/configuring-openid-connect-in-amazon-web-services
+        uses: aws-actions/configure-aws-credentials@master
+        with:
+          role-to-assume: ${{env.AWS_ROLE}}
+          role-session-name: GithubActionsFlexDash
+          aws-region: ${{ env.S3_REGION }}
+
+      - name: Upload to AWS S3 repo
+        run: |
+          aws s3 sync --acl public-read dist s3://${{env.S3_PATH}}/${{env.VERSION}}/
+
+      - name: Upload package to S3 repo
+        run: |
+          tar czf flexdash-${{env.VERSION}}.tar.gz -C dist .
+          aws s3 copy --acl public-read flexdash-${{env.VERSION}}.tar.gz s3://${{env.S3_PATH}}/

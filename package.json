@@ -1,6 +1,6 @@
 {
   "name": "flexdash",
-  "version": "0.3.8",
+  "version": "0.3.9",
   "description": "Flexible self-contained web dashboard for Node-Red and IoT devices",
   "keywords": "node-red iot dashboard",
   "homepaqhe": "https://tve.github.io/flexdash",
