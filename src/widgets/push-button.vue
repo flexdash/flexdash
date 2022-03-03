@@ -3,15 +3,9 @@
 -->
 <template>
   <div class="pushbutton d-flex align-center justify-center">
-    <v-tooltip top :open-on-hover="!!tooltip">
-      <template v-slot:activator="{ on, attrs }">
-        <v-btn large dense class="ma-auto" max-width="95%"
-               v-bind="Object.assign(bindings, attrs)" v-on="on" @click="clickEv($event)">
-          <v-icon :large="!title"  v-if="icon">mdi-{{icon}}</v-icon> <span>{{ title }}</span>
-        </v-btn>
-      </template>
-      <span v-if="tooltip">{{ tooltip }}</span>
-    </v-tooltip>
+    <v-btn large dense class="ma-auto" max-width="95%" v-bind="bindings" @click="clickEv($event)">
+      <v-icon :large="!title"  v-if="icon">mdi-{{icon}}</v-icon> <span>{{ title }}</span>
+    </v-btn>
   </div>
 </template>
 
@@ -29,7 +23,6 @@ The button may contain an icon and/or a title string and is centered in the widg
     output_value: { default: 25, tip: "value sent on click" },
     icon: { default: null, tip: "material-design-icon name" },
     title: { default: 'Button' },
-    tooltip: { default: null, tip: "tooltip to show on hover" },
   },
 
   output: { default: null },
