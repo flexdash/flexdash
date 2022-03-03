@@ -15,7 +15,7 @@
   },
   "dependencies": {
     "@fontsource/roboto": "^4.5.1",
-    "@mdi/font": "5.9.55",
+    "@mdi/font": "^6.0.0",
     "reconnecting-websocket": "^4.4.0",
     "socket.io-client": "^4.4.0",
     "socketio-file-upload": "^0.7.3",
