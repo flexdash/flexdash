@@ -34,12 +34,16 @@
     <!--/div-->
 
     <!-- Icon to show widget full-page -->
-    <div v-if="can_full_page && !$root.editMode" class="full-page-btn"
-         style="position:absolute; right:0; top:0.5ex;">
-        <v-btn small icon @click="toggleFullPage"
+    <div v-if="(can_full_page || has_pup_info) && !$root.editMode" class="full-page-btn"
+         style="position:absolute; z-index:4; right:0; top:0.5ex;">
+        <v-btn small icon v-if="can_full_page" @click="toggleFullPage"
                class="justify-center align-center mt-n1">
           <!--v-icon small style="background-color:red">mdi-arrow-expand-all</v-icon-->
           <v-icon small>{{full_page ? "mdi-arrow-collapse" : "mdi-arrow-expand"}}</v-icon>
+        </v-btn>
+        <v-btn small icon v-if="has_pup_info" @click="togglePupInfo"
+               class="justify-center align-center mt-n1">
+          <v-icon small>{{pup_info ? "mdi-information-off" : "mdi-information"}}</v-icon>
         </v-btn>
     </div>
 
@@ -47,6 +51,23 @@
     <component :is="config.kind" :id="config.id" v-bind="bindings" ref="comp"
                @send="sendData($event)" class="my-auto">
     </component>
+
+    <!-- dialog box to view the widget's pop-up information full-page -->
+    <v-dialog v-model="pup_info" width="80%" max-width="100ex">
+      <v-card v-if="pup_info" class="d-flex flex-column height100">
+        <v-card-title class="d-flex align-baseline width100">
+          <span>{{title || "Information"}}</span>
+          <v-spacer></v-spacer>
+          <v-btn elevation=0 icon @click="pup_info=false">
+            <v-icon>mdi-close</v-icon>
+          </v-btn>
+        </v-card-title>
+        <v-card-text class="flex-grow-1">
+          <md class="pt-1" style="width:100%">{{bindings.popup_info}}</md>
+        </v-card-text>
+      </v-card>
+    </v-dialog>
+
   </v-card>
 </template>
 
@@ -86,6 +107,7 @@ export default {
     watchers: [], // list of watchers used in bindings so we can remove them
     bindings: {}, // mapping of prop_name -> current_value used in v-bind to child
     full_page: false,
+    pup_info: false,
   }},
 
   computed: {
@@ -101,11 +123,17 @@ export default {
       return {}
     },
 
+    // widgets can be shown full-page if they have a "full-page" property
     can_full_page() {
       const p = this.palette.widgets
       if (this.config.kind in p) return p[this.config.kind].full_page
       return false
     },
+
+    // any widget can have a pop-up information/help panel by having a popup_info property
+    has_pup_info() {
+      return !!this.bindings.popup_info
+    }
   },
 
   watch: {
@@ -215,7 +243,8 @@ export default {
 
     handleEdit() { this.$emit('edit', 'toggle') },
 
-    toggleFullPage() { this.full_page = !this.full_page },
+    toggleFullPage() { this.full_page = !this.full_page; if (this.full_page) this.pup_info = false },
+    togglePupInfo() { this.pup_info = !this.pup_info; if (this.pup_info) this.full_page = false },
 
     // handler for 'send' events emitted by widget
     sendData(data) {

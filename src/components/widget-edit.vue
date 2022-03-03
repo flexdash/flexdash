@@ -300,6 +300,10 @@ export default {
     const icons = { String: 'mdi-format-quote-close', Number: 'mdi-numeric',
         Boolean: 'mdi-yin-yang', Array: "mdi-code-brackets", Object: "mdi-code-braces" }
     let pi = {}
+    if (!('popup_info' in cp)) {
+      cp.popup_info = { type: String, default: "", validator: null, icon: icons['String'],
+          dynamic: false, tip: "pop-up information to show for this widget" }
+    }
     for (let name in cp) {
       let type = cp[name].type || String
       if (![String, Number, Boolean, Array, Object].includes(type)) type = String
