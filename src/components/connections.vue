@@ -236,7 +236,7 @@ export default {
         if (params[0] === "$config") {
           // config setting gets some special treatment
           const payload = params[1] // payload
-          console.log(`*** config received with keys:`, Object.keys(p))
+          console.log(`*** config received with keys:`, Object.keys(payload))
 
           if (this.$config.dash.title) {
             console.log("Already got config, dropping message")
