@@ -22,56 +22,35 @@ document.getElementsByTagName('head')[0].insertAdjacentHTML('beforeend',
 
 // use Vite's module glob import to load widgets and grids
 const palette = Vue.observable({ widgets: {}, grids: {}, count: 0 })
+const palettePromises = []
+// globImport triggers every promise produced by import.meta.glob and for all that fulfill, it loads
+// the component into Vue. It also appends a promise to palettePromises that resolves to the name of
+// the component.
 function globImport(tgt, metaglob) {
   for (const path in metaglob) {
-    metaglob[path]().then(mod => {
-      const name = mod.default.name
-      if (name) {
-        console.log(`Loaded ${name} from ${path}`)
-        Vue.component(name, mod.default)
-        Vue.set(tgt, name, mod.default)
-      } else {
-        throw Error(`Loading ${path} resulted in 'undefined'!?`)
-      }
-    }).catch(err => {
-      console.log(`Error glob-loading ${path}:`, err)
-    })
+    palettePromises.push( // push a new promise
+      metaglob[path]().then(mod => {
+        // the module loaded successfully, register with Vue and resolve the pushed promise with the name
+        const name = mod.default.name
+        if (name) {
+          console.log(`Loaded ${name} from ${path}`)
+          Vue.component(name, mod.default)
+          Vue.set(tgt, name, mod.default)
+        } else {
+          throw Error(`Loading ${path} resulted in 'undefined'!?`)
+        }
+        return name
+      }).catch(err => {
+        // the module failed to load, reject the pushed promise with the error after logging
+        const txt = `Error glob-loading ${path}:\n${err.stack}`
+        console.log(txt)
+        throw new Error(txt)
+      })
+    )
   }
 }
 globImport(palette.widgets, import.meta.glob('/src/widgets/*.vue'))
 globImport(palette.grids, import.meta.glob('/src/grids/*.vue'))
-
-/*
-// custom module loading
-import { loadModule } from 'vue3-sfc-loader/dist/vue2-sfc-loader.js'
-const options = {
-  moduleCache: { vue: Vue, },
-
-  async getFile(url) {
-    const res = await fetch(url)
-    if (!res.ok)
-      throw Object.assign(new Error(res.statusText + ' ' + url), { res })
-    return {
-      getContentData: asBinary => asBinary ? res.arrayBuffer() : res.text(),
-    }
-  },
-
-  addStyle(textContent) {
-    const style = Object.assign(document.createElement('style'), { textContent })
-    const ref = document.head.getElementsByTagName('style')[0] || null
-    document.head.insertBefore(style, ref)
-  },
-}
-
-loadModule('/custom.vue', options)
-  .then(component => {
-    Vue.component(component.name, component)
-    Vue.set(palette.widgets, component.name, component)
-    console.log("Loaded /custom.vue")
-  }).catch(e => {
-    console.log("Error loading /custom.vue:", e)
-  })
-*/
 
 const app = new Vue({
   vuetify,
@@ -85,6 +64,7 @@ const app = new Vue({
     // sending of messages, this global variable is "provided" by the connections component
     // and primarily used by the widget-wrapper
     serverSend: null,
+    palettePromises: palettePromises,
   },
 
   provide: {

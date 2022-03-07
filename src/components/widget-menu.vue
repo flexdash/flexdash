@@ -52,7 +52,8 @@ export default {
     // list of available widgets for the menu
     widget_list() {
       // the map() below extracts the first line from the help for inclusion in the menu
-      return Object.fromEntries(Object.keys(this.palette.widgets).sort().map(w =>
+      const widget_names = Object.keys(this.palette.widgets).filter(w => !w.startsWith('_')).sort()
+      return Object.fromEntries(widget_names.map(w =>
         [ w, (this.palette.widgets[w].help||"").replace(/^([^.\n]{0,80}).*/s, "$1") ]
       ))
     },

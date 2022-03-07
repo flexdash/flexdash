@@ -6,7 +6,7 @@
   <v-app>
 
     <!-- Navigation drawer opening from the left on small devices to show tabs -->
-    <v-navigation-drawer v-model="sidebar" app mini-variant mini-variant-width=auto clipped v-if="gotConfig">
+    <v-navigation-drawer v-model="sidebar" app mini-variant mini-variant-width=auto clipped v-if="gotEverything">
       <v-tabs vertical slider-size="6" v-model=tab_ix>
         <v-tab v-for="t in dash_tabs" :key="t" class="ml-0 mr-auto px-0 d-flexx flex-columnx" style="min-width: auto">
           <v-icon large class="mx-1">mdi-{{tabs[t].icon}}</v-icon>
@@ -30,7 +30,7 @@
       <div class="version d-flex">alpha v{{version}}</div>
 
       <!-- Tabs -->
-      <v-tabs v-model=tab_ix icons-and-text center-active class="hidden-xs-only" v-if="gotConfig">
+      <v-tabs v-model=tab_ix icons-and-text center-active class="hidden-xs-only" v-if="gotEverything">
         <v-tab v-for="(tid, ix) in dash_tabs" :key="tid+ix" :id="'tab-'+tid"
                :class="{'is-active': ix == tab_ix}">
                <!-- set class above as work-around for vuetify issue #11405-->
@@ -104,7 +104,7 @@
     <!-- main area of the page with content -->
     <v-main :style="{ backgroundColor: $vuetify.theme.themes[theme].background}">
       <!-- "normal" tabs with grids and widgets -->
-      <v-tabs-items v-if="gotConfig" :value="tab_ix" :class="tabs_items_class">
+      <v-tabs-items v-if="gotEverything" :value="tab_ix" :class="tabs_items_class">
         <v-tab-item v-for="(id) in dash_tabs" :key="id" :ref="id"
                     :style="{ backgroundColor: $vuetify.theme.themes[theme].background}"
                     :class="{'is-active': id == tab_id}">
@@ -122,26 +122,34 @@
         </v-tab-item>
       </v-tabs-items>
       <!-- iframe tabs, we have two "slots" where content can persist -->
-      <div v-if="gotConfig" :class="iframe_a_class">
+      <div v-if="gotEverything" :class="iframe_a_class">
         <iframe v-if="iframe_a_src" :src="iframe_a_src"
                 frameborder="0" marginheight="0" marginwidth="0"></iframe>
       </div>
-      <div v-if="gotConfig" :class="iframe_b_class">
+      <div v-if="gotEverything" :class="iframe_b_class">
         <iframe v-if="iframe_b_src" :src="iframe_b_src"
                 frameborder="0" marginheight="0" marginwidth="0"></iframe>
       </div>
       <!-- loading... -->
-      <div v-if="!gotConfig">
-        <v-container style="height: 400px;">
-          <v-row class="fill-height" align-content="center" justify="center">
-            <v-col class="text-subtitle-1 text-center" cols="12">
-              Loading configuration from<br>{{config_src}}
-            </v-col>
-            <v-col cols="6">
-              <v-progress-linear color="primary" indeterminate rounded height="6">
-              </v-progress-linear>
-            </v-col>
-          </v-row>
+      <div v-if="!gotEverything">
+        <v-container style="min-height: 400px;" class="d-flex flex-column justify-start align-center">
+          <div class="text-subtitle-1 text-center my-4" v-if="!gotConfig">
+              Loading configuration from<br>{{config_src}}...
+          </div>
+          <div class="text-subtitle-1 text-center"
+               v-if="!paletteLoaded || paletteErrors.length > 0">
+              Loading widgets and grids...
+          </div>
+          <div class="text-subtitle-1 text-center"
+               v-for="(err, ix) in paletteErrorsHtml" :key="ix">
+            {{err}}
+          </div>
+          <v-btn @click="paletteErrors=[]" color="primary" v-if="paletteErrors.length > 0">
+              Continue
+          </v-btn>
+          <v-progress-linear color="primary" class="my-6" indeterminate rounded height="6"
+                             style="max-width: 30em;">
+          </v-progress-linear>
         </v-container>
       </div>
     </v-main>
@@ -170,6 +178,9 @@ export default {
     iframe_a_src: null, // src URL for iframe
     iframe_b_src: null, // src URL for iframe
 
+    paletteLoaded: false,
+    paletteErrors: [],
+
     settings_menu: null, // whether settings menu is open or not
     settings: { edit: 'Edit mode', theme: 'Toggle theme' }, // options in the settings menu
 
@@ -187,14 +198,16 @@ export default {
         && Object.keys(this.$config.widgets).length > 0
         && Object.keys(this.$config.conn).length > 0
     },
-    // note: some of the following get evaluated before the config is loaded, the gotConfig
+    gotPalette() { return this.paletteLoaded && this.paletteErrors.length == 0 },
+    gotEverything() { return this.gotConfig && this.gotPalette },
+    // note: some of the following get evaluated before the config is loaded, the gotEverything
     // guard ensures that they do get re-evaluated when it is loaded despite Vue2 issues...
-    dash() { return this.gotConfig ? this.$config.dash : {} },
+    dash() { return this.gotEverything ? this.$config.dash : {} },
     dash_tabs() { return this.dash.tabs || [] }, // tabs to show, handling init
     tab() { return this.tab_id ? this.tabs[this.tab_id] : {} },
     tab_id() { return this.tab_ix != null ? this.dash_tabs[this.tab_ix] : "" }, // current tab ID
-    tabs() { return this.gotConfig ? this.$config.tabs : {} }, // make accessible in template
-    grids() { return this.gotConfig ? this.$config.grids : {} }, // make accessible in template
+    tabs() { return this.gotEverything ? this.$config.tabs : {} }, // make accessible in template
+    grids() { return this.gotEverything ? this.$config.grids : {} }, // make accessible in template
     theme() { return (this.$vuetify.theme.dark) ? 'dark' : 'light' },
     canUndo() { return this.$store.undo.buf.length > 0 },
     title() { return window.flexdash_options.title },
@@ -205,6 +218,9 @@ export default {
     iframe_b_class() { return ["iframe-tab-wrap", {"iframe-b--active": this.iframe_b_show}] },
     tab_show() { return !!this.tab.grids },
     tabs_items_class() { return {"tabs--active": this.tab_show} },
+
+    // paletteErrorsHtml deals with the fact that each error is multi-line
+    paletteErrorsHtml() { return this.paletteErrors.join('\n').split('\n') },
   },
 
   watch: {
@@ -222,6 +238,10 @@ export default {
 
   created() {
     this.$vuetify.theme.dark = window.flexdash_options.theme == "dark"
+    // handle palettePromises: append errors to paletteErrors and set paletteLoaded when all are done
+    Promise.allSettled(this.$root.palettePromises.map(p =>
+      p.catch(e => this.paletteErrors.push(e.message))
+    )).then(() => this.paletteLoaded = true)
   },
 
   mounted() {

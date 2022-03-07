@@ -1,5 +1,6 @@
-import ViteComponents, { VuetifyResolver } from 'vite-plugin-components'
 import { createVuePlugin } from 'vite-plugin-vue2'
+import { VuetifyResolver } from 'unplugin-vue-components/resolvers';
+import Components from 'unplugin-vue-components/vite';
 import visualizer from 'rollup-plugin-visualizer'
 import compress from 'vite-plugin-compress'
 import gen_start_js from './rollup-plugin-start-js.js'
@@ -8,9 +9,12 @@ export default {
   base: './',
   plugins: [
     createVuePlugin(),
-    ViteComponents({
-      dirs: ['/src/components', '/src/connections'],
-      customComponentResolvers: [VuetifyResolver()],
+    // unplugin-vue-components https://github.com/antfu/unplugin-vue-components
+    Components({
+      directives: false, // auto import for directives
+      resolvers: [
+        VuetifyResolver(),
+      ],
     }),
     //compress({verbose: true}),
     visualizer({

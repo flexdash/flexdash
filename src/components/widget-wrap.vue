@@ -48,7 +48,7 @@
     </div>
 
     <!-- actual component, pass in its bindings -->
-    <component :is="config.kind" :id="config.id" v-bind="bindings" ref="comp"
+    <component :is="widget_kind" :id="config.id" v-bind="bindings" ref="comp"
                @send="sendData($event)" class="my-auto">
     </component>
 
@@ -86,6 +86,7 @@
 <script scoped>
 
 import { walkTree } from '/src/store.js'
+import sfcLoader from '/src/utils/sfc-loader.js'
 
 export default {
   name: 'WidgetWrap',
@@ -112,7 +113,10 @@ export default {
 
   computed: {
     // title shown by widget wrapper
-    title() { return this.bindings.title || "" },
+    title() {
+      if (this.widget_kind.startsWith("__")) return this.config.kind
+      return this.bindings.title || ""
+    },
 
     // child_props holds a description of the properties of the child component, this is used to
     // convert types and raise warning messages. (Note that this is not reactive in the component
@@ -133,7 +137,20 @@ export default {
     // any widget can have a pop-up information/help panel by having a popup_info property
     has_pup_info() {
       return !!this.bindings.popup_info
-    }
+    },
+
+    // flag dynamically loaded single-file-component widgets
+    is_sfc() { return this.config.kind.startsWith("nr__") && this.config.static?.source },
+
+    // intercept the widget kind and deal with dynamically created widgets as well as unknown widgets
+    widget_kind() {
+      const p = this.palette.widgets
+      if (this.config.kind in p) return this.config.kind
+      if (this.is_sfc) {
+        sfcLoader(this.config.kind, this.config.static?.source, p)
+      }
+      return this.config.kind.startsWith('nr__') ? 'LoadingWidget__' : 'UnknownWidget__'
+    },
   },
 
   watch: {
@@ -181,10 +198,14 @@ export default {
       if (config) {
         if (config.output) this.$set(this.bindings, 'output_binding', config.output)
         Object.keys(config.static||{}).forEach(p => {
+          if (this.is_sfc && p == 'source') return // ignore source for sfc widgets
+          const type = this.child_props[p]?.type
           if (config.static[p] !== undefined && config.dynamic[p] === undefined)
-            this.$set(this.bindings, p, config.static[p])
+            this.$set(this.bindings, p, this.typeCast(config.static[p], type))
         })
         Object.keys(config.dynamic||{}).forEach(p => {
+          if (this.is_sfc && p == 'source') return // ignore source for sfc widgets
+          const type = this.child_props[p]?.type
           if (config.dynamic[p] !== undefined)
             this.watchers.push( this.addDynBinding(p, config.dynamic[p]) )
         })
@@ -203,8 +224,12 @@ export default {
       }
       let type = this.child_props[prop].type // note: may be undefined...
 
-      //console.log("Updating binding", prop, "to", val, "of type", type)
+      val = this.typeCast(val, type)
+      console.log(`Updating ${this.config.kind}.${prop}[${type&&type.name}] <- ${typeof val} ${val}`)
+      this.$set(this.bindings, prop, val)
+    },
 
+    typeCast(val, type) {
       if (type === Boolean) {
         if (typeof val === 'number') {
           val = !!val
@@ -235,10 +260,7 @@ export default {
           console.log(`Cannot convert string value for ${prop} to ${type.name}`)
         }
       }
-
-      //console.log(`Updating ${this.config.kind}.${prop}[${type&&type.name}] <- ${typeof val} ${val}`)
-
-      this.$set(this.bindings, prop, val)
+      return val
     },
 
     handleEdit() { this.$emit('edit', 'toggle') },

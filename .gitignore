@@ -4,7 +4,7 @@ node_modules
 /dist
 /tests/cov
 vue-src
-
+stats/
 
 # local env files
 .env.local
