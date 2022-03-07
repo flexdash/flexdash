@@ -36,9 +36,7 @@ let vuetifyRegistered = () => {
 }
 
 async function registerVuetify() {
-  console.log("awaiting vuetify/lib")
   const vv = await import('vuetify/lib')
-  console.log("got vuetify/lib")
   const list = []
   Object.keys(vv).forEach(k => {
     if (k.startsWith('V')) {
