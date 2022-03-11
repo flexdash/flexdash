@@ -25,3 +25,7 @@ pnpm-debug.log*
 *.sln
 *.sw?
 flexdash-*.tar.gz
+flexdash-*.tgz
+.index*
+.vite*
+demo.js

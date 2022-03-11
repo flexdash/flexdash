@@ -50,6 +50,7 @@ function globImport(tgt, metaglob) {
   }
 }
 globImport(palette.widgets, import.meta.glob('/src/widgets/*.vue'))
+globImport(palette.widgets, import.meta.glob('/xtra/*/widgets/*.vue'))
 globImport(palette.grids, import.meta.glob('/src/grids/*.vue'))
 
 const app = new Vue({

@@ -30,6 +30,13 @@ jobs:
         run: |
           npm install --only=dev
           npm run build
+          tar czf flexdash-${{env.VERSION}}.tgz -C dist .
+          ls -ls *.tgz
+      
+      - name: source tgz
+        run: |
+          tar -czf flexdash-${{env.VERSION}}-src.tgz [A-Z]* *.html *.js package* public src
+          ls -ls *.tgz
       
       # - name: Produce html files
       # This is a mess 'cause it then requires a pull & merge, and also it prevents re-running the action'
@@ -56,5 +63,13 @@ jobs:
 
       - name: Upload package to S3 repo
         run: |
-          tar czf flexdash-${{env.VERSION}}.tar.gz -C dist .
-          aws s3 cp --acl public-read flexdash-${{env.VERSION}}.tar.gz s3://${{env.S3_PATH}}/
+          ls -ls *.tgz
+          aws s3 cp --acl public-read flexdash-${{env.VERSION}}.tgz s3://${{env.S3_PATH}}/
+          aws s3 cp --acl public-read flexdash-${{env.VERSION}}-src.tgz s3://${{env.S3_PATH}}/
+
+      - name: Create annotation with link to S3
+        run: |
+          S3=s3.amazonaws.com/${{env.S3_PATH}}
+          echo "https://$S3/$GIT_REF/$SG_ZIP"
+          echo "::notice title=FlexDash dist::https://$S3/flexdash-${{env.VERSION}}.tgz "
+          echo "::notice title=FlexDash src::https://$S3/flexdash-${{env.VERSION}}-src.tgz "

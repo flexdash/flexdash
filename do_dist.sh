@@ -6,7 +6,7 @@
 # - Git commit and push
 # - Create a new tag on github
 
-# OUTDATED
+# OUTDATED, use github action
 exit 1
 
 v1=`egrep version\": package.json`
