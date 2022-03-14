@@ -98,7 +98,7 @@ Note that this "row-wise" structure gets transposed to the columnar structure ex
       const series = [ { label: "time" } ]
       for (let s=0; s<ns; s++) {
         const r = this.axes[s] && this.axes[s].match(/^[rR]/)
-        got_r ||= r
+        got_r = got_r || r
         const d = r ? this.right_decimals : this.left_decimals
         const u = r ? this.right_unit : this.left_unit
         const serie = {

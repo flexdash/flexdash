@@ -28,7 +28,7 @@ jobs:
 
       - name: npm build
         run: |
-          npm install --only=dev
+          npm install --production=false
           npm run build
           tar czf flexdash-${{env.VERSION}}.tgz -C dist .
           ls -ls *.tgz
