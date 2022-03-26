@@ -8,15 +8,15 @@
     <v-card-text class="d-flex px-2">
       <!-- move tab left/right -->
       <v-tooltip bottom>
-        <template v-slot:activator="{ on }">
-          <v-btn small icon @click="moveTab(-1)" class="" v-on="on">
+        <template v-slot:activator="{ props }">
+          <v-btn icon @click="moveTab(-1)" density="compact" v-bind="props">
             <v-icon>mdi-arrow-left-bold</v-icon></v-btn>
         </template>
         <span>Move tab left</span>
       </v-tooltip>
       <v-tooltip bottom>
-        <template v-slot:activator="{ on }">
-          <v-btn small icon @click="moveTab(1)" v-on="on">
+        <template v-slot:activator="{ props }">
+          <v-btn small icon @click="moveTab(1)" v-bind="props">
             <v-icon>mdi-arrow-right-bold</v-icon></v-btn>
         </template>
         <span>Move tab right</span>
@@ -65,7 +65,7 @@
       </div>
       <div v-if="tab_kind=='iframe'" class="mx-2">
         <v-radio-group row mandatory hide-details :value="tab.slot">
-          <template slot="label">
+          <template v-slot:label>
             <span class="mr-2">Slot:</span>
           </template>
           <v-radio label="A" value="a" @click="handleEdit('slot', 'a')"></v-radio>

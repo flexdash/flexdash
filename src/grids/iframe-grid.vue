@@ -8,8 +8,8 @@
     <!-- Hacky roll-up/roll-down icon at the top-center of the grid if there's no title -->
     <div v-if="rollupMini" :class="rollerClasses">
       <v-tooltip bottom>
-        <template v-slot:activator="{ on }">
-          <v-btn x-small icon height="24px" class="mx-auto" @click="toggleRoll" v-on="on">
+        <template v-slot:activator="{ props }">
+          <v-btn x-small icon height="24px" class="mx-auto" @click="toggleRoll" v-bind="props">
             <v-icon>mdi-arrow-{{rolledup ? 'down' : 'up'}}-drop-circle</v-icon>
           </v-btn>
         </template>
@@ -22,8 +22,8 @@
                class="d-flex justify-start">
       <!-- roll-up/down button -->
       <v-tooltip bottom>
-        <template v-slot:activator="{ on }">
-          <v-btn x-small icon height="24px" class="mx-auto" @click="toggleRoll" v-on="on">
+        <template v-slot:activator="{ props }">
+          <v-btn x-small icon height="24px" class="mx-auto" @click="toggleRoll" v-bind="props">
             <v-icon>mdi-arrow-{{rolledup ? 'down' : 'up'}}-drop-circle</v-icon>
           </v-btn>
         </template>
@@ -34,11 +34,11 @@
     </v-toolbar>
 
     <!-- Editing toolbar above grid proper -->
-    <v-toolbar v-if="$root.editMode" dense flat color="background" class="editmode">
+    <v-toolbar v-if="global.editMode" dense flat color="background" class="editmode">
       <!-- roll-up/down button -->
       <v-tooltip bottom>
-        <template v-slot:activator="{ on }">
-          <v-btn small icon color="grey" @click="toggleRoll" class="mr-4" v-on="on">
+        <template v-slot:activator="{ props }">
+          <v-btn small icon color="grey" @click="toggleRoll" class="mr-4" v-bind="props">
             <v-icon>mdi-arrow-{{rolledup ? 'down' : 'up'}}-drop-circle</v-icon>
           </v-btn>
         </template>
@@ -47,9 +47,9 @@
 
       <!-- iframe title text field -->
       <v-tooltip bottom>
-        <template v-slot:activator="{ on }">
+        <template v-slot:activator="{ props }">
           <v-text-field single-line dense hide-details label="title" class="mr-6 flex-grow-0"
-                        v-on="on" :value="grid.title" @change="changeUrl" style="width: 20ex">
+                        v-bind="props" :value="grid.title" @change="changeUrl" style="width: 20ex">
           </v-text-field>
         </template>
         <span>Title to show at top of grid, if empty the grid bar is thinner</span>
@@ -57,9 +57,9 @@
 
       <!-- iframe source URL -->
       <v-tooltip bottom>
-        <template v-slot:activator="{ on }">
+        <template v-slot:activator="{ props }">
           <v-text-field single-line dense hide-details label="url" class="mr-6 flex-grow-1"
-                        v-on="on" :value="grid.url" @change="changeUrl">
+                        v-bind="props" :value="grid.url" @change="changeUrl">
           </v-text-field>
         </template>
         <span>Source URL to fill the iframe with</span>
@@ -68,8 +68,8 @@
       <v-spacer></v-spacer>
       <!-- Button to delete the grid -->
       <v-tooltip bottom>
-        <template v-slot:activator="{ on }">
-          <v-btn small @click="$emit('delete')" class="mc-auto" v-on="on">
+        <template v-slot:activator="{ props }">
+          <v-btn small @click="$emit('delete')" class="mc-auto" v-bind="props">
             Delete grid
           </v-btn>
         </template>
@@ -98,7 +98,7 @@
 export default {
   name: 'IFrameGrid',
 
-  inject: [ '$store', '$config' ],
+  inject: [ '$store', '$config', 'global' ],
 
   props: {
     id: { type: String }, // this grid's ID
@@ -112,8 +112,8 @@ export default {
   computed: {
     // grid config: {id, kind, icon, widgets}
     grid() { return this.$store.gridByID(this.id) },
-    rollupMini() { return !this.$root.editMode && !this.grid.title },
-    rollupMaxi() { return !this.$root.editMode &&  this.grid.title },
+    rollupMini() { return !this.global.editMode && !this.grid.title },
+    rollupMaxi() { return !this.global.editMode &&  this.grid.title },
     rollerClasses() { // classes for mini roll-up div
       const rm = this.grid.url &&  !this.rolledup && 'roller__minimal'
       return [ 'd-flex', 'roller', rm ]

@@ -26,10 +26,11 @@
             <v-icon>mdi-close</v-icon>
           </v-btn>
         </v-card-title>
-        <v-treeview dense activatable open-on-click 
+        NOT WORKING YET
+        <!--v-treeview dense activatable open-on-click 
                     @update:active="treeSelect"
                     :open="path" :items="tree">
-        </v-treeview>
+        </v-treeview-->
       </v-card>
     </v-overlay>
   </div>

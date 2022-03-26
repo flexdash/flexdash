@@ -3,7 +3,6 @@
    Copyright ©2021 Thorsten von Eicken, MIT license, see LICENSE file
 */
 
-import Vue from 'vue'
 import { io } from "socket.io-client"
 
 const state_txt = ['connecting', 'connected', 'closing', 'closed']
@@ -12,7 +11,7 @@ const namespace = ""
 
 export default class SockioConnection {
 
-  constructor (recvMsg, doAuth) {
+  constructor (store, recvMsg, doAuth) {
     this.recvMsg = recvMsg
     this.doAuth = doAuth
     this.sock = null
@@ -22,11 +21,11 @@ export default class SockioConnection {
     this.requests = {}
 
     // data fed into the Vue reactivity system
-    this.data = Vue.observable({
+    this.data = {
       last_msg: {topic:null, payload:null}, // last message sent for display
       status: 'off',
       status_txt: 'off',
-    })
+    }
 
     return this
   }

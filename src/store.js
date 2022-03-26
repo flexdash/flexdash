@@ -2,7 +2,7 @@
 // that is displayed by the dashboard as well as the "config" of the dashboard itself.
 // Copyright ©2021 Thorsten von Eicken, MIT license, see LICENSE file
 
-import Vue from 'vue'
+import { reactive } from 'vue'
 
 // import cloneDeep from 'lodash.clonedeep'
 // Use JSON instead of importing 9KB for cloneDeep -- we only use it to create widgets and
@@ -40,7 +40,8 @@ function walkTree(root, path) {
       // need to handle undefined here because we explicitly set properties to undefined if
       // we need to attach a watcher to a property that doesn't exist FIXME: outdated?
       if (!(d in node) || typeof node[d] === 'undefined')
-        Vue.set(node, d, {}) // allow new subtrees to be created
+        node[d] = {} // allow new subtrees to be created
+        //Vue.set(node, d, {}) // allow new subtrees to be created
       node = node[d]
     } else {
       throw new StoreError(`Level '${d}' of '${path}'' is not traversable: ${typeof node[d]}`)
@@ -60,15 +61,16 @@ const empty_grid = { kind: 'FixedGrid', title: "", widgets: [] }
 const empty_widget = { kind: 'Stat', rows:1, cols:1, static:{title:"Stat"}, dynamic:{} }
 
 export class Store {
-  constructor () {
+  constructor (vue) { // pass in the Vue app instance
     // At init we need to populate $config a little so Vue2's watchers work, sigh...
-    this.root = Vue.observable({
+    this.vue = vue
+    this.root = reactive({
       sd:{},
       $config: {dash:{}, tabs:{}, grids:{}, widgets:{}, conn:{}}
     })
     this.sd = this.root.sd // server data, i.e. the data being visualized by the dashboard
     this.config = this.root.$config // the dashboard's configuration
-    this.undo = Vue.observable({ buf:[], at:null }) // undo steps
+    this.undo = reactive({ buf:[], at:null }) // undo steps
     return this
   }
 
@@ -90,10 +92,14 @@ export class Store {
     }
 
     if (topic === "$config") {
+      this.config = this.root.$config = payload
       // beware of Vue2 reactivity limitations...
       //Vue.set(this.root, '$config', payload)
       //this.config = this.root.$config
-      Object.keys(payload).forEach(k => { Vue.set(this.config, k, payload[k]) })
+      // Object.keys(payload).forEach(k => {
+      //   // Vue.set(this.config, k, payload[k])
+      //   this.config[k] = payload[k]
+      // })
       console.log("Replaced $config with:", payload)
       return
     }
@@ -113,7 +119,8 @@ export class Store {
             throw new StoreError(`Cannot delete array element '${ix}' in '${topic}'`)
           old = dir[ix]
           //console.log(`Updated array elt ${topic} with`, payload)
-          Vue.set(dir, ix, payload)
+          // Vue.set(dir, ix, payload)
+          dir[ix] = payload
         } else if (ix == dir.length) {
           if (payload === undefined)
             throw new StoreError(`Array index '${ix}' in '${topic}' >= ${dir.length}`)
@@ -130,10 +137,12 @@ export class Store {
       old = dir[t]
       if (payload !== undefined) {
         //console.log(`Updated ${topic} with:`, payload)
-        Vue.set(dir, t, payload) // $set 'cause we may add new props to dir
+        //Vue.set(dir, t, payload) // $set 'cause we may add new props to dir
+        dir[t] = payload
       } else {
         console.log(`Deleted ${topic}`)
-        Vue.delete(dir, t)
+        // Vue.delete(dir, t)
+        delete dir[t]
       }
     } else {
       throw new StoreError(`${topic} is neither Array nor Object in server state`)
@@ -491,10 +500,12 @@ export class Store {
 
 }
 
-let instance = new Store()
-export default instance
-window.store = instance // for debugging only
+export default Store
 
-// for unit test purposes...
-export function StoreReinit() { Object.assign(instance, new Store()) }
+// let instance = new Store()
+// export default instance
+// window.store = instance // for debugging only
+
+// // for unit test purposes...
+// export function StoreReinit() { Object.assign(instance, new Store()) }
 

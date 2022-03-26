@@ -19,25 +19,23 @@
 <template>
   <!-- without div the v-for in parent gets confused by v-menu -->
   <div class="widget-edit" :style="widgetStyle">
+    <!-- Widget proper -->
+    <widget-wrap :config="widget" :no_border="no_border" :id='id'
+                  @edit="toggleEdit" :color="edit_active?'highlight':''">
+    </widget-wrap>
+
     <!-- v-menu is used to display a floating v-card below the component for editing
          We control the activation and deactivation of the menu ourselves, though. -->
-    <v-menu :value="edit_active && reposition" offset-y allow-overflow min-width="80%"
-            content-class="popup-spacer"
+    <v-menu :model-value="edit_active && reposition" class='mt-1'
+            :activator="'#'+id" anchor="bottom" origin="top" min-width="80%"
             :close-on-content-click="false" :close-on-click="false">
-
-      <!-- Widget proper -->
-      <template v-slot:activator="on">
-        <widget-wrap :config="widget" :no_border="no_border"
-                     @edit="toggleEdit" :color="edit_active?'highlight':''" :not-used="on">
-        </widget-wrap>
-      </template>
 
       <!-- Editing panel shown floating below widget -->
       <v-card color="panel">
-        <v-card-title class="d-flex align-baseline pb-6">
+        <v-card-title class="d-flex pb-6">
           <span>Edit {{widget.kind}} widget</span>
-          <v-text-field dense class="ml-3 mt-0 text-h6 flex-grow-0"
-                        :value="widget.static['title']" :hide-details="true"
+          <v-text-field hide-details class="ml-3 mt-0 text-h6 flex-grow-1"
+                        :model-value="widget.static['title']" density="compact"
                         @input="handleEdit('static', 'title', $event)">
           </v-text-field>
           <v-spacer></v-spacer>
@@ -84,23 +82,23 @@
                 <widget-move :id="id" @move="teleport"></widget-move>
                 <!-- clone widget -->
                 <v-tooltip bottom>
-                  <template v-slot:activator="{ on }">
-                    <v-btn small icon @click="$emit('clone')" v-on="on">
+                  <template v-slot:activator="{ props }">
+                    <v-btn small icon @click="$emit('clone')" v-bind="props">
                       <v-icon>mdi-folder-multiple</v-icon></v-btn>
                   </template>
                   <span>Duplicate/clone widget</span>
                 </v-tooltip>
                 <!-- move widget up/down -->
                 <v-tooltip bottom>
-                  <template v-slot:activator="{ on }">
-                    <v-btn small icon @click="moveWidget(-1)" class="ml-2" v-on="on">
+                  <template v-slot:activator="{ props }">
+                    <v-btn small icon @click="moveWidget(-1)" class="ml-2" v-bind="props">
                       <v-icon>mdi-arrow-up-bold</v-icon></v-btn>
                   </template>
                   <span>Move widget towards the top-left of the grid</span>
                 </v-tooltip>
                 <v-tooltip bottom>
-                  <template v-slot:activator="{ on }">
-                    <v-btn small icon @click="moveWidget(1)" v-on="on">
+                  <template v-slot:activator="{ props }">
+                    <v-btn small icon @click="moveWidget(1)" v-bind="props">
                       <v-icon>mdi-arrow-down-bold</v-icon></v-btn>
                   </template>
                   <span>Move widget towards the bottom-right of the grid</span>
@@ -128,13 +126,13 @@
               <v-col class="d-flex" cols="12" sm="6" md="4" v-for="prop in edit_props" :key=prop>
                 <!-- toggle buttons to select static vs. dynamic -->
                 <v-tooltip bottom>
-                  <template v-slot:activator="{ on, attrs }">
+                  <template v-slot:activator="{ props }">
                     <v-btn-toggle mandatory dense class="mt-2 mr-1"
                                   :value="prop_static[prop]" @change="toggleStatic(prop, $event)"
                                   background-color="rgba(0,0,0,0)" color="primary">
-                      <v-btn x-small icon v-bind="attrs" v-on="on">
+                      <v-btn x-small icon v-bind="props">
                         <v-icon>mdi-link-variant</v-icon></v-btn>
-                      <v-btn x-small icon v-bind="attrs" v-on="on">
+                      <v-btn x-small icon v-bind="props">
                         <v-icon>{{prop_info[prop].icon}}</v-icon></v-btn>
                     </v-btn-toggle>
                   </template>

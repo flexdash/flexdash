@@ -53,8 +53,8 @@
               <v-col class="d-flex" cols="8" sm="2" md="4">
                 <!-- switch between solid vs grid -->
                 <v-tooltip bottom>
-                  <template v-slot:activator="{ on }">
-                    <v-switch dense flat hide-details label="solid" class="mt-0 mr-3" v-on="on"
+                  <template v-slot:activator="{ props }">
+                    <v-switch dense flat hide-details label="solid" class="mt-0 mr-3" v-bind="props"
                         :input-value="widget.static.solid" @change="changeSolid">
                     </v-switch>
                   </template>
@@ -64,15 +64,15 @@
                 <v-btn small @click="$emit('clone')">Clone</v-btn>
                 <!-- move panel up/down -->
                 <v-tooltip bottom>
-                  <template v-slot:activator="{ on }">
-                    <v-btn small icon @click="moveWidget(-1)" class="ml-2" v-on="on">
+                  <template v-slot:activator="{ props }">
+                    <v-btn small icon @click="moveWidget(-1)" class="ml-2" v-bind="props">
                       <v-icon>mdi-arrow-up-bold</v-icon></v-btn>
                   </template>
                   <span>Move panel towards the top-left of the grid</span>
                 </v-tooltip>
                 <v-tooltip bottom>
-                  <template v-slot:activator="{ on }">
-                    <v-btn small icon @click="moveWidget(1)" v-on="on">
+                  <template v-slot:activator="{ props }">
+                    <v-btn small icon @click="moveWidget(1)" v-bind="props">
                       <v-icon>mdi-arrow-down-bold</v-icon></v-btn>
                   </template>
                   <span>Move panel towards the bottom-right of the grid</span>

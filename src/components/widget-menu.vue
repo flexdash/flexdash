@@ -18,7 +18,7 @@
     </template>
     <!-- Menu content -->
     <v-list>
-      <v-subheader>Add Widget to the end of the grid</v-subheader>
+      <v-list-subheader>Add Widget to the end of the grid</v-list-subheader>
       <v-list-item v-for="(descr, kind) in widget_list" :key="kind"
                    @click="$emit('select', kind)" link>
           <v-list-item-title>{{kind}}</v-list-item-title>

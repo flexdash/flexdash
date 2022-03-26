@@ -266,13 +266,13 @@ const demo_tabs = {
                   "static": { "title":"Kitchen", "arc":180, "base_color":"lightgreen",
                               "color":"blue", "unit":"F", "radius":90, "needle_color":"white" },
                   "dynamic": { "value": "$demo/kitchen" }, "rows": 1, "cols": 1 },
-      "w0011": { "kind": "Sparkchart", "id": "w0011",
+      "w0011": { "kind": "SparkLine", "id": "w0011",
                   "static": { "title":"Hilltop", "color":"green", "line_width":4, "fill":true },
                   "dynamic": { "value": "$demo/hilltop" }, "rows": 1, "cols": 1 },
-      "w0012": { "kind": "Sparkchart", "id": "w0012",
+      "w0012": { "kind": "SparkLine", "id": "w0012",
                   "static": { "title": "Hilltop", "bars": true },
                   "dynamic": { "value": "$demo/hilltop" }, "rows": 1, "cols": 1 },
-      "w0013": { "kind": "Sparkchart", "id": "w0013",
+      "w0013": { "kind": "SparkLine", "id": "w0013",
                   "static": { "title": "Kitchen" },
                   "dynamic": { "value": "$demo/kitchen" }, "rows": 1, "cols": 2 },
       "w0014": { "kind": "TimePlot", "id": "w0014",
@@ -471,17 +471,17 @@ const plot_opts = {
         "F": { from: "C", range: /*(u, min, max) =>*/ '[ min*9/5+32, max*9/5+32 ]' }, },
 }
 
-import Vue from 'vue'
 import randomStepper from '/src/utils/random-stepper.js'
-import store from '/src/store.js' // not happy about this...
 
 export default class DemoConnection {
-  constructor (storeInsert) {
+  constructor (store, storeInsert) {
+    this.storeInsert = storeInsert
+    this.store = store
     this.name = "demo"
     // data fed into the Vue reactivity system
-    this.data = Vue.observable({
+    this.data = {
       status: 'off',
-    })
+    }
     this.demos = Object.keys(demo_tabs) // used in UI to choose demo to inject
     return this
   }
@@ -507,10 +507,10 @@ export default class DemoConnection {
     // not liking this, but we'll see how the demo stuff evolves...
     // We inject by using the store's qMutation directly such that if we have a connection
     // the demo tab gets sent to the server.
-    if (!store.config.dash.tabs) {
-      const conn = store.config.conn || {}
+    if (!this.store.config.dash.tabs) {
+      const conn = this.store.config.conn || {}
       console.log("Demo injecting $config")
-      store.qMutation('demo init', [
+      this.store.qMutation('demo init', [
         [ 'dash', {title:"FlexDash", tabs:[]} ],
         [ 'tabs', {} ],
         [ 'grids', {} ],
@@ -519,9 +519,9 @@ export default class DemoConnection {
       ])
     }
 
-    const tabs = Object.keys(demo_tabs[tab].tabs).filter(t => !(t in store.config.tabs))
+    const tabs = Object.keys(demo_tabs[tab].tabs) //.filter(t => !(t in this.store.config.tabs))
     if (tabs.length == 0) return
-    const mutation = [ [ "dash/tabs", store.config.dash.tabs.concat(tabs) ] ]
+    const mutation = [ [ "dash/tabs", this.store.config.dash.tabs.concat(tabs) ] ]
     for (let type in demo_tabs[tab]) {
       for (let id in demo_tabs[tab][type]) {
         mutation.push([`${type}/${id}`, demo_tabs[tab][type][id]])
@@ -529,7 +529,7 @@ export default class DemoConnection {
     }
     //console.log(`Demo injecting demo tab ${tab}`)
     //console.log("mutation", mutation)
-    store.qMutation(`demo tab ${tab}`, mutation)
+    this.store.qMutation(`demo tab ${tab}`, mutation)
   }
 
   stop() {

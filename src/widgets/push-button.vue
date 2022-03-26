@@ -3,8 +3,9 @@
 -->
 <template>
   <div class="pushbutton d-flex align-center justify-center">
-    <v-btn large dense class="ma-auto" max-width="95%" v-bind="bindings" @click="clickEv($event)">
-      <v-icon :large="!title"  v-if="icon">mdi-{{icon}}</v-icon> <span>{{ title }}</span>
+    <v-btn v-bind="bindings" variant="contained" class="ma-auto" max-width="95%" @click="clickEv($event)">
+      <v-icon :large="!title"  v-if="icon">mdi-{{icon}}</v-icon>
+      <span>{{ title }}</span>
     </v-btn>
   </div>
 </template>

@@ -7,43 +7,39 @@
 -->
 
 <template>
-  <!--class="d-flex flex-column justify-start align-center"-->
   <v-card :color="color" :class="full_page ? 'full-page' : undefined"
           :elevation="no_border ? 0 : undefined"
-          :outlined="no_border && $root.editMode"
+          :outlined="no_border && global.editMode"
           style="overflow: hidden">
 
     <!-- Widget title & buttons shown when the child component does _not_ show the title -->
     <v-card-text v-if="!('title' in child_props) && title" class="d-flex pa-0 pt-1 mb-n1">
       <!-- title and edit button -->
       <span v-if="title" class="mx-auto text-no-wrap">{{title}}</span>
-      <v-btn small icon class="edit-btn" v-if="$root.editMode" @click="handleEdit">
-        <v-icon small>mdi-pencil</v-icon>
+      <v-btn density="compact" flat class="edit-btn"
+             v-if="global.editMode" @click="handleEdit">
+        <v-icon icon="mdi-pencil" size="small" />
       </v-btn>
     </v-card-text>
 
     <!-- Widget edit button w/o title when the child component shows the title itself -->
-    <!--div display:content v-else-if="$root.editMode"-->
-      <!-- we need to make sure we're floating way above the widget content... -->
-      <div v-else-if="$root.editMode"
-           style="position:absolute; z-index:5; right:0; top:0px;">
-        <v-btn small icon class="edit-btn" @click="handleEdit">
-          <v-icon small>mdi-pencil</v-icon>
-        </v-btn>
-      </div>
-    <!--/div-->
+    <!-- we need to make sure we're floating way above the widget content... -->
+    <v-btn density="compact" flat class="edit-btn" style="z-index:5"
+            v-else-if="global.editMode" @click="handleEdit">
+      <v-icon icon="mdi-pencil" size="small" />
+    </v-btn>
 
     <!-- Icon to show widget full-page -->
-    <div v-if="(can_full_page || has_pup_info) && !$root.editMode" class="full-page-btn"
+    <div v-if="(can_full_page || has_pup_info) && !global.editMode" class="full-page-btn"
          style="position:absolute; z-index:4; right:0; top:0.5ex;">
-        <v-btn small icon v-if="can_full_page" @click="toggleFullPage"
+        <v-btn density="compact" flat v-if="can_full_page" @click="toggleFullPage"
                class="justify-center align-center mt-n1">
           <!--v-icon small style="background-color:red">mdi-arrow-expand-all</v-icon-->
-          <v-icon small>{{full_page ? "mdi-arrow-collapse" : "mdi-arrow-expand"}}</v-icon>
+          <v-icon size="small">{{full_page ? "mdi-arrow-collapse" : "mdi-arrow-expand"}}</v-icon>
         </v-btn>
-        <v-btn small icon v-if="has_pup_info" @click="togglePupInfo"
+        <v-btn density="compact" flat v-if="has_pup_info" @click="togglePupInfo"
                class="justify-center align-center mt-n1">
-          <v-icon small>{{pup_info ? "mdi-information-off" : "mdi-information"}}</v-icon>
+          <v-icon size="small">{{pup_info ? "mdi-information-off" : "mdi-information"}}</v-icon>
         </v-btn>
     </div>
 
@@ -52,7 +48,7 @@
                @send="sendData($event)" class="my-auto">
     </component>
 
-    <!-- dialog box to view the widget's pop-up information full-page -->
+    <!-- dialog box to view the widget's pop-up "help" information full-page -->
     <v-dialog v-model="pup_info" width="80%" max-width="100ex">
       <v-card v-if="pup_info" class="d-flex flex-column height100">
         <v-card-title class="d-flex align-baseline width100">
@@ -74,10 +70,10 @@
 <style scoped>
 .v-card { height: 100%; width: 100% }
 .v-card { display: flex; flex-direction: column; justify-content: flex-start; align-items: center }
-.v-card.full-page { position: fixed; left: 1%; top: 1%; z-index: 10; width: 98%; height: 98% }
+.v-card.full-page { position: absolute; left: 1%; top: 1%; z-index: 10; width: 98%; height: 98% }
 .v-card.full-page .full-page-btn { z-index: 11 }
 .v-card .edit-btn {
-  position: absolute; right: 0px; top: 0px; z-index: 1;
+  position: absolute; right: 0px; top: 0px; padding: 0px; min-width: 0px; z-index: 1;
 }
 .theme--light.v-btn--icon { background-color: rgba(255, 255, 255, 0.6); }
 .theme--dark.v-btn--icon  { background-color: rgba(30, 30, 30, 0.6); }
@@ -86,10 +82,14 @@
 <script scoped>
 
 import { walkTree } from '/src/store.js'
-import sfcLoader from '/src/utils/sfc-loader.js'
+import Md from '/src/components/md.vue'
+//import sfcLoader from '/src/utils/sfc-loader.js'
 
 export default {
   name: 'WidgetWrap',
+
+  components: { Md },
+  inject: [ '$store', 'palette', 'global' ],
 
   props: {
     color: { type: String, default: undefined }, // background color to highlight the card
@@ -147,7 +147,7 @@ export default {
       const p = this.palette.widgets
       if (this.config.kind in p) return this.config.kind
       if (this.is_sfc) {
-        sfcLoader(this.config.kind, this.config.static?.source, p)
+        //sfcLoader(this.config.kind, this.config.static?.source, p)    
       }
       return this.config.kind.startsWith('nr__') ? 'LoadingWidget__' : 'UnknownWidget__'
     },
@@ -159,13 +159,11 @@ export default {
     // It would be nice if we could make this.bindings computed properties but this is not
     // possible because we have to update this.watchers as a side-effect.
     config: {
-      immediate: true,
+      immediate: true,    
       deep: true,
       handler(config) { this.genBindings(config) },
     },
   },
-
-  inject: [ '$store', 'palette' ],
 
   methods: {
     // addDynBinding adds a dynamic binding of store.sd[var_name] -> bindings[key]
@@ -196,12 +194,12 @@ export default {
       // generate bindings, dynamic overrides static
       this.bindings = {}
       if (config) {
-        if (config.output) this.$set(this.bindings, 'output_binding', config.output)
+        if (config.output) this.bindings['output_binding'] = config.output
         Object.keys(config.static||{}).forEach(p => {
           if (this.is_sfc && p == 'source') return // ignore source for sfc widgets
           const type = this.child_props[p]?.type
           if (config.static[p] !== undefined && config.dynamic[p] === undefined)
-            this.$set(this.bindings, p, this.typeCast(config.static[p], type))
+            this.bindings[p] = this.typeCast(config.static[p], type)
         })
         Object.keys(config.dynamic||{}).forEach(p => {
           if (this.is_sfc && p == 'source') return // ignore source for sfc widgets
@@ -226,7 +224,7 @@ export default {
 
       val = this.typeCast(val, type)
       console.log(`Updating ${this.config.kind}.${prop}[${type&&type.name}] <- ${typeof val} ${val}`)
-      this.$set(this.bindings, prop, val)
+      this.bindings[prop] = val
     },
 
     typeCast(val, type) {

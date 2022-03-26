@@ -13,12 +13,12 @@
 </template>
 
 <script scoped>
-import md from '/src/components/md.vue'
+import Md from '/src/components/md.vue'
 
 export default {
   name: 'Markdown',
 
-  components: { md },
+  components: { Md },
 
   full_page: true, // tells the widget-wrapper to provide a full-page button
 

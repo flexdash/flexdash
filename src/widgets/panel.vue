@@ -4,7 +4,7 @@
 
 <template>
   <div :class="panel_classes" :style="panel_style">
-    <widget-menu v-if="$root.editMode" button_class="add-widget" @select="addWidget">
+    <widget-menu v-if="global.editMode" button_class="add-widget" @select="addWidget">
     </widget-menu>
     <component v-for="(w,ix) in widgets" :key="w" :id="w" :is="editComponent[w]"
                :edit_active="ix == edit_ix" :no_border="true"
@@ -50,7 +50,7 @@ act only as a fixed arrangement of widgets.`,
 
   components: { PanelEdit, WidgetEdit, WidgetMenu },
 
-  inject: ['$store'],
+  inject: ['$store', 'global'],
 
   props: {
     id: null, // panel's own widget id

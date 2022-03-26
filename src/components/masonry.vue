@@ -60,8 +60,9 @@ export default {
       const grid_style = window.getComputedStyle(this.$el)
       const rowGap = parseInt(grid_style.getPropertyValue('grid-row-gap'))
       const rowHeight = parseInt(grid_style.getPropertyValue('grid-auto-rows'))
-      for (let brick of this.$children) {
-        this.resizeBrick(brick.$el, rowHeight, rowGap)
+      //debugger
+      for (let brick of this.$el.children) {
+        this.resizeBrick(brick, rowHeight, rowGap)
       }
     }
 

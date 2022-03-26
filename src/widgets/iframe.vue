@@ -2,8 +2,7 @@
      Copyright ©2021 Thorsten von Eicken, MIT license, see LICENSE file
 -->
 <template>
-  <iframe :src="url" width="100%" height="100%"
-          frameborder="0" marginheight="0" marginwidth="0"></iframe>
+  <iframe :src="url" frameborder="0" marginheight="0" marginwidth="0"></iframe>
 </template>
 
 <style scoped>

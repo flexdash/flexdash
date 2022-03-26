@@ -21,21 +21,23 @@
 
 <script scoped>
 export default {
-  name: 'md',
+  name: 'Md',
 
   data() { return {
     md_render: "",
   }},
 
   mounted() {
-    const text = this.$slots.default[0].text.trim() || ""
+    const def_slot = this.$slots.default
+    const text = (def_slot && def_slot()[0].children?.trim()) || ""
     //console.log("Before:", text.replace(/\n/g, "\\n"))
     //console.log("After:", tfmarkdown(text, true))
     this.md_render = tfmarkdown(text, true)
   },
 
   beforeUpdate() {
-    const text = this.$slots.default[0].text.trim() || ""
+    const def_slot = this.$slots.default
+    const text = (def_slot && def_slot()[0].children?.trim()) || ""
     //console.log("Before:", text.replace(/\n/g, "\\n"))
     //console.log("After:", tfmarkdown(text, true))
     this.md_render = tfmarkdown(text, true)

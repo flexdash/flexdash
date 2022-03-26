@@ -1,38 +1,31 @@
-import { createVuePlugin } from 'vite-plugin-vue2'
-import { VuetifyResolver } from 'unplugin-vue-components/resolvers';
-import Components from 'unplugin-vue-components/vite';
+import { defineConfig } from 'vite'
+import vue from '@vitejs/plugin-vue'
+import vuetify from '@vuetify/vite-plugin'
 import visualizer from 'rollup-plugin-visualizer'
-import compress from 'vite-plugin-compress'
-import gen_start_js from './rollup-plugin-start-js.js'
 
-// function watchResolve() {
-//   return {
-//     name: 'watch-resolve', // required, will show up in warnings and errors
-//     resolveId(id) {
-//       console.log("resolving: " + id)
-//       if (id.startsWith('uplot')) {
-//         return `${__dirname}/node_modules/${id}`
-//       }
-//     },
-//     load(id) {
-//       console.log("loading: " + id)
+// const path = require('path')
+// function dynloader() { return {
+//   name: 'dynloader',
+//   resolveId(source, importer, opts) {
+//     if (source.match(/^vuetify\//)) {
+//       //const id = path.resolve(__dirname, 'node_modules', source)
+//       const id = path.join('/node_modules', source)
+//       console.log("********** resolveId: " + source + " from " + importer + " -> " + id) // " opts: " + JSON.stringify(opts))
+//       return id
 //     }
 //   }
-// }
+// }}
 
-export default {
+// https://vitejs.dev/config/
+export default defineConfig({
   base: './',
   plugins: [
-    //watchResolve(),
-    createVuePlugin(),
-    // unplugin-vue-components https://github.com/antfu/unplugin-vue-components
-    Components({
-      directives: false, // auto import for directives
-      resolvers: [
-        VuetifyResolver(),
-      ],
+    //{name:'RINFO', resolveId: (s, i, o) => { console.log("RESOLVEID: " + s + " from " + i + " w/" + o)}},
+    vue(),
+    vuetify({ // https://github.com/vuetifyjs/vuetify-loader/tree/next/packages/vite-plugin
+      autoImport: true,
     }),
-    //compress({verbose: true}),
+    //dynloader(),
     visualizer({
       filename: "stats/stats.html",
       title: "FlexDash Rollup",
@@ -41,21 +34,31 @@ export default {
     }),
   ],
   define: {
-    // pull-in the package version from package.json
+    // pull-in the FlexDash version from package.json
     'import.meta.env.PACKAGE_VERSION': JSON.stringify(process.env.npm_package_version)
+  },
+  resolve: {
+    alias: {
+      //'@': path.resolve(__dirname, 'src'),
+    },
+  },
+  server: {
+    //fs: { allow: [ '.', '../mylib' ] },
   },
   build: {
     manifest: true,
     chunkSizeWarningLimit: 2000,
-    rollupOptions: {
-      plugins: [gen_start_js()],
-      output: {
-        manualChunks: {
-          vuetify: ["vuetify/lib"],
-          vue: ["vue"],
-          'vue3-sfc-loader': ["vue3-sfc-loader", "vue3-sfc-loader/dist/vue2-sfc-loader"],
-        },
-      },
+    dynamicImportVarsOptions: { // don't eval/rewrite dynamic import statements
+      exclude: ["./src/main.js"]
     },
-  },
-}
+    rollupOptions: {
+      external: ['vue', 'vuetify/lib'], // don't include in bundle
+      output: {
+        paths: {
+          vue: '/assets/vue.esm-browser.js',
+          vuetify: '/assets/vuetify.esm.js',
+        }
+      }
+    }
+  }
+})

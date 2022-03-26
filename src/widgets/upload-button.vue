@@ -5,9 +5,9 @@
 <template>
   <div class="uploadbutton d-flex align-center justify-center width100 px-1">
     <v-tooltip top :open-on-hover="!!tooltip">
-      <template v-slot:activator="{ on, attrs }">
+      <template v-slot:activator="{ props }">
         <v-file-input :accept="accept" :label="title" solo dense hide-details single-line
-                      v-bind="Object.assign(bindings, attrs)" v-on="on" :value="value" ref="fileupload"
+                      v-bind="Object.assign(bindings, props)" :value="value" ref="fileupload"
                       @change="clickEv($event)">
         </v-file-input>
       </template>

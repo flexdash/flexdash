@@ -45,7 +45,8 @@
 </style>
 
 <script scoped>
-import md_colors from 'vuetify/es5/util/colors.js'
+
+import colors from '/src/utils/colors.js'
 
 export default {
   name: "ColorPicker",
@@ -58,8 +59,8 @@ export default {
 
   data() {
     const swatches = []
-    for (let c in md_colors) {
-      const color = md_colors[c]
+    for (let c in colors) {
+      const color = colors[c]
       if (c == 'shades') {
         swatches.push( Object.values(color) )
       } else {

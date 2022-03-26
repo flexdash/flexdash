@@ -18,12 +18,12 @@
     </template>
     <!-- Menu content -->
     <v-list>
-      <v-subheader>Move widget to a different grid</v-subheader>
+      <v-list-subheader>Move widget to a different grid</v-list-subheader>
       <v-list-item v-for="g in grid_list" :key="g.id" @change="select(g.id)" link>
         <v-list-item-title>grid {{g.title}}</v-list-item-title>
         <v-list-item-subtitle>on tab {{g.tab}}</v-list-item-subtitle>
       </v-list-item>
-      <v-subheader>Move widget to a panel in this grid</v-subheader>
+      <v-list-subheader>Move widget to a panel in this grid</v-list-subheader>
       <v-list-item v-for="p in panel_list" :key="p.id" @change="select(p.id)" link>
         <v-list-item-title>panel {{p.title}}</v-list-item-title>
       </v-list-item>

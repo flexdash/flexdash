@@ -16,10 +16,7 @@
     <!-- connections pop-up dialog, rendered eagerly 'cause we want those components to
          do work for us from the get-go -->
     <v-dialog eager v-model="show_dialog">
-      <!-- prioritize showing the authentication dialog -->
-      <v-component v-if="show_auth" :is="show_auth" :config="auth_config" @change="authDone($event)">
-      </v-component>
-      <v-card v-else>
+      <v-card>
         <v-card-title class="d-flex">
           <span>Server Connections</span>
           <v-spacer></v-spacer>
@@ -38,7 +35,7 @@
             <div>
               <h3 class="mb-1">Saving the dashboard config</h3>
               <p>The dashboard's configuration is generally saved to the connection from
-              which it was initially loaded. If that is the demo then no saving occurs.<p>
+              which it was initially loaded. If that is the demo then no saving occurs.</p>
               <div>
                 <span class="font-weight-medium">Saving to:</span>
                 <v-chip class="ml-3">{{config_source_name}}</v-chip>
@@ -73,7 +70,7 @@
 </template>
 
 <script scoped>
-import Vue from 'vue'
+import {defineAsyncComponent} from 'vue'
 import Masonry from '/src/components/masonry.vue'
 import MasonryBrick from '/src/components/masonry-brick.vue'
 import DemoSettings from '/src/connections/demo-settings.vue'
@@ -88,7 +85,7 @@ const auth_modules = import.meta.glob('/src/components/auth-*.vue')
 for (const path in auth_modules) {
   const name = path.split('/').pop().replace('.vue', '')
   if (name !== 'unknown') auth_strategies.push(name.replace('auth-', ''))
-  Vue.component(name, auth_modules[path])
+  defineAsyncComponent(name, auth_modules[path])
   console.log("imported " + name)
 }
 console.log("auth strategies: " + auth_strategies)
@@ -147,14 +144,14 @@ export default {
   created() {
     console.log("Connection: created")
     const conn = this.$config.conn
-    this.$set(conn, 'demo', { enabled: false, config: false })
-    this.$set(conn, 'websocket', { enabled: false, config: false, address: "" })
-    this.$set(conn, 'sockio', { enabled: false, config: false, hostname:"", path:"", tls:false })
+    conn['demo'] = { enabled: false, config: false }
+    conn['websocket'] = { enabled: false, config: false, address: "" }
+    conn['sockio'] = { enabled: false, config: false, hostname:"", path:"", tls:false }
 
     // instantiate all the connection objects (they all wait for a start() call)
     for (let name in this.connections) {
       const c = this.connections[name]
-      c.conn = new c.connClass(this.handleMsg, how => this.doAuth(name, how))
+      c.conn = new c.connClass(this.$store, this.handleMsg, how => this.doAuth(name, how))
     }
 
     const setup_sio = addr => {

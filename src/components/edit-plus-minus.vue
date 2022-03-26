@@ -1,8 +1,9 @@
 <template>
   <div class="d-flex justify-center align-center">
-    <v-btn x-small icon elevation=2 @click="dec"><v-icon>mdi-minus</v-icon></v-btn>
-    <v-chip small class="mx-1">{{fmt}}</v-chip>
-    <v-btn x-small icon elevation=2 @click="inc"><v-icon>mdi-plus</v-icon></v-btn>
+    <span v-if="label" class="mr-1">{{label}}</span>
+    <v-btn size="x-small" icon elevation=2 @click="dec"><v-icon>mdi-minus</v-icon></v-btn>
+    <v-chip class="mx-1">{{fmt}}</v-chip>
+    <v-btn size="x-small" icon elevation=2 @click="inc"><v-icon>mdi-plus</v-icon></v-btn>
   </div>
 </template>
 
@@ -14,6 +15,7 @@ export default {
     range: Array,
     value: Number,
     unit: { type: String, default: "" },
+    label: String,
   },
 
   data() { return {

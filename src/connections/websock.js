@@ -3,14 +3,13 @@
    Copyright ©2021 Thorsten von Eicken, MIT license, see LICENSE file
 */
 
-import Vue from 'vue'
 import ReconnectingWebSocket from 'reconnecting-websocket'
 
 const state_txt = ['connecting', 'connected', 'closing', 'closed']
 
 export default class WebsockConnection {
 
-  constructor (storeInsert) {
+  constructor (store, storeInsert) {
     this.storeInsert = storeInsert
     this.rws = null // ReconnectingWebSocket
     this.checker = null // interval timer to check unsent messages
@@ -18,11 +17,11 @@ export default class WebsockConnection {
     this.get_config = false // whether to get the config upon first connect
 
     // data fed into the Vue reactivity system
-    this.data = Vue.observable({
+    this.data = {
       last_msg: {topic:null, payload:null}, // last message sent for display
       status: 'off',
       status_txt: 'off',
-    })
+    }
 
     return this
   }
