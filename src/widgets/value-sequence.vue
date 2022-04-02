@@ -5,9 +5,11 @@
   <div class="d-flex" :class="classes">
     <div>{{label}}</div>
     <div class="d-flex justify-center align-center mx-1">
-      <v-btn x-small icon text @click="dec"><v-icon>mdi-minus</v-icon></v-btn>
-      <v-chip small class="mx-1">{{val}}<span class="unit">{{unit}}</span></v-chip>
-      <v-btn x-small icon text @click="inc"><v-icon>mdi-plus</v-icon></v-btn>
+      <v-defaults-provider :defaults="{global:{density:'compact', size:'small'}}">
+        <v-btn icon text @click="dec"><v-icon>mdi-minus</v-icon></v-btn>
+        <v-chip size="default" density="comfortable" class="mx-1">{{val}}<span class="unit">{{unit}}</span></v-chip>
+        <v-btn icon text @click="inc"><v-icon>mdi-plus</v-icon></v-btn>
+      </v-defaults-provider>
     </div>
   </div>
 </template>

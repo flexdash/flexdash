@@ -6,7 +6,7 @@
   <div :class="panel_classes" :style="panel_style">
     <widget-menu v-if="global.editMode" button_class="add-widget" @select="addWidget">
     </widget-menu>
-    <component v-for="(w,ix) in widgets" :key="w" :id="w" :is="editComponent[w]"
+    <component v-for="(w,ix) in widgets" :key="w" :widget_id="w" :is="editComponent[w]"
                :edit_active="ix == edit_ix" :no_border="true"
                @edit="toggleEdit(ix, $event)" @move="moveWidget(ix, $event)"
                @teleport="teleportWidget" @delete="deleteWidget(ix)" @clone="cloneWidget(ix)">
@@ -32,9 +32,9 @@
 </style>
 
 <script scoped>
-import PanelEdit from '/src/components/panel-edit.vue'
-import WidgetEdit from '/src/components/widget-edit.vue'
-import WidgetMenu from '/src/components/widget-menu.vue'
+import PanelEdit from '/src/edit-panels/panel-edit.vue'
+import WidgetEdit from '/src/edit-panels/widget-edit.vue'
+import WidgetMenu from '/src/menus/widget-menu.vue'
 
 export default {
   name: 'Panel',

@@ -49,10 +49,10 @@ export default {
   },
 
   created() {
-    // connection pass "address" from window.location into config.address and we have to parse it
+    // connections passes "address" from window.location into config.address and we have to parse it
     if (this.config.address) {
       const m = this.config.address.match(/^(https?|wss?):\/\/([^/]+)(\/.*)/)
-      if (m.length == 4) {
+      if (m?.length == 4) {
         this.config.hostname = m[2]
         this.config.path = m[3]
         this.config.tls = m[1] == "https" || m[1] == "wss"

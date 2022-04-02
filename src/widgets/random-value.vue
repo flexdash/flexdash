@@ -73,7 +73,7 @@ Originally from https://stackoverflow.com/a/22080644.`,
       this.$emit('send', v); // send to server
       this.clr_timer = window.setTimeout(doit, this.seconds*1000)
     }
-    doit() //generate initial value and get things going
+    //doit() //generate initial value and get things going
   },
 
   beforeDestroy() {

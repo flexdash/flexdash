@@ -4,14 +4,23 @@
 
 <template>
   <div class="mx-2">
-    <v-tooltip bottom>
-      <template v-slot:activator="{on}">
-        <v-btn small icon :color="icon_color" v-on="{click:showDialog, ...on}">
-          <v-icon>mdi-network</v-icon>
+    <v-tooltip v-if="multiple">
+      <template v-slot:activator="{props}">
+        <v-btn icon :color="icon_color" @click="showDialog" v-bind="props">
+          <v-icon icon="mdi-network" />
         </v-btn>
       </template>
       <span>Server connections</span>
     </v-tooltip>
+
+    <v-snackbar fixed top right class="mt-n1" :color="snackbar_color"
+                v-model="snackbar" :timeout="-1">
+      <div v-if="snackbar_noconn">No server connection! Reconnecting...</div>
+      {{ snackbar_text }}
+      <template v-slot:actions>
+        <v-btn icon><v-icon icon="mdi-close" /></v-btn>
+      </template>
+    </v-snackbar>
 
     <!-- connections pop-up dialog, rendered eagerly 'cause we want those components to
          do work for us from the get-go -->
@@ -30,7 +39,7 @@
         </v-card-text>
 
         <!-- individual types of connections -->
-        <masonry class="v-card__text">
+        <masonry class="v-card-text">
           <masonry-brick>
             <div>
               <h3 class="mb-1">Saving the dashboard config</h3>
@@ -86,7 +95,7 @@ for (const path in auth_modules) {
   const name = path.split('/').pop().replace('.vue', '')
   if (name !== 'unknown') auth_strategies.push(name.replace('auth-', ''))
   defineAsyncComponent(name, auth_modules[path])
-  console.log("imported " + name)
+  //console.log("imported " + name)
 }
 console.log("auth strategies: " + auth_strategies)
 
@@ -94,6 +103,8 @@ export default {
   name: "Connections",
 
   components: { Masonry, MasonryBrick, DemoSettings, WebsockSettings, SockioSettings },
+
+  emits: [ 'update:src' ],
 
   data: ()=> ({
     show_dialog: false, // modal dialog box to configure connections
@@ -110,18 +121,34 @@ export default {
   computed: {
     // compute the color of the connections status icon
     icon_color() {
-      let num_ok = 0, num_bad = 0
-      for (const c in this.connections) {
-        if (!('conn' in this.connections[c])) continue
-        switch (this.connections[c].conn.data.status) {
-          case 'ok': num_ok++; break;
-          case 'bad': num_bad++; break;
-        }
-      }
+      const num_ok = this.conn_statuses.filter(s => s.status === "ok").length
+      const num_bad = this.conn_statuses.filter(s => s.status === "bad").length
       // if all connections are OK: green, if some OK, some BAD: warning,
       // if all BAD: error, if all disabled: grey
       if (num_ok) return num_bad ? "warning" : "success"
       return num_bad ? "error" : "grey"
+    },
+
+    // get the statuses and messages for active connections
+    conn_statuses() {
+      return Object.entries(this.connections).map(([n,c]) => {
+        const s = c.conn?.data?.status
+        if (s && s !== "off") return { status: s, txt: c.conn.data.status_txt, name: n }
+      }).filter(s => s)
+    },
+    // notification snackbar for connection status/problems
+    snackbar() { return !!this.conn_statuses.find(s => s.status !== "ok") },
+    snackbar_text() {
+      const ss = this.conn_statuses.find(s => s.status !== "ok") // FIXME: support multiple
+      return ss ? `${ss.name}: ${ss.txt}` : ""
+    },
+    snackbar_noconn() {
+      return !this.conn_statuses.find(s => s.status === "ok")
+    },
+    snackbar_color() {
+      console.log("Statuses:", this.conn_statuses)
+      const ss = this.conn_statuses.find(s => s.status !== "ok") // FIXME: support multiple
+      return ss && ss.status === "bad" ? "error" : "warning"
     },
 
     gotConfig() { return this.$config.dash.title !== undefined },
@@ -134,10 +161,10 @@ export default {
     websock_config() { return this.$config.conn ? this.$config.conn.websocket : undefined },
     sockio_config() { return this.$config.conn ? this.$config.conn.sockio : undefined },
 
-    config_source_name() { return this.config_source || "none" },
+    config_source_name() { return this.config_source || "-none-" },
   },
 
-  inject: [ '$store', '$config' ],
+  inject: [ '$store', '$config', 'global', '$conn' ],
 
   // created is called before child components are created, so we can parse the URL and prep
   // some config for them.
@@ -159,7 +186,7 @@ export default {
       conn.sockio.enabled = true
       conn.sockio.config = true
       this.config_source = "sockio"
-      this.$emit('src', 'sockio ' + conn.sockio.address)
+      this.$emit('update:src', 'sockio ' + conn.sockio.address)
     }
 
     const setup_ws = addr => {
@@ -167,33 +194,40 @@ export default {
       conn.websocket.enabled = true
       conn.websocket.config = true
       this.config_source = "websocket"
-      this.$emit('src', 'websocket ' + conn.websocket.address)
+      this.$emit('update:src', 'websocket ' + conn.websocket.address)
     }
     
     // check out query string of page load to see whether there's connection info
     // if no query string then also look into the global options
-    const sp = this.$root.params
+    const sp = this.global.params
+    let count = 0
     if (sp && sp.get('sio')) {
       setup_sio(sp.get('sio')) // got a socketio address string, enable sockio
+      count++
     } else if (sp && sp.get('ws')) {
       setup_ws(sp.get('ws')) // got a websocket address string, enable websock
+      count++
     } else if (window.flexdash_options.sio) {
       setup_sio(window.flexdash_options.sio) // got global option for socketio
+      count++
     } else if (window.flexdash_options.ws) {
       setup_sio(window.flexdash_options.ws) // got global option for websocket
+      count++
     } else {
       // no real network connection, set-up demo mode
       conn.demo.enabled = true
       conn.demo.config = true
       this.config_source = "demo"
-      this.$emit('src', 'demo')
+      this.$emit('update:src', 'demo')
     }
     console.log("Initial connection config:", JSON.stringify(conn))
+    this.multiple = count != 1
 
     // set a global variable with our serverSend method so the widget-wrapper can send
     // data on behalf of widgets
     // using a lambda here to get the correct 'this'
-    this.$root.serverSend = this.serverSend.bind(this)
+    this.$conn.serverSend = this.serverSend.bind(this)
+    this.$conn.serverQuery = this.serverQuery.bind(this) // async!
     this.$store.serverSend = this.serverSend.bind(this)
     this.$store.serverQuery = this.serverQuery.bind(this) // async!
   },
@@ -201,12 +235,14 @@ export default {
   mounted() {
     //console.log("Connection: mounted")
     // pop-up the connections dialog if nothing happens in 5 seconds
-    window.setTimeout(()=>{ if (!this.gotConfig) this.show_dialog = true }, 5000)
+    if (this.multiple) {
+      window.setTimeout(()=>{ if (!this.gotConfig) this.show_dialog = true }, 5000)
+    }
   },
 
   beforeDestroy() {
     console.log("Connection: beforeDestroy")
-    for (name in this.connections) {
+    for (const name in this.connections) {
       const c = this.connections[name]
       if (c.conn) c.conn.stop()
     }
@@ -330,16 +366,16 @@ export default {
       }
     },
 
-    // serverQuery sends a request to the server and asynchronously returns the response,
+    // serverQuery sends a request to the config_source server and asynchronously returns the response,
     // it really returns a Promise that gets resolved on response with a payload
     // or rejected on timeout
     serverQuery(topic, payload, kind) {
-        for (let c in this.connections) {
-          const conn = this.connections[c].conn
-          if (conn && this.$config.conn[c].enabled) {
-            return conn.serverQuery(topic, payload, kind) // returns a promise!
-          }
-        }
+      if (this.config_source) {
+        const conn = this.connections[this.config_source]
+        return conn.conn.serverQuery(topic, payload, kind) // -> promise
+      } else {
+        console.log("No config_source, can't perform serverQuery")
+      }
     },
 
     changeConfig(conn, config) {
@@ -377,6 +413,6 @@ export default {
     },
 
   },
-
 }
+
 </script>

@@ -13,7 +13,8 @@
           style="overflow: hidden">
 
     <!-- Widget title & buttons shown when the child component does _not_ show the title -->
-    <v-card-text v-if="!('title' in child_props) && title" class="d-flex pa-0 pt-1 mb-n1">
+    <v-card-text v-if="!('title' in child_props) && title"
+                 class="flex-grow-0 flex-shrink-0 px-0 py-1 mb-n1">
       <!-- title and edit button -->
       <span v-if="title" class="mx-auto text-no-wrap">{{title}}</span>
       <v-btn density="compact" flat class="edit-btn"
@@ -89,7 +90,7 @@ export default {
   name: 'WidgetWrap',
 
   components: { Md },
-  inject: [ '$store', 'palette', 'global' ],
+  inject: [ '$store', '$conn', 'palette', 'global' ],
 
   props: {
     color: { type: String, default: undefined }, // background color to highlight the card
@@ -198,8 +199,13 @@ export default {
         Object.keys(config.static||{}).forEach(p => {
           if (this.is_sfc && p == 'source') return // ignore source for sfc widgets
           const type = this.child_props[p]?.type
-          if (config.static[p] !== undefined && config.dynamic[p] === undefined)
-            this.bindings[p] = this.typeCast(config.static[p], type)
+          if (config.static[p] !== undefined && config.dynamic[p] === undefined) {
+            try {
+              this.bindings[p] = this.typeCast(config.static[p], type)
+            } catch(e) {
+              console.log(`Warning: failed to type-cast prop '${p}': ${e}`) // FIXME: show in UI!
+            }
+          }
         })
         Object.keys(config.dynamic||{}).forEach(p => {
           if (this.is_sfc && p == 'source') return // ignore source for sfc widgets
@@ -222,9 +228,13 @@ export default {
       }
       let type = this.child_props[prop].type // note: may be undefined...
 
-      val = this.typeCast(val, type)
-      console.log(`Updating ${this.config.kind}.${prop}[${type&&type.name}] <- ${typeof val} ${val}`)
-      this.bindings[prop] = val
+      try {
+        val = this.typeCast(val, type)
+        console.log(`Updating ${this.config.kind}.${prop}[${type&&type.name}] <- ${typeof val} ${val}`)
+        this.bindings[prop] = val
+      } catch(e) {
+        console.log(`Warning: failed to type-cast prop '${prop}': ${e}`)
+      }
     },
 
     typeCast(val, type) {
@@ -255,7 +265,7 @@ export default {
         } catch (exc) {
           val = undefined
           // FIXME: should have a warning show in the UI while in edit mode
-          console.log(`Cannot convert string value for ${prop} to ${type.name}`)
+          throw new Error(`cannot convert JSON value to ${type.name}`)
         }
       }
       return val
@@ -272,7 +282,7 @@ export default {
       if (o) {
         if (!o.startsWith("$demo"))
           console.log(`Widget ${this.config.kind}[${this.config.id}] sending ${o} <-`, data)
-        this.$root.serverSend(o, data)
+        this.$conn.serverSend(o, data)
       }
     },
   },

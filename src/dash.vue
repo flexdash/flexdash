@@ -6,105 +6,19 @@
   <v-app :theme="theme">
 
     <!-- Top title/navigation bar -->
-    <v-app-bar app color="surface">
-      <!-- Hamburger menu shown on smallest devices only -->
-      <template v-slot:prepend v-if="mobile">
-        <v-app-bar-nav-icon @click="sidebar = !sidebar"></v-app-bar-nav-icon>
-      </template>
+    <app-bar v-model:tab_ix="tab_ix" v-model:theme="theme" :title="title" :ready="ready"
+             @update:config_src="changeConfigSrc($event)">
+    </app-bar>
 
-      <!-- Title -->
-      <v-app-bar-title class="text-h4 font-weight-bold text--secondary mr-3"
-                       style="font-variant: small-caps; flex: 0 0; min-width: auto;">
-        {{ title }}
-      </v-app-bar-title>
-
-      <div class="version d-flex">alpha v{{version}}</div>
-
-      <!-- Tabs -->
-      <v-tabs v-model=tab_ix stacked color="primary" v-if="gotEverything && !mobile">
-        <v-tab v-for="(tid, ix) in dash_tabs" :key="tid+ix" :value="ix" :id="'tab-'+ix">
-          <!-- Text and icon for the tab -->
-          <v-icon :size="tabs[tid].title?'default':'x-large'" class="mb-0">mdi-{{tabs[tid].icon}}</v-icon>
-          {{tabs[tid].title}}
-          <!-- Button to edit the tab -->
-          <v-btn density="compact" flat position="absolute" right top class="px-0" min-width="0"
-                 v-if="global.editMode && ix==tab_ix"
-                 @click.stop="tab_edit=!tab_edit">
-            <v-icon icon="mdi-pencil" size="small" />
-          </v-btn>
-        </v-tab>
-        <!-- Button to add a tab -->
-        <v-btn v-if="global.editMode" class="my-auto" id="tab-add"
-               @click.stop="tab_add=!tab_add">
-          <v-icon icon="mdi-plus" />
-        </v-btn>
-      </v-tabs>
-
-      <v-spacer></v-spacer>
-
-      <!-- Undo button -->
-      <v-tooltip v-if="global.editMode" bottom :disabled="!canUndo">
-        <template v-slot:activator="{ props }">
-          <v-btn icon v-bind="props" :disabled="!canUndo" @click="$store.performUndo()">
-            <v-icon>mdi-undo</v-icon>
-          </v-btn>
-        </template>
-        <span>undo {{ canUndo && $store.undo.buf[$store.undo.buf.length-1].tagline }}</span>
-      </v-tooltip>
-
-      <!-- Connection icon -->
-      <connections @src="config_src=$event" ></connections>
-
-      <!-- Settings menu at far right -->
-      <v-menu anchor="bottom end" origin="top end" v-model="settings_menu">
-        <!-- Menu activator, i.e. the button -->
-        <template v-slot:activator="{ props }">
-          <v-btn icon v-bind="props"><v-icon>mdi-cog</v-icon></v-btn>
-        </template>
-        <!-- Settings Menu -->
-        <v-list density="compact" elevation="4">
-          <v-list-item>
-            <v-switch v-model="global.editMode" hide-details inset color="primary" label="Edit">
-            </v-switch>
-          </v-list-item>
-          <v-list-item>
-            <v-switch v-model="theme" hide-details inset color="primary" label="Dark"
-                      true-value="flexdashDark" false-value="flexdashLight">
-            </v-switch>
-          </v-list-item>
-        </v-list>
-      </v-menu>
-    </v-app-bar>
-
-    <!-- Navigation drawer opening from the left on small devices to show tabs -->
-    <v-navigation-drawer v-model="sidebar" app floating v-if="mobile">
-      <v-tabs direction="vertical" color="primary" slider-size="6" v-model="tab_ix">
-        <v-tab v-for="t in dash_tabs" :key="t" class="ml-0 mr-auto px-0 d-flexx flex-columnx" style="min-width: auto">
-          <v-icon large class="mx-1">mdi-{{tabs[t].icon}}</v-icon>
-          <span class="mr-1">{{tabs[t].title}}</span>
-        </v-tab>
-      </v-tabs>
-    </v-navigation-drawer>
-
-    <!-- Menu used to show tab addition-->
-    <v-menu v-model="tab_add" anchor="bottom center" origin="top center" allow-overflow activator="#tab-add">
-      <v-list>
-        <v-list-item @click="addTab('grid')">Grid with Widgets</v-list-item>
-        <v-list-item @click="addTab('iframe')">IFrame</v-list-item>
-      </v-list>
-    </v-menu>
-
-    <!-- Menu used to show editing panel floating below tab -->
-    <v-menu v-model="tab_edit" anchor="bottom center" origin="top center"
-            allow-overflow :activator="'#tab-'+tab_ix"
-            max-width="40ex" :close-on-content-click="false">
-      <tab-edit v-model="tab_edit" :tab_ix="tab_ix" :tab_id="tab_id" @reload="reload"></tab-edit>
-    </v-menu>
+    <!-- Main notification snackbar -->
+    <notification count="3"></notification>
 
     <!-- main area of the page with content -->
     <v-main>
+
       <!-- "normal" tabs with grids and widgets -->
-      <v-window v-if="gotEverything" v-model="tab_ix"> <!-- :class="tabs_items_class"-->
+      <v-window v-if="ready" v-model="tab_ix"> <!-- :class="tabs_items_class"-->
+<v-defaults-provider :defaults="global.v_defaults">
         <v-window-item v-for="(id, ix) in dash_tabs" :key="id+ix" :ref="id" :value="ix">
           <!-- key={{id}} grids:{{tabs[id].grids}}
           <div v-for="(g, ix) in tabs[id].grids" :key="g">
@@ -118,18 +32,21 @@
             </component>
           </div>
         </v-window-item>
+</v-defaults-provider>
       </v-window>
+
       <!-- iframe tabs, we have two "slots" where content can persist -->
-      <div v-if="gotEverything" :class="iframe_a_class">
+      <div v-if="ready" :class="iframe_a_class">
         <iframe v-if="iframe_a_src" :src="iframe_a_src"
                 frameborder="0" marginheight="0" marginwidth="0"></iframe>
       </div>
-      <div v-if="gotEverything" :class="iframe_b_class">
+      <div v-if="ready" :class="iframe_b_class">
         <iframe v-if="iframe_b_src" :src="iframe_b_src"
                 frameborder="0" marginheight="0" marginwidth="0"></iframe>
       </div>
+
       <!-- loading... -->
-      <div v-if="!gotEverything">
+      <div v-if="!ready">
         <v-container style="min-height: 400px;" class="d-flex flex-column justify-start align-center">
           <div class="text-subtitle-1 text-center my-4" v-if="!gotConfig">
               Loading configuration from<br>{{config_src}}...
@@ -156,16 +73,6 @@
 </template>
   
 <style>
-/* Remove some excessive padding at left&right, especially for small devices */
-.v-app-bar > .v-toolbar__content { padding: 0px 0px !important; }
-
-/* fix height of tabs, https://github.com/vuetifyjs/vuetify/issues/14863 */
-.v-app-bar button.v-tab { height: 48px }
-.v-app-bar .v-tabs--stacked { height: 48px !important }
-
-/* Make tabs fit between title on the left and buttons on the right, why is this so hard? */
-.xxxv-app-bar .v-tabs { overflow: auto }
-
 /* make tab content 100% height so we can size iframe for iframe-grid to full page */
 .xv-item-group { height: 100%; }
 .xv-window-item { height: 100%; }
@@ -184,40 +91,35 @@
 }
 .iframe-tab-wrap.iframe-a--active { display: block; }
 .iframe-tab-wrap.iframe-b--active { display: block; }
-
-/* Give menu a tiny bit of room between tab and top of menu */
-.xxxpopup-spacer { margin-top: 2px; margin-bottom: 3px; }
-
-.version {
-  position: absolute; top: 0px; right: 14px; z-index: 2;
-  font-size: 9pt; font-weight: 700; color: #e5504d;
-  line-height: 10pt;
-}
 </style>
 
 <style>
+/* Styles that are global, not used in this component in particular */
+
 [xv-cloak] > * { display:none }
 [xv-cloak]::before { content: "loading…" }
  
-/* this is probably the wrong place for these little utility classes... */
 .width100 { width: 100%; }
 .height80 { height: 80%; }
 .height100 { height: 100%; }
 
-.v-field__field, .v-field__input { padding-top: 0px !important; min-height: auto;}
+.compact-input .v-field__field { padding-top:0px !important; }
+.large-font .v-field__field { font-size: 125% !important;}
+
 </style>
 
 <script scoped>
 import { useDisplay } from 'vuetify'
-import Connections from '/src/components/connections.vue'
-import TabEdit from '/src/components/tab-edit.vue'
+import AppBar from '/src/components/app-bar.vue'
+import TabEdit from '/src/edit-panels/tab-edit.vue'
 import randomStepper from '/src/utils/random-stepper.js'
-//const J = JSON.stringify
+import Notification from '/src/components/notification.vue'
+import { notify } from '/src/components/notification.vue'
 
 export default {
   name: 'Dash',
 
-  components: { Connections, TabEdit },
+  components: { AppBar, TabEdit, Notification },
   inject: [ '$config', '$store', 'palette', 'global' ],
 
   setup() {
@@ -254,15 +156,15 @@ export default {
         && Object.keys(this.$config.conn).length > 0
     },
     gotPalette() { return this.palette.loaded && this.palette.errors.length == 0 },
-    gotEverything() { return this.gotConfig && this.gotPalette },
+    ready() { return this.gotConfig && this.gotPalette },
     // note: some of the following get evaluated before the config is loaded, the gotEverything
     // guard ensures that they do get re-evaluated when it is loaded despite Vue2 issues...
-    dash() { return this.gotEverything ? this.$config.dash : {} },
+    dash() { return this.ready ? this.$config.dash : {} },
     dash_tabs() { return this.dash.tabs || [] }, // tabs to show, handling init
     tab() { return this.tab_id ? this.tabs[this.tab_id] : {} },
     tab_id() { return this.tab_ix != null ? this.dash_tabs[this.tab_ix] : "" }, // current tab ID
-    tabs() { return this.gotEverything ? this.$config.tabs : {} }, // make accessible in template
-    grids() { return this.gotEverything ? this.$config.grids : {} }, // make accessible in template
+    tabs() { console.log(`Tabs: ${J(this.$config.tabs)}`); return this.ready ? this.$config.tabs : {} }, // make accessible in template
+    grids() { console.log(`Grids: ${J(this.$config.grids)}`); return this.ready ? this.$config.grids : {} }, // make accessible in template
     canUndo() { return this.$store.undo.buf.length > 0 },
     title() { return window.flexdash_options.title },
 
@@ -291,24 +193,26 @@ export default {
   },
 
   mounted() {
-    // console.log(`FlexDash! route=${this.$root.route} params=${this.$root.params}`)
-    // // select tab by index
-    // if (this.$root.route.match(/^#[0-9]+$/)) {
-    //   const ix = Number.parseInt(this.$root.route.substr(1), 10)
-    //   if (ix >= 0 && ix < this.dash_tabs.length) this.tab_ix = ix
-    // // select tab by name or icon name
-    // } else if (this.$root.route.startsWith("#")) {
-    //   const r = this.$root.route.substr(1)
-    //   this.dash_tabs.forEach((t,ix)=> {
-    //     console.log(`Route match: ix=${ix} title=${this.tabs[t].title} icon=${this.tabs[t].icon}`)
-    //     if (r == this.tabs[t].title || r == this.tabs[t].icon) this.tab_ix = ix
-    //   })
-    // }
+    console.log(`FlexDash! route=${this.global.route} params=${this.global.params}`)
+    // select tab by index
+    if (this.global.route.match(/^#[0-9]+$/)) {
+      const ix = Number.parseInt(this.global.route.substr(1), 10)
+      if (ix >= 0 && ix < this.dash_tabs.length) this.tab_ix = ix
+    // select tab by name or icon name
+    } else if (this.global.route.startsWith("#")) {
+      const r = this.global.route.substr(1)
+      this.dash_tabs.forEach((t,ix)=> {
+        console.log(`Route match: ix=${ix} title=${this.tabs[t].title} icon=${this.tabs[t].icon}`)
+        if (r == this.tabs[t].title || r == this.tabs[t].icon) this.tab_ix = ix
+      })
+    }
 
     // provide a random changing value for demo purposes. It is wired into newly created
     // widgets so they spring to life even before the user customizes them.
     const rs = randomStepper(0, 100)
-    this.intvl = window.setInterval(()=> this.$store.insertData("$demo_random", rs()), 3000)
+    //this.intvl = window.setInterval(()=> this.$store.insertData("$demo_random", rs()), 3000)
+
+    setTimeout(()=>notify("Welcome to FlexDash", "secondary"), 500)
   },
 
   beforeDestroy() { window.clearInterval(this.intvl) },
@@ -350,6 +254,11 @@ export default {
       const title = this.$config.dash.title
       delete this.$config.dash.title
       this.$nextTick( ()=> { this.$config.dash.title = title; this.tab_ix = tab_ix })*/
+    },
+
+    changeConfigSrc(ev) {
+      console.log("Change config source: ", ev)
+      this.config_src = ev
     },
   },
 

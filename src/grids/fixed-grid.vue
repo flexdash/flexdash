@@ -8,7 +8,7 @@
 
     <!-- Hacky roll-up/roll-down icon at the top-center of the grid if there's no title -->
     <div v-if="rollupMini" :class="rollerClasses">
-      <v-tooltip bottom>
+      <v-tooltip>
         <template v-slot:activator="{ props }">
           <v-btn x-small icon height="24px" class="mx-auto" @click="toggleRoll" v-bind="props">
             <v-icon>mdi-arrow-{{rolledup ? 'down' : 'up'}}-drop-circle</v-icon>
@@ -19,10 +19,10 @@
     </div>
 
     <!-- Normal-mode title bar, when we have a title -->
-    <v-toolbar dense flat v-if="rollupMaxi" height=36 color="background"
+    <v-toolbar flat v-if="rollupMaxi" height=36 color="background"
                class="d-flex justify-start">
       <!-- roll-up/down button -->
-      <v-tooltip bottom>
+      <v-tooltip>
         <template v-slot:activator="{ props }">
           <v-btn x-small icon height="24px" class="mx-auto" @click="toggleRoll" v-bind="props">
             <v-icon>mdi-arrow-{{rolledup ? 'down' : 'up'}}-drop-circle</v-icon>
@@ -35,9 +35,9 @@
     </v-toolbar>
 
     <!-- Editing toolbar above grid proper -->
-    <v-toolbar v-if="global.editMode" desity="compact" flat color="background" class="editmode">
+    <v-toolbar v-if="global.editMode" density="compact" flat color="background" class="editmode">
       <!-- roll-up/down button -->
-      <v-tooltip bottom>
+      <v-tooltip>
         <template v-slot:activator="{ props }">
           <v-btn icon color="grey" @click="toggleRoll" class="mr-4" v-bind="props">
             <v-icon>mdi-arrow-{{rolledup ? 'down' : 'up'}}-drop-circle</v-icon>
@@ -47,7 +47,7 @@
       </v-tooltip>
 
       <!-- grid title text field -->
-      <v-tooltip bottom>
+      <v-tooltip>
         <template v-slot:activator="{ props }">
           <v-text-field hide-details label="grid title" class="mr-6 flex-grow-0"
                         v-bind="props" :value="grid.title" @change="changeTitle" style="width: 20ex">
@@ -57,10 +57,10 @@
       </v-tooltip>
 
       <!-- Menu to add widget -->
-      <widget-menu @select="addWidget"></widget-menu>
+      <widget-menu @select="addWidget" class="mr-4"></widget-menu>
 
       <!-- Paste button/text field -->
-      <v-tooltip bottom>
+      <!--v-tooltip bottom>
         <template v-slot:activator="{ props }">
           <v-btn icon @click="pasting=!pasting" v-bind="props">
             <v-icon>mdi-content-paste</v-icon>
@@ -71,10 +71,10 @@
       <div ref="pasteDiv" class="d-flex">
         <input type="text" v-if="pasting" size="15"
                placeholder="paste widget here" class="pasteinput">
-      </div>
+      </div-->
 
       <!-- Selectors for minimum and maximum number of columns -->
-      <v-tooltip bottom>
+      <v-tooltip>
         <template v-slot:activator="{ props }">
           <div class="d-flex flex-row mr-4" v-bind="props">
             <edit-plus-minus label="min-cols:" class="mr-0" :range="colRange" :value="minCols" @update:value="setMinCols">
@@ -83,7 +83,7 @@
         </template>
         <span>Minimum number of columns to shrink grid to</span>
       </v-tooltip>
-      <v-tooltip bottom>
+      <v-tooltip>
         <template v-slot:activator="{ props }">
           <div class="d-flex flex-row mr-4" v-bind="props">
             <edit-plus-minus label="max-cols:" class="mr-0" :range="colRange" :value="maxCols" @update:value="setMaxCols">
@@ -95,9 +95,9 @@
 
       <v-spacer></v-spacer>
       <!-- Button to delete the grid -->
-      <v-tooltip bottom>
+      <v-tooltip >
         <template v-slot:activator="{ props }">
-          <v-btn small @click="$emit('delete')" class="mc-auto" v-bind="props">
+          <v-btn @click="$emit('delete')" class="mc-auto" v-bind="props">
             Delete grid
           </v-btn>
         </template>
@@ -107,11 +107,11 @@
     </v-toolbar>
 
     <!-- Grid of widgets -->
-    <div v-if="!rolledup" class="container foo g-grid-small pt-0 px-2" v-bind:style="gridStyle">
-      <component v-for="(w,ix) in grid.widgets" :key="w" :id="w" :is="editComponent[w]"
+    <div v-if="!rolledup" class="container foo g-grid-small pt-0 px-2 pb-2" v-bind:style="gridStyle">
+      <component v-for="(w,ix) in grid.widgets" :key="w" :widget_id="w" :is="editComponent[w]"
                  :edit_active="ix == edit_ix" @edit="toggleEdit(ix, $event)"
                  @move="moveWidget(ix, $event)" @delete="deleteWidget(ix)"
-                 @clone="cloneWidget(ix)" @teleport="teleportWidget">
+                 @clone="cloneWidget(ix)" @teleport="(src,dst)=>teleportWidget(w, src, dst)">
       </component>
     </div>
   </div>
@@ -148,9 +148,9 @@
 
 <script scoped>
 
-import PanelEdit from '/src/components/panel-edit.vue'
-import WidgetEdit from '/src/components/widget-edit.vue'
-import WidgetMenu from '/src/components/widget-menu.vue'
+import PanelEdit from '/src/edit-panels/panel-edit.vue'
+import WidgetEdit from '/src/edit-panels/widget-edit.vue'
+import WidgetMenu from '/src/menus/widget-menu.vue'
 import EditPlusMinus from '/src/components/edit-plus-minus.vue'
 
 const COLW = 120 // min width of widgets in pixels
@@ -183,7 +183,7 @@ export default {
       return [ 'd-flex', 'roller', rm ]
     },
     maxWidget() { // width of widest widget (in columns)
-      return Math.max(...this.grid.widgets.map(id => this.$store.widgetByID(id).cols || 1))
+      return Math.max(1, ...this.grid.widgets.map(id => this.$store.widgetByID(id).cols || 1))
     },
     colRange() {
       return [...Array(21-this.maxWidget)].map((_, ix) => (this.maxWidget+ix))
@@ -261,10 +261,10 @@ export default {
     },
 
     // teleport the widget to a different grid or panel
-    teleportWidget(w_id, src_id, dest_id) {
-      console.log(`Teleport widget ${w_id} from ${src_id} to ${dest_id}`)
-      this.$store.moveWidget(w_id, src_id, dest_id)
+    teleportWidget(widget_id, src_id, dest_id) {
+      console.log(`Teleport widget ${widget_id} from ${src_id} to ${dest_id}`)
       this.edit_ix = null
+      this.$store.moveWidget(widget_id, src_id, dest_id)
     },
 
     // paste a widget

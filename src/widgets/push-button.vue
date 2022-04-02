@@ -3,8 +3,10 @@
 -->
 <template>
   <div class="pushbutton d-flex align-center justify-center">
-    <v-btn v-bind="bindings" variant="contained" class="ma-auto" max-width="95%" @click="clickEv($event)">
-      <v-icon :large="!title"  v-if="icon">mdi-{{icon}}</v-icon>
+    <v-btn variant="contained" class="ma-auto" max-width="95%"
+           density="default"
+           v-bind="bindings" @click="clickEv($event)">
+      <v-icon :large="!title" v-if="icon" :icon=icon />
       <span>{{ title }}</span>
     </v-btn>
   </div>
@@ -16,13 +18,14 @@ export default {
 
   help: `Button to send an event.
 Pressing the button sends a message with a specified payload to a topic.
-The button may contain an icon and/or a title string and is centered in the widget.`,
+The button may contain an icon and/or a title string and is centered in the widget.
+Icon names can be found at https://materialdesignicons.com.`,
 
   props: {
     enabled: { default: true },
     color: { default: "primary" },
     output_value: { default: 25, tip: "value sent on click" },
-    icon: { default: null, tip: "material-design-icon name" },
+    icon: { default: null, tip: "material-design-icon name w/mdi- prefix" },
     title: { default: 'Button' },
   },
 

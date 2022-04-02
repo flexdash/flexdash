@@ -3,37 +3,34 @@
 -->
 
 <template>
-  <div style="display: content;">
-    <!-- path text field -->
-    <v-text-field dense clearable persistent-hint :label="label" :hint="hint" :value="value"
-                  @input="$emit('input',$event)">
-      <template v-slot:append-outer>
-        <v-btn icon x-small @click="show_tree=!show_tree">
-          <v-icon>mdi-file-tree</v-icon>
+  <!-- path text field -->
+  <v-text-field clearable label="topic (/-separated path)"
+                :model-value="modelValue"
+                @input="$emit('update:modelValue',$event)"
+                append-inner-icon="mdi-file-tree"
+                @click:append-inner="show_tree=!show_tree"
+                v-bind="$attrs">
+  </v-text-field>
+  <!-- tree selector as an overlay -->
+  <v-overlay v-model="show_tree" class="topic-tree">
+    <v-card class="d-flex flex-column">
+      <v-card-title class="d-flex width100 py-2 pb-0">
+        <span>{{label}}</span>
+        <v-spacer></v-spacer>
+        <v-btn elevation=0 icon @click="tree=calcTree()">
+          <v-icon>mdi-refresh</v-icon>
         </v-btn>
-      </template>
-    </v-text-field>
-    <!-- tree selector as an overlay -->
-    <v-overlay v-model="show_tree" class="topic-tree" :dark="false">
-      <v-card class="d-flex flex-column">
-        <v-card-title class="d-flex align-baseline width100 pt-0 pb-0">
-          <span>{{label}}</span>
-          <v-spacer></v-spacer>
-          <v-btn elevation=0 icon @click="tree=calcTree()">
-            <v-icon>mdi-refresh</v-icon>
-          </v-btn>
-          <v-btn elevation=0 icon @click="show_tree=false">
-            <v-icon>mdi-close</v-icon>
-          </v-btn>
-        </v-card-title>
-        NOT WORKING YET
-        <!--v-treeview dense activatable open-on-click 
-                    @update:active="treeSelect"
-                    :open="path" :items="tree">
-        </v-treeview-->
-      </v-card>
-    </v-overlay>
-  </div>
+        <v-btn elevation=0 icon @click="show_tree=false">
+          <v-icon>mdi-close</v-icon>
+        </v-btn>
+      </v-card-title>
+      NOT WORKING YET
+      <!--v-treeview dense activatable open-on-click 
+                  @update:active="treeSelect"
+                  :open="path" :items="tree">
+      </v-treeview-->
+    </v-card>
+  </v-overlay>
 </template>
 
 <style>
@@ -50,9 +47,10 @@ export default {
 
   props: {
     label: { default: "path" },
-    hint: { default: "" },
-    value: { default: "" },
+    modelValue: { default: "" },
   },
+
+  emits: [ 'update:model_value' ],
 
   inject: ['$store'],
 
@@ -65,8 +63,8 @@ export default {
     // path is fed into v-treeview, it needs to be an array with the ids (item-keys) of each
     // item along the path (ugh)
     path() {
-      if (!this.value) return []
-      let node = this.value.split('/')
+      if (!this.modelValue) return []
+      let node = this.modelValue.split('/')
       node.pop() // remove leaf node name
       let path = node.map(()=>node)
       path = path.map((p,ix)=> p.slice(0, ix+1).join('/'))
@@ -106,7 +104,7 @@ export default {
     treeSelect(ev) {
       this.show_tree = false
       console.log(`treeview ev=${JSON.stringify(ev)}`)
-      this.$emit('input', ev[0])
+      this.$emit('update:modelValue', ev[0])
     },
 
   },

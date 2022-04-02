@@ -1,9 +1,9 @@
 <template>
   <div class="d-flex justify-center align-center">
-    <span v-if="label" class="mr-1">{{label}}</span>
-    <v-btn size="x-small" icon elevation=2 @click="dec"><v-icon>mdi-minus</v-icon></v-btn>
-    <v-chip class="mx-1">{{fmt}}</v-chip>
-    <v-btn size="x-small" icon elevation=2 @click="inc"><v-icon>mdi-plus</v-icon></v-btn>
+    <span v-if="label" class="mr-2">{{label}}</span>
+    <v-btn size="small" icon @click="dec"><v-icon size="small">mdi-minus</v-icon></v-btn>
+    <v-chip class="mx-0">{{fmt}}</v-chip>
+    <v-btn size="small" icon @click="inc"><v-icon size="small">mdi-plus</v-icon></v-btn>
   </div>
 </template>
 

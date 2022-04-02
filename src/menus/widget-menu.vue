@@ -4,20 +4,22 @@
 -->
 
 <template>
-  <v-menu offset-y v-model="show">
-    <!-- Menu activator, i.e. the button -->
-    <template v-slot:activator="{ on:menu, attrs }">
-      <v-tooltip bottom>
-        <template v-slot:activator="{ on:tt }">
-          <v-btn small icon :class="button_class" color="primary" v-bind="attrs" v-on="{...tt, ...menu}">
-            <v-icon>mdi-card-plus</v-icon>
-          </v-btn>
-        </template>
-        <span>Add a widget to the end of the grid</span>
-      </v-tooltip>
-    </template>
-    <!-- Menu content -->
-    <v-list>
+  <!-- Menu button -->
+  <!--v-tooltip anchor="bottom">
+    <template v-slot:activator="{ props }"-->
+      <v-btn icon :class="button_class" color="primary" v-bind="{...$attrs}"
+             :id="btnid">
+        <v-icon>mdi-card-plus</v-icon>
+      </v-btn>
+    <!--/template>
+    <span>Add a widget to the end of the grid</span>
+  </v-tooltip-->
+
+  <!-- Menu content -->
+  <v-menu v-model="show" :activator="'#'+btnid" xactivator="$refs.menuBtn"
+          style="font-size: 0.8; line-height: 0.8;"
+          anchor="bottom start" origin="top start">
+    <v-list density="compact" elevation=4>
       <v-list-subheader>Add Widget to the end of the grid</v-list-subheader>
       <v-list-item v-for="(descr, kind) in widget_list" :key="kind"
                    @click="$emit('select', kind)" link>
@@ -29,9 +31,15 @@
 </template>
 
 <style scoped>
-/* reduce height of menu */
-.v-menu__content .v-list-item { min-height: 2rem; width: 500px;}
-.v-menu__content .v-list-item__title { flex: 0 0 auto; margin-right: 12px; }
+  /* reduce height of menu */
+  .v-overlay__content .v-list-item { min-height: 1.2rem; width: 500px;}
+  .v-overlay__content .v-list-item-title {
+    min-width: 7em; flex: 0 0 auto; margin-right: 12px;
+    font-size: 0.875rem; line-height: 1.25rem;
+  }
+  .v-overlay__content .v-list-item-subtitle {
+    font-size: 0.875rem; line-height: 1.25rem;
+  }
 </style>
 
 <script scoped>
@@ -46,7 +54,12 @@ export default {
 
   data() { return {
     show: false,
+    btnid: 'btn' + Math.trunc(Math.random() * 1000000),
   }},
+
+  watch: {
+    show(val) { console.log("Show menu:", val) },
+  },
 
   computed: {
     // list of available widgets for the menu

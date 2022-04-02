@@ -4,22 +4,18 @@
 -->
 
 <template>
-  <div style="display: content;">
-    <v-text-field dense :label="label" :hint="hint" :value="value"
-                  @input="$emit('input',$event.hex)">
-      <template v-slot:append-outer>
-        <v-btn icon x-small @click="show_picker=!show_picker">
-          <v-icon>mdi-palette</v-icon>
-        </v-btn>
-      </template>
+    <v-text-field :label="label" :model-value="modelValue" v-bind="$attrs"
+                  append-inner-icon="mdi-palette"
+                  @update:modelValue="$emit('input', $event.hex)"
+                  @click:append-inner="show_picker=!show_picker">
     </v-text-field>
     <v-overlay v-model="show_picker" class="color-picker" :dark="false">
       <v-card class="d-flex flex-column">
-        <v-card-title class="d-flex align-baseline width100 pt-0 pb-0">
+        <v-card-title class="width100 pt-1 pb-0">
           <span>{{label}}</span>
           <v-spacer></v-spacer>
           <v-btn elevation=0 icon @click="show_picker=false">
-            <v-icon>mdi-close</v-icon>
+            <v-icon icon="mdi-close" />
           </v-btn>
         </v-card-title>
         <v-color-picker hide-canvas hide-sliders mode="hexa" show-swatches swatches-max-height="auto"
@@ -28,7 +24,6 @@
         </v-color-picker>
       </v-card>
     </v-overlay>
-  </div>
 </template>
 
 <style>
@@ -53,8 +48,7 @@ export default {
 
   props: {
     label: { default: null },
-    hint: { default: null },
-    value: { default: null },
+    modelValue: { default: null },
   },
 
   data() {
@@ -78,9 +72,9 @@ export default {
   methods: {
     changeColor(c) {
       if (c && c.hexa == "#00000000") {
-        this.$emit('input', "") // gives us text color with theme support
+        this.$emit('update:modelValue', "") // gives us text color with theme support
       } else {
-        this.$emit('input', c.hex)
+        this.$emit('update:modelValue', c.hex)
       }
     },
   },

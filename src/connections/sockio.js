@@ -73,7 +73,8 @@ export default class SockioConnection {
     this.sock.on("connect", () => {
       console.log("SIO connected")
       this.setStatus()
-      this.sock.emit("msg", "$ctrl", (config.config && this.first_connect) ? "start" : "continue")
+      //this.sock.emit("msg", "$ctrl", (config.config && this.first_connect) ? "start" : "continue")
+      this.sock.emit("msg", "$ctrl", "start")
       this.first_connect = false
     })
 
