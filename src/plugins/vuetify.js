@@ -8,7 +8,8 @@ import '@mdi/font/css/materialdesignicons.css'
 // Vuetify
 import { createVuetify } from 'vuetify'
 import '/src/flexdash.scss'
-import 'vuetify/styles'
+import 'vuetify/styles'  // ESM build
+//import 'vuetify/dist/vuetify.css'  // CJS (UMD?) build
 
 const flexdashLight = {
   dark: false,
@@ -21,6 +22,7 @@ const flexdashLight = {
     primary_dark: '#760000',
     error: '#ec7422',
     highlight: '#fff5ce', // selected widget
+    notification: '#666666', // background of notification snackbar at top
   }
 }
 
@@ -35,40 +37,27 @@ const flexdashDark = {
     primary_dark: '#760000',
     error: '#ec7422',
     highlight: '#716741',
+    notification: '#cccccc',
   }
+}
+
+window.v_defaults = {
+  global: {
+    density: 'compact',
+    'hide-details': true,
+  },
+  'VTooltip': {
+    anchor: 'bottom',
+  },
 }
 
 export default createVuetify({
   display: {
-    //mobileBreakpoint: 'sm'
+    mobileBreakpoint: 'sm'
   },
-  defaults: {
-    global: {
-      density: 'compact',
-      'hide-details': true,
-    },
-  },
+  defaults: window.v_defaults,
   theme: {
     defaultTheme: 'flexdashDark',
     themes: { flexdashLight, flexdashDark },
   }
 })
-
-
-
-
-// See https://fontsource.org/docs/getting-started
-// The browser does seem to load only the fonts actually used, gotta see what the bundling
-// ends up doing... This seems better or worked-out internally in Vuetify3
-// import '@fontsource/roboto/100.css'
-// import '@fontsource/roboto/300.css'
-// import '@fontsource/roboto/400.css'
-// import '@fontsource/roboto/500.css'
-// import '@fontsource/roboto/700.css'
-// import '@fontsource/roboto/900.css'
-// import '@fontsource/roboto/100-italic.css'
-// import '@fontsource/roboto/300-italic.css'
-// import '@fontsource/roboto/400-italic.css'
-// import '@fontsource/roboto/500-italic.css'
-// import '@fontsource/roboto/700-italic.css'
-// import '@fontsource/roboto/900-italic.css'

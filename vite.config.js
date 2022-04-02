@@ -3,21 +3,9 @@ import vue from '@vitejs/plugin-vue'
 import vuetify from '@vuetify/vite-plugin'
 import visualizer from 'rollup-plugin-visualizer'
 
-// const path = require('path')
-// function dynloader() { return {
-//   name: 'dynloader',
-//   resolveId(source, importer, opts) {
-//     if (source.match(/^vuetify\//)) {
-//       //const id = path.resolve(__dirname, 'node_modules', source)
-//       const id = path.join('/node_modules', source)
-//       console.log("********** resolveId: " + source + " from " + importer + " -> " + id) // " opts: " + JSON.stringify(opts))
-//       return id
-//     }
-//   }
-// }}
 
 // https://vitejs.dev/config/
-export default defineConfig({
+export default defineConfig(({mode}) => ({
   base: './',
   plugins: [
     //{name:'RINFO', resolveId: (s, i, o) => { console.log("RESOLVEID: " + s + " from " + i + " w/" + o)}},
@@ -25,7 +13,6 @@ export default defineConfig({
     vuetify({ // https://github.com/vuetifyjs/vuetify-loader/tree/next/packages/vite-plugin
       autoImport: true,
     }),
-    //dynloader(),
     visualizer({
       filename: "stats/stats.html",
       title: "FlexDash Rollup",
@@ -38,27 +25,41 @@ export default defineConfig({
     'import.meta.env.PACKAGE_VERSION': JSON.stringify(process.env.npm_package_version)
   },
   resolve: {
-    alias: {
-      //'@': path.resolve(__dirname, 'src'),
-    },
+    alias: mode == 'production' ? {
+      'vue': 'vue/dist/vue.esm-browser.prod.js',
+    } : {},
   },
-  server: {
-    //fs: { allow: [ '.', '../mylib' ] },
-  },
+  // server: { fs: { allow: [ '.', '../mylib' ] }, },
   build: {
+    minify: false, // for debugging
+    target: 'esnext',
     manifest: true,
     chunkSizeWarningLimit: 2000,
     dynamicImportVarsOptions: { // don't eval/rewrite dynamic import statements
-      exclude: ["./src/main.js"]
+      exclude: ["./src/utils/palette-loader.js"]
     },
     rollupOptions: {
-      external: ['vue', 'vuetify/lib'], // don't include in bundle
+      external: ['vue' ], // don't include in bundle
       output: {
         paths: {
-          vue: '/assets/vue.esm-browser.js',
-          vuetify: '/assets/vuetify.esm.js',
-        }
-      }
-    }
+          vue: './vue.esm-browser.prod.js',
+        },
+      },
+      plugins: [
+      ],
+    },
   }
-})
+}))
+
+// const path = require('path')
+// function dynloader() { return {
+//   name: 'dynloader',
+//   resolveId(source, importer, opts) {
+//     if (source.match(/^vuetify\//)) {
+//       //const id = path.resolve(__dirname, 'node_modules', source)
+//       const id = path.join('/node_modules', source)
+//       console.log("********** resolveId: " + source + " from " + importer + " -> " + id) // " opts: " + JSON.stringify(opts))
+//       return id
+//     }
+//   }
+// }}
