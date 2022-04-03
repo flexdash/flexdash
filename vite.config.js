@@ -1,14 +1,15 @@
+// Vite config for FlexDash
+// Copyright ©2021 Thorsten von Eicken, MIT license, see LICENSE file
+
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import vuetify from '@vuetify/vite-plugin'
 import visualizer from 'rollup-plugin-visualizer'
 
-
 // https://vitejs.dev/config/
 export default defineConfig(({mode}) => ({
   base: './',
   plugins: [
-    //{name:'RINFO', resolveId: (s, i, o) => { console.log("RESOLVEID: " + s + " from " + i + " w/" + o)}},
     vue(),
     vuetify({ // https://github.com/vuetifyjs/vuetify-loader/tree/next/packages/vite-plugin
       autoImport: true,
@@ -24,33 +25,38 @@ export default defineConfig(({mode}) => ({
     // pull-in the FlexDash version from package.json
     'import.meta.env.PACKAGE_VERSION': JSON.stringify(process.env.npm_package_version)
   },
-  resolve: {
-    alias: mode == 'production' ? {
-      'vue': 'vue/dist/vue.esm-browser.prod.js',
-    } : {},
-  },
   // server: { fs: { allow: [ '.', '../mylib' ] }, },
   build: {
-    minify: false, // for debugging
+    //minify: false, // for debugging
     target: 'esnext',
     manifest: true,
-    chunkSizeWarningLimit: 2000,
+    chunkSizeWarningLimit: 600,
     dynamicImportVarsOptions: { // don't eval/rewrite dynamic import statements
       exclude: ["./src/utils/palette-loader.js"]
-    },
-    rollupOptions: {
-      external: ['vue' ], // don't include in bundle
-      output: {
-        paths: {
-          vue: './vue.esm-browser.prod.js',
-        },
-      },
-      plugins: [
-      ],
     },
   }
 }))
 
+//=== old stuff from various experiments, delete at some point...
+
+// Use pre-built vue dist file:
+// resolve: {
+//   alias: mode == 'production' ? {
+//     'vue': 'vue/dist/vue.esm-browser.prod.js',
+//   } : {},
+// },
+// rollupOptions: {
+//   external: ['vue'], // don't include in bundle
+//   output: {
+//     paths: {
+//       vue: './vue.esm-browser.prod.js',
+//     },
+//   },
+//   plugins: [
+//   ],
+// },
+
+// Sample simple vite plugin:
 // const path = require('path')
 // function dynloader() { return {
 //   name: 'dynloader',

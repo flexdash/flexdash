@@ -4,12 +4,12 @@
 
 import { createApp, reactive } from 'vue'
 import vuetify from './plugins/vuetify'
-import { loadFonts } from './plugins/webfontloader'
+//import { loadFonts } from './plugins/webfontloader'
 import Dash from './dash.vue'
 import Store from './store'
 import loadPalette from './utils/palette-loader'
 
-loadFonts()
+//loadFonts()
 
 // insert a title tag into the HTML head
 if (!window.flexdash_options) window.flexdash_options = {}
@@ -51,6 +51,15 @@ window.addEventListener('popstate', () => {
   app.route = window.location.hash
   app.params = sp
 })
+
+// ===== load fonts
+
+import "@fontsource/roboto/100.css"
+import "@fontsource/roboto/300.css"
+import "@fontsource/roboto/400.css"
+import "@fontsource/roboto/500.css"
+import "@fontsource/roboto/700.css"
+import "@fontsource/roboto/900.css"
 
 // ===== define some globals which are used by dynamically loaded widgets
 

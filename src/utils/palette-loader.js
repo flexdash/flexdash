@@ -54,7 +54,7 @@ export default function(app) {
       if (!index.ok) throw Error(`'${index.statusText}' fetching ./xtra.json`)
       index = await index.json()
       if (!Array.isArray(index)) throw Error(`./xtra.json does not contain an array`)
-      proms = Object.fromEntries(index.map(p => [p, import(/* @vite-ignore */ `./../xtra/${p}`)]))
+      proms = Object.fromEntries(index.map(p => [p, import(/*@vite-ignore*/ `./../xtra/${p}`)]))
     } catch(e) {
       console.log(`Warning: can't fetch list of extra widgets: ${e.message}`)
       return
