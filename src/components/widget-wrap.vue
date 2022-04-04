@@ -209,7 +209,6 @@ export default {
         })
         Object.keys(config.dynamic||{}).forEach(p => {
           if (this.is_sfc && p == 'source') return // ignore source for sfc widgets
-          const type = this.child_props[p]?.type
           if (config.dynamic[p] !== undefined)
             this.watchers.push( this.addDynBinding(p, config.dynamic[p]) )
         })

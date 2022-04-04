@@ -2,7 +2,7 @@
      Copyright ©2021 Thorsten von Eicken, MIT license, see LICENSE file
 -->
 <template>
-  <div class="text-center loading">compiling<br>widget...</div>
+  <div class="text-center loading" style="line-height:1.2em">compiling<br>widget...</div>
 </template>
 
 <style scoped>

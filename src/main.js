@@ -67,6 +67,5 @@ import * as vue_all from 'vue'
 import * as vuetify_all from 'vuetify'
 import * as uplot_all from 'uplot'
 window.Vue = vue_all
-console.log("Vue:", vue_all)
 window.Vuetify = vuetify_all
 window.uplot = uplot_all
