@@ -146,7 +146,6 @@ export default {
       return !this.conn_statuses.find(s => s.status === "ok")
     },
     snackbar_color() {
-      console.log("Statuses:", this.conn_statuses)
       const ss = this.conn_statuses.find(s => s.status !== "ok") // FIXME: support multiple
       return ss && ss.status === "bad" ? "error" : "warning"
     },
@@ -294,6 +293,13 @@ export default {
             this.sendConfig()
             return
           }
+        }
+
+        if (params[0] === "sd") {
+          // handle setting/initializing the entire data tree a little specially to aid Vue
+          // reactivity (some watchers don't get triggered if we just assign this.store.sd)
+          Object.assign(this.$store.sd, params[1])
+          return
         }
 
         // Insert into store.
