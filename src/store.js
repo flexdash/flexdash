@@ -93,13 +93,6 @@ export class Store {
 
     if (topic === "$config") {
       this.config = this.root.$config = payload
-      // beware of Vue2 reactivity limitations...
-      //Vue.set(this.root, '$config', payload)
-      //this.config = this.root.$config
-      // Object.keys(payload).forEach(k => {
-      //   // Vue.set(this.config, k, payload[k])
-      //   this.config[k] = payload[k]
-      // })
       console.log("Replaced $config with:", payload)
       return
     }
@@ -136,7 +129,7 @@ export class Store {
     } else if (typeof(dir) === 'object') {
       old = dir[t]
       if (payload !== undefined) {
-        //console.log(`Updated ${topic} with:`, payload)
+        console.log(`Updated ${topic} with:`, payload)
         //Vue.set(dir, t, payload) // $set 'cause we may add new props to dir
         dir[t] = payload
       } else {
@@ -398,9 +391,9 @@ export class Store {
 
   // addWidget adds a new widget of the specified kind to a grid
   // returns the index of the new widget in the grid
-  addWidget(grid_id, kind) {
+  addWidget(grid_id, kind, widget_id=null) {
     const grid = this.gridByID(grid_id)
-    const widget_id = this.genId(this.config.widgets, "w")
+    widget_id = widget_id || this.genId(this.config.widgets, "w")
     const widget_ix = grid.widgets.length
     this.qMutation("add a widget", [ // FIXME: add tab name when implemented
       [`widgets/${widget_id}`,
