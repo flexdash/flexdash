@@ -10,8 +10,8 @@
     <div v-if="rollupMini" :class="rollerClasses">
       <v-tooltip>
         <template v-slot:activator="{ props }">
-          <v-btn x-small icon height="24px" class="mx-auto" @click="toggleRoll" v-bind="props">
-            <v-icon>mdi-arrow-{{rolledup ? 'down' : 'up'}}-drop-circle</v-icon>
+          <v-btn size="x-small" icon height="24px" class="mx-auto" @click="toggleRoll" v-bind="props">
+            <v-icon small>mdi-arrow-{{rolledup ? 'down' : 'up'}}-drop-circle</v-icon>
           </v-btn>
         </template>
         <span>Roll widgets up/down</span>

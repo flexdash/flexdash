@@ -23,7 +23,7 @@
               :modelValue="tab_ix" @update:modelValue="$emit('update:tab_ix', $event)">
         <v-tab v-for="(tid, ix) in dash_tabs" :key="tid" :value="ix" :id="'tab-'+tid">
           <!-- Text and icon for the tab -->
-          <v-icon :size="tabs[tid].title?'default':'x-large'" class="mb-0">mdi-{{tabs[tid].icon}}</v-icon>
+          <v-icon :size="tabs[tid].title?'default':'x-large'" class="mb-0" :icon="tabs[tid].icon" />
           {{tabs[tid].title}}
           <!-- Button and menu to edit tab properties -->
           <tab-edit :tab_ix="tab_ix" :tab_id="tab_id" v-if="global.editMode && ix==tab_ix"
@@ -61,7 +61,7 @@
     <v-navigation-drawer v-model="sidebar" app floating v-if="ready && mobile">
       <v-tabs direction="vertical" color="primary" slider-size="6" v-model="tab_ix">
         <v-tab v-for="t in dash_tabs" :key="t" class="ml-0 mr-auto px-0" style="min-width: auto">
-          <v-icon large class="mx-1">mdi-{{tabs[t].icon}}</v-icon>
+          <v-icon large class="mx-1" :icon="tabs[t].icon" />
           <span class="mr-1">{{tabs[t].title}}</span>
         </v-tab>
       </v-tabs>
