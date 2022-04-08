@@ -276,15 +276,16 @@ export class Store {
       //console.log("OOPS, config:", JSON.stringify(this.config))
       throw new StoreError("cannot init a non-empty store")
     }
+    console.log("Init empty dash")
 
     this.insertData('$config/widgets', {})
-    this.insertData('$config/grids', {
-      g00001: { id: 'g00001', kind: 'FixedGrid', widgets: [] },
-    })
-    this.insertData('$config/tabs', {
-      t00001: { id: 't00001', icon: "view-dashboard", grids: ["g00001"] }
-    })
-    this.insertData('$config/dash', { title: "FlexDash", tabs: ['t00001'] })
+    this.insertData('$config/grids', {})
+    //   g00001: { id: 'g00001', kind: 'FixedGrid', widgets: [] },
+    // })
+    this.insertData('$config/tabs', {})
+    //   t00001: { id: 't00001', icon: "view-dashboard", grids: ["g00001"] }
+    // })
+    this.insertData('$config/dash', { title: "FlexDash", tabs: [] }) //'t00001'] })
   }
 
   // updateDash given props to update (an object that gets merged into existing props)
