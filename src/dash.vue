@@ -49,7 +49,7 @@
       <div v-if="!ready">
         <v-container style="min-height: 400px;" class="d-flex flex-column justify-start align-center">
           <div class="text-subtitle-1 text-center my-4" v-if="!gotConfig">
-              Loading configuration from<br>{{config_src}}...
+              Awaiting configuration from<br>{{config_src}}...
           </div>
           <div class="text-subtitle-1 text-center"
                v-if="!palette.loaded || palette.errors.length > 0">
@@ -142,18 +142,18 @@ export default {
     theme: window.flexdash_options?.theme == "dark" ? "flexdashDark" : "flexdashLight",
 
     config_src: "",
-    version: import.meta.env.PACKAGE_VERSION,
   }),
 
   computed: {
     // gotConfig returns true once store.$config contains a full configuration,
     // don't start to render tabs before everything is there
     gotConfig() {
-      return this.$config.dash.title && this.$config.dash.tabs.length > 0
+      return this.$config.dash.title && (this.$config.ready ||
+        this.$config.dash.tabs.length > 0
         && Object.keys(this.$config.tabs).length > 0
         && Object.keys(this.$config.grids).length > 0
         && Object.keys(this.$config.widgets).length > 0
-        && Object.keys(this.$config.conn).length > 0
+        && Object.keys(this.$config.conn).length > 0)
     },
     gotPalette() { return this.palette.loaded && this.palette.errors.length == 0 },
     ready() { return this.gotConfig && this.gotPalette },

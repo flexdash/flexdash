@@ -133,7 +133,7 @@ export default {
     sidebar: false, // initially disabled
     tab_add: false, // turns add-a-tab menu on/off
 
-    version: import.meta.env.PACKAGE_VERSION,
+    version: import.meta.env.PACKAGE_VERSION || "DEV",
   }},
 
   computed: {

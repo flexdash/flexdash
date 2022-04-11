@@ -7,7 +7,7 @@ import vuetify from '@vuetify/vite-plugin'
 import visualizer from 'rollup-plugin-visualizer'
 
 // https://vitejs.dev/config/
-export default defineConfig(({mode}) => ({
+export default defineConfig(({mode}) => { return {
   base: './',
   plugins: [
     vue(),
@@ -35,7 +35,8 @@ export default defineConfig(({mode}) => ({
       exclude: ["./src/utils/palette-loader.js"]
     },
   }
-}))
+}})
+
 
 //=== old stuff from various experiments, delete at some point...
 
