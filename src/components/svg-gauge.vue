@@ -38,7 +38,10 @@ export default {
 
   computed: {
     frac() {
-      let frac = (this.value-this.min) / (this.max-this.min)
+      let v = this.value
+      if (!(v >= this.min)) v = this.min // crafted to deal with null or NaN...
+      if (!(v <= this.max)) v = this.max
+      const frac = (v-this.min) / (this.max-this.min)
       return Math.min(1, Math.max(0, frac))
     },
     stroke_width() { return 100 - this.radius },
@@ -57,10 +60,10 @@ export default {
     nform() { return `rotate(${270 - this.arc/2 + this.arc*this.frac}, 0, 0)` },
     ar() { return this.stretch ? 'none' : 'xMidYMid' },
     vbox() {
-      let r = this.arc >= 180 ? 100 : this.needle_start
-      let a = (this.arc-180)/2*Math.PI/180
-      let ysz = 100 + r * Math.sin(a)
-      let xsz = this.arc >= 180 ? 200 : 200 * Math.cos(a)
+      const r = this.arc >= 180 ? 100 : this.needle_start
+      const a = (this.arc-180)/2*Math.PI/180
+      const ysz = 100 + r * Math.sin(a)
+      const xsz = this.arc >= 180 ? 200 : 200 * Math.cos(a)
       return `-${xsz/2} -100 ${xsz} ${ysz}`
     },
   },
