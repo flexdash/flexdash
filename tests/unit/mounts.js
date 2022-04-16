@@ -12,7 +12,7 @@ export const transitionStub = () => ({ render(h) {
 
 export function myMount(comp, options, real) {
   const vuetify = new Vuetify()
-  const palette = { grids: {FixedGrid: {}}, widgets: {Stat:{}, Gauge:{}} }
+  const palette = { grids: {StdGrid: {}}, widgets: {Stat:{}, Gauge:{}} }
   options = Object.assign({
     localVue, vuetify,
     provide: {palette},

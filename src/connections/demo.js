@@ -231,7 +231,7 @@ const demo_tabs = {
   "Widget sampler": {
     "tabs": { "t0000": { "id":"t0000", "icon":"dice-multiple", "grids": ["g0000"] } }, // "view-dashboard"
     "grids": {
-      "g0000": { "id": "g0000", "kind": "FixedGrid",
+      "g0000": { "id": "g0000", "kind": "StdGrid",
                  "widgets": [ "w0001", "w0000", "w0003", "w0002", "w0009", "w0006",
                               "w0007", "w0008", "w0010", "w0011", "w0012", "w0013",
                               "w0014", "w0020", "w0021", "w0022", "w0023", "w0024" ] } },
@@ -302,7 +302,7 @@ const demo_tabs = {
     "tabs": {
       "t0005": { "id":"t0005", "title":"sockio", "icon":"lightning-bolt", "grids":["g0005"] } },
     "grids": {
-      "g0005": { "id": "g0005", "kind": "FixedGrid",
+      "g0005": { "id": "g0005", "kind": "StdGrid",
                   "widgets": ["w0030","w0031","w0032","w0033"] } },
     "widgets": {
       "w0030": { "kind": "Markdown", "id": "w0030", "cols": 4, "rows": 5, "dynamic": {},
@@ -324,7 +324,7 @@ const demo_tabs = {
     "tabs": {
       "t0001": { "id":"t0001", "title":"websock", "icon":"resistor-nodes", "grids":["g0001"] } },
     "grids": {
-      "g0001": { "id": "g0001", "kind": "FixedGrid",
+      "g0001": { "id": "g0001", "kind": "StdGrid",
                   "widgets": ["w0015","w0016","w0017","w0018","w0019"] } },
     "widgets": {
       "w0015": { "kind": "Markdown", "id": "w0015", "cols": 4, "rows": 5, "dynamic": {},
@@ -348,7 +348,7 @@ const demo_tabs = {
     "tabs": {
       "t0006": { "id":"t0006", "title":"panel", "icon":"grid", "grids":["g0006"] } },
     "grids": {
-      "g0006": { "id": "g0006", "kind": "FixedGrid",
+      "g0006": { "id": "g0006", "kind": "StdGrid",
                   "widgets": [ "w07683","w05842","w05997","w0036","w08990","w0037","w0038","w0039" ],
     }},
     "widgets": {
@@ -431,7 +431,7 @@ const demo_tabs = {
     "tabs": {
       "t0002": { "id":"t0002", "title":"iframe", "icon":"grid", "grids":["g0002","g0003"] } },
     "grids": {
-      "g0002": { "id": "g0002", "kind": "FixedGrid", "widgets": ["w0040"] },
+      "g0002": { "id": "g0002", "kind": "StdGrid", "widgets": ["w0040"] },
       "g0003": { "id": "g0003", "kind": "IFrameGrid",
                  "url": "http://core.voneicken.com:1880/ui/#!/1" } },
     "widgets": {

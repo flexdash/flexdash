@@ -10,8 +10,9 @@
     <div v-if="rollupMini" :class="rollerClasses">
       <v-tooltip>
         <template v-slot:activator="{ props }">
-          <v-btn size="x-small" icon height="24px" class="mx-auto" @click="toggleRoll" v-bind="props">
-            <v-icon small>mdi-arrow-{{rolledup ? 'down' : 'up'}}-drop-circle</v-icon>
+          <v-btn size="small" flat icon class="mx-auto" style="margin-top: 2px"
+                 @click="toggleRoll" v-bind="props">
+            <v-icon size="small">mdi-arrow-{{rolledup ? 'down' : 'up'}}-drop-circle</v-icon>
           </v-btn>
         </template>
         <span>Roll widgets up/down</span>
@@ -157,7 +158,7 @@ const COLW = 120 // min width of widgets in pixels
 const GAPW = 8   // gap between widgets in pixels
 
 export default {
-  name: 'FixedGrid',
+  name: 'StdGrid',
 
   components: { PanelEdit, WidgetEdit, WidgetMenu, EditPlusMinus },
   inject: [ '$store', '$config', 'palette', 'global' ],

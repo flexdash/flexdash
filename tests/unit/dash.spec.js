@@ -3,8 +3,8 @@ import { myMount } from './mounts.js'
 import Dash from "/src/dash.vue"
 import { default as store, StoreReinit } from '/src/store.js'
 
-import FixedGrid from "/src/grids/fixed-grid.vue"
-Vue.component('FixedGrid', FixedGrid)
+import StdGrid from "/src/grids/fixed-grid.vue"
+Vue.component('StdGrid', StdGrid)
 
 const transitionStub = () => ({ render(h) {
   return h('span', this.$options._renderChildren) } })
