@@ -5,60 +5,11 @@
 
 <template>
   <div class="u-tooltip-attach">
-
-    <!-- Hacky roll-up/roll-down icon at the top-center of the grid if there's no title -->
-    <div v-if="rollupMini" :class="rollerClasses">
-      <v-tooltip>
-        <template v-slot:activator="{ props }">
-          <v-btn size="small" flat icon class="mx-auto" style="margin-top: 2px"
-                 @click="toggleRoll" v-bind="props">
-            <v-icon size="small">mdi-arrow-{{rolledup ? 'down' : 'up'}}-drop-circle</v-icon>
-          </v-btn>
-        </template>
-        <span>Roll widgets up/down</span>
-      </v-tooltip>
-    </div>
-
-    <!-- Normal-mode title bar, when we have a title -->
-    <v-toolbar flat v-if="rollupMaxi" height=36 color="background"
-               class="d-flex justify-start">
-      <!-- roll-up/down button -->
-      <v-tooltip>
-        <template v-slot:activator="{ props }">
-          <v-btn x-small icon height="24px" class="mx-auto" @click="toggleRoll" v-bind="props">
-            <v-icon>mdi-arrow-{{rolledup ? 'down' : 'up'}}-drop-circle</v-icon>
-          </v-btn>
-        </template>
-        <span>Roll widgets up/down</span>
-      </v-tooltip>
-      <!-- grid title -->
-      <v-toolbar-title>{{grid.title}}</v-toolbar-title>
-    </v-toolbar>
-
-    <!-- Editing toolbar above grid proper -->
-    <v-toolbar v-if="global.editMode" density="compact" flat color="background" class="editmode">
-      <!-- roll-up/down button -->
-      <v-tooltip>
-        <template v-slot:activator="{ props }">
-          <v-btn icon color="grey" @click="toggleRoll" class="mr-4" v-bind="props">
-            <v-icon>mdi-arrow-{{rolledup ? 'down' : 'up'}}-drop-circle</v-icon>
-          </v-btn>
-        </template>
-        <span>Roll widgets up/down</span>
-      </v-tooltip>
-
-      <!-- grid title text field -->
-      <v-tooltip>
-        <template v-slot:activator="{ props }">
-          <v-text-field hide-details label="grid title" class="mr-6 flex-grow-0"
-                        v-bind="props" :value="grid.title" @change="changeTitle" style="width: 20ex">
-          </v-text-field>
-        </template>
-        <span>Title to show at top of grid, if empty the grid bar is thinner</span>
-      </v-tooltip>
-
+    <grid-bar :title="grid.title" :has_widgets="grid.widgets.length>0"
+              v-model:rolledup="rolledup" @changeTitle="changeTitle"
+              @delete="$emit('delete')">
       <!-- Menu to add widget -->
-      <widget-menu @select="addWidget" class="mr-4"></widget-menu>
+      <widget-menu v-if="!global.noAddDelete" @select="addWidget" class="mr-4"></widget-menu>
 
       <!-- Paste button/text field -->
       <!--v-tooltip bottom>
@@ -93,19 +44,7 @@
         </template>
         <span>Maximum number of columns to grow grid to</span>
       </v-tooltip>
-
-      <v-spacer></v-spacer>
-      <!-- Button to delete the grid -->
-      <v-tooltip >
-        <template v-slot:activator="{ props }">
-          <v-btn @click="$emit('delete')" class="mc-auto" v-bind="props">
-            Delete grid
-          </v-btn>
-        </template>
-        <span>Delete this grid and all its widgets</span>
-      </v-tooltip>
-
-    </v-toolbar>
+    </grid-bar>
 
     <!-- Grid of widgets -->
     <div v-if="!rolledup" class="container foo g-grid-small pt-0 px-2 pb-2" v-bind:style="gridStyle">
@@ -119,13 +58,6 @@
 </template>
 
 <style scoped>
-/* style for button groups in the edit toolbar */
-.v-toolbar__content div { margin-right: 4ex; }
-
-/* style for roll-up/roll-down bar when there's no toolbar */
-.roller { width: 100% }
-.roller.roller__minimal { height: 22px; }
-
 /* style to make grid happen */
 .g-grid-small {
   display: grid;
@@ -142,16 +74,12 @@
   border: 1px solid #888; border-radius: 4px;
 }
 </style>
-<style>
-.editmode.theme--light .v-toolbar__content { border-top: 1px solid #e0e0e0; }
-.editmode.theme--dark .v-toolbar__content { border-top: 1px solid #111; }
-</style>
 
 <script scoped>
 
+import GridBar from '/src/components/grid-bar.vue'
 import PanelEdit from '/src/edit-panels/panel-edit.vue'
 import WidgetEdit from '/src/edit-panels/widget-edit.vue'
-import WidgetMenu from '/src/menus/widget-menu.vue'
 import EditPlusMinus from '/src/components/edit-plus-minus.vue'
 
 const COLW = 120 // min width of widgets in pixels
@@ -160,7 +88,7 @@ const GAPW = 8   // gap between widgets in pixels
 export default {
   name: 'StdGrid',
 
-  components: { PanelEdit, WidgetEdit, WidgetMenu, EditPlusMinus },
+  components: { GridBar, PanelEdit, WidgetEdit, EditPlusMinus },
   inject: [ '$store', '$config', 'palette', 'global' ],
 
   props: {
@@ -171,18 +99,11 @@ export default {
     edit_ix: null, // widget being edited
     rolledup: false, // whether grid is rolled-up
     pasting: false, // controls display of paste div
-    //colRange: ,
   }},
 
   computed: {
     // grid config: {id, kind, icon, widgets}
     grid() { return this.$store.gridByID(this.id) },
-    rollupMini() { return !this.global.editMode && !this.grid.title },
-    rollupMaxi() { return !this.global.editMode &&  this.grid.title },
-    rollerClasses() { // classes for mini roll-up div
-      const rm = this.grid.widgets.length>0 &&  !this.rolledup && 'roller__minimal'
-      return [ 'd-flex', 'roller', rm ]
-    },
     maxWidget() { // width of widest widget (in columns)
       return Math.max(1, ...this.grid.widgets.map(id => this.$store.widgetByID(id).cols || 1))
     },
@@ -297,7 +218,6 @@ export default {
     },
     clearPasteDiv() { this.$refs.pasteDiv.firstChild.innerHTML = "" },
 
-    toggleRoll() { this.rolledup = !this.rolledup },
     changeTitle(ev) { this.$store.updateGrid(this.id, { title: ev }) },
     setMinCols(ev) {
       this.$store.updateGrid(this.id, { min_cols: ev })

@@ -67,6 +67,7 @@
           </v-progress-linear>
         </v-container>
       </div>
+
     </v-main>
 
   </v-app>
@@ -163,8 +164,14 @@ export default {
     dash_tabs() { return this.dash.tabs || [] }, // tabs to show, handling init
     tab() { return this.tab_id ? this.tabs[this.tab_id] : {} },
     tab_id() { return this.tab_ix != null ? this.dash_tabs[this.tab_ix] : "" }, // current tab ID
-    tabs() { console.log(`Tabs: ${J(this.$config.tabs)}`); return this.ready ? this.$config.tabs : {} }, // make accessible in template
-    grids() { console.log(`Grids: ${J(this.$config.grids)}`); return this.ready ? this.$config.grids : {} }, // make accessible in template
+    tabs() { // make easily accessible in template
+      console.log(`Tabs: ${JSON.stringify(this.$config.tabs)}`)
+      return this.ready ? this.$config.tabs : {}
+    },
+    grids() { // make easily accessible in template
+      console.log(`Grids: ${JSON.stringify(this.$config.grids)}`)
+      return this.ready ? this.$config.grids : {}
+    },
     canUndo() { return this.$store.undo.buf.length > 0 },
     title() { return window.flexdash_options.title },
 

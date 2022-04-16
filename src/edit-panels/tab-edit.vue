@@ -33,7 +33,7 @@
           <v-spacer></v-spacer>
 
           <!-- delete tab -->
-          <v-btn small @click="deleteTab" class="mx-auto">Delete tab</v-btn>
+          <v-btn small v-if="!global.noAddDelete" @click="deleteTab" class="mx-auto">Delete tab</v-btn>
           <v-spacer></v-spacer>
 
           <!-- close dialog button -->
@@ -55,8 +55,8 @@
           </v-text-field>
 
           <!-- tab title -->
-          <v-text-field dense label="tab title" class="flex-grow-0"
-                        :value="tab.title" @input="handleEdit('title', $event)">
+          <v-text-field label="tab title" class="flex-grow-0"
+                        :value="tab.title" @update:modelValue="handleEdit('title', $event)">
           </v-text-field>
 
           <!-- tab type chip -->
@@ -66,7 +66,8 @@
           </div>
 
           <!-- for a grid tab, add-a-grid button -->
-          <div v-if="tab_kind=='grid'" class="d-flex mx-2 align-center justify-start">
+          <div v-if="tab_kind=='grid' && !global.noAddDelete"
+               class="d-flex mx-2 align-center justify-start">
             <v-card-text class="px-1 mr-3" style="width: auto;">
               {{grid_num}} grid{{grid_num>1 ? "s" : ""}}
             </v-card-text>
@@ -99,7 +100,7 @@
 <script scoped>
 export default {
   name: "TabEdit",
-  inject: [ '$config', '$store' ],
+  inject: [ '$config', '$store', 'global' ],
 
   model: { prop: "tab_edit", event: "change" },
 

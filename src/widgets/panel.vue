@@ -4,7 +4,8 @@
 
 <template>
   <div :class="panel_classes" :style="panel_style">
-    <widget-menu v-if="global.editMode" button_class="add-widget" @select="addWidget">
+    <widget-menu v-if="global.editMode && !global.noAddDelete" button_class="add-widget"
+                 @select="addWidget">
     </widget-menu>
     <component v-for="(w,ix) in widgets" :key="w" :widget_id="w" :is="editComponent[w]"
                :edit_active="ix == edit_ix" :no_border="true"

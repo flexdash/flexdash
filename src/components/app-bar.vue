@@ -3,80 +3,78 @@
 -->
 
 <template>
-    <v-app-bar app>
+  <v-app-bar app>
 
-      <!-- Hamburger menu shown on smallest devices only -->
-      <template v-slot:prepend v-if="ready && mobile">
-        <v-app-bar-nav-icon @click="sidebar = !sidebar"></v-app-bar-nav-icon>
-      </template>
+    <!-- Hamburger menu shown on smallest devices only -->
+    <template v-slot:prepend v-if="ready && mobile">
+      <v-app-bar-nav-icon @click="sidebar = !sidebar"></v-app-bar-nav-icon>
+    </template>
 
-      <!-- Title -->
-      <v-app-bar-title class="text-h4 font-weight-bold text-high-emphasis mr-3"
-                       style="font-variant: small-caps; flex: 0 0; min-width: auto;">
-        {{ title }}
-      </v-app-bar-title>
+    <!-- Title -->
+    <v-app-bar-title class="text-h4 font-weight-bold text-high-emphasis mr-3"
+                      style="font-variant: small-caps; flex: 0 0; min-width: auto;">
+      {{ title }}
+    </v-app-bar-title>
 
-      <div class="version d-flex">alpha v{{version}}</div>
+    <div class="version d-flex">alpha v{{version}}</div>
 
-      <!-- Tabs -->
-      <v-tabs stacked color="primary" v-if="ready && !mobile"
-              :modelValue="tab_ix" @update:modelValue="$emit('update:tab_ix', $event)">
-        <v-tab v-for="(tid, ix) in dash_tabs" :key="tid" :value="ix" :id="'tab-'+tid">
-          <!-- Text and icon for the tab -->
-          <v-icon :size="tabs[tid].title?'default':'x-large'" class="mb-0" :icon="tabs[tid].icon" />
-          {{tabs[tid].title}}
-          <!-- Button and menu to edit tab properties -->
-          <tab-edit :tab_ix="tab_ix" :tab_id="tab_id" v-if="global.editMode && ix==tab_ix"
-                    :activator="'#tab-'+tid">
-          </tab-edit>
-        </v-tab>
-        <!-- Button to add a tab -->
-        <v-btn v-if="global.editMode" class="my-auto" id="tab-add"
-               @click.stop="tab_add=!tab_add">
-          <v-icon icon="mdi-plus" />
+    <!-- Tabs -->
+    <v-tabs stacked color="primary" v-if="ready && !mobile"
+            :modelValue="tab_ix" @update:modelValue="$emit('update:tab_ix', $event)">
+      <v-tab v-for="(tid, ix) in dash_tabs" :key="tid" :value="ix" :id="'tab-'+tid">
+        <!-- Text and icon for the tab -->
+        <v-icon :size="tabs[tid].title?'default':'x-large'" class="mb-0" :icon="tabs[tid].icon" />
+        {{tabs[tid].title}}
+        <!-- Button and menu to edit tab properties -->
+        <tab-edit :tab_ix="tab_ix" :tab_id="tab_id" v-if="global.editMode && ix==tab_ix"
+                  :activator="'#tab-'+tid">
+        </tab-edit>
+      </v-tab>
+      <!-- Button to add a tab -->
+      <v-btn v-if="global.editMode && !global.noAddDelete" class="my-auto" id="tab-add"
+              @click.stop="tab_add=!tab_add">
+        <v-icon icon="mdi-plus" />
+      </v-btn>
+    </v-tabs>
+
+    <v-spacer></v-spacer>
+
+    <!-- Undo button -->
+    <v-tooltip v-if="global.editMode" :disabled="!canUndo">
+      <template v-slot:activator="{ props }">
+        <v-btn icon v-bind="props" :disabled="!canUndo" @click="$store.performUndo()">
+          <v-icon>mdi-undo</v-icon>
         </v-btn>
-      </v-tabs>
+      </template>
+      <span>undo {{ canUndo && $store.undo.buf[$store.undo.buf.length-1].tagline }}</span>
+    </v-tooltip>
 
-      <v-spacer></v-spacer>
+    <!-- Connections icon and menu -->
+    <connections @update:src="$emit('update:config_src', $event)" ></connections>
 
-      <!-- Undo button -->
-      <v-tooltip v-if="global.editMode" :disabled="!canUndo">
-        <template v-slot:activator="{ props }">
-          <v-btn icon v-bind="props" :disabled="!canUndo" @click="$store.performUndo()">
-            <v-icon>mdi-undo</v-icon>
-          </v-btn>
-        </template>
-        <span>undo {{ canUndo && $store.undo.buf[$store.undo.buf.length-1].tagline }}</span>
-      </v-tooltip>
+    <!-- Settings icon and menu at far right -->
+    <settings-menu :theme="theme" @update:theme="$emit('update:theme', $event)" v-if="ready">
+    </settings-menu>
+  </v-app-bar>
 
-      <!-- Connections icon and menu -->
-      <connections @update:src="$emit('update:config_src', $event)" ></connections>
+  <!-- Navigation drawer opening from the left on small devices to show tabs -->
+  <v-navigation-drawer v-model="sidebar" app floating v-if="ready && mobile">
+    <v-tabs direction="vertical" color="primary" slider-size="6" v-model="tab_ix">
+      <v-tab v-for="t in dash_tabs" :key="t" class="ml-0 mr-auto px-0" style="min-width: auto">
+        <v-icon large class="mx-1" :icon="tabs[t].icon" />
+        <span class="mr-1">{{tabs[t].title}}</span>
+      </v-tab>
+    </v-tabs>
+  </v-navigation-drawer>
 
-      <!-- Settings icon and menu at far right -->
-      <settings-menu :theme="theme" @update:theme="$emit('update:theme', $event)" v-if="ready">
-      </settings-menu>
-    </v-app-bar>
-
-    <!-- Navigation drawer opening from the left on small devices to show tabs -->
-    <v-navigation-drawer v-model="sidebar" app floating v-if="ready && mobile">
-      <v-tabs direction="vertical" color="primary" slider-size="6" v-model="tab_ix">
-        <v-tab v-for="t in dash_tabs" :key="t" class="ml-0 mr-auto px-0" style="min-width: auto">
-          <v-icon large class="mx-1" :icon="tabs[t].icon" />
-          <span class="mr-1">{{tabs[t].title}}</span>
-        </v-tab>
-      </v-tabs>
-    </v-navigation-drawer>
-
-    <!-- Menu for tab addition-->
-    <v-menu v-model="tab_add" anchor="bottom center" origin="top center" allow-overflow
-            class="mt-1" activator="#tab-add">
-      <v-list>
-        <v-list-item @click="addTab('grid')">Grid with Widgets</v-list-item>
-        <v-list-item @click="addTab('iframe')">IFrame</v-list-item>
-      </v-list>
-    </v-menu>
-
-
+  <!-- Menu for tab addition-->
+  <v-menu v-model="tab_add" anchor="bottom center" origin="top center" allow-overflow
+          class="mt-1" activator="#tab-add">
+    <v-list>
+      <v-list-item @click="addTab('grid')">Grids & Widgets</v-list-item>
+      <v-list-item @click="addTab('iframe')">IFrame</v-list-item>
+    </v-list>
+  </v-menu>
 </template>
   
 <style>
@@ -114,12 +112,6 @@ export default {
     return { mobile }
   },
 
-  // Quick recap of config structure:
-  // this.dash_tabs := $config.dash.tabs: array of tab IDs, e.g. t00001, t10105, ...
-  // this.tab_ix := index into this.dash_tabs for the currently selected tab
-  // this.tabs := $config.tabs: array of tab objects
-  // this.tab := $config.tabs[tab_id]: config for the specific tab
-
   props: {
     ready: false, // set to true when the app is ready to be displayed
     title: { type: String, default: "FlexDash" },
@@ -153,11 +145,8 @@ export default {
   methods: {
     // handle buttons for tab editing
     addTab(kind) {
-      const tab_ix = this.$store.addTab(kind)
-      this.$nextTick(() => {
-        this.tab_ix = tab_ix
-        this.tab_edit = true // switch to editing the new tab
-      })
+      this.tab_add = false // close-on-content-click in v-menu not implemented yet (!@#$%^)
+      this.$emit('update:tab_ix', this.$store.addTab(kind))
     },
   },
 

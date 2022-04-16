@@ -6,7 +6,7 @@
   <v-toolbar flat border rounded color="rgba(128, 128, 128, 0.1)"
              class="widget-edit-toolbar mx-4 px-1 justify-space-between">
     <!-- delete widget -->
-    <v-btn elevation="2" @click="$emit('delete')">Delete {{kind}}</v-btn>
+    <v-btn v-if="!global.noAddDelete" elevation="2" @click="$emit('delete')">Delete {{kind}}</v-btn>
     <v-spacer></v-spacer>
     <div class="d-flex align-center">
       <!-- panel-only: switch between solid vs grid -->
@@ -22,7 +22,7 @@
       <!-- move widget -->
       <widget-move :widget_id="widget_id" @move="teleport"></widget-move>
       <!-- clone widget -->
-      <v-tooltip bottom>
+      <v-tooltip bottom v-if="!global.noAddDelete">
         <template v-slot:activator="{ props }">
           <v-btn small icon @click="$emit('clone')" class="ml-2" v-bind="props">
             <v-icon>mdi-folder-multiple</v-icon></v-btn>
@@ -84,7 +84,7 @@ export default {
 
   emits: [ 'delete', 'clone', 'move', 'teleport', 'changeSolid' ],
 
-  inject: [ '$store' ],
+  inject: [ '$store', 'global' ],
 
   data() { return {
   }},
