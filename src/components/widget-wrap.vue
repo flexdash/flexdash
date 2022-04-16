@@ -188,7 +188,7 @@ export default {
       this.watchers.length = 0
     },
 
-    // Generate bindings from store.sd -> bindings according to config. Collect watchers created.
+    // Generate bindings from store.sd -> this.bindings according to config. Collect watchers created.
     genBindings(config) {
       //console.log("Generating bindings, config:", JSON.stringify(config))
       this.removeWatchers()
@@ -209,8 +209,11 @@ export default {
         })
         Object.keys(config.dynamic||{}).forEach(p => {
           if (this.is_sfc && p == 'source') return // ignore source for sfc widgets
-          if (config.dynamic[p] !== undefined)
+          if (config.dynamic[p] === true && config.dyn_root) {
+            this.watchers.push( this.addDynBinding(p, config.dyn_root + '/' + p) )
+          } else if (config.dynamic[p] !== undefined) {
             this.watchers.push( this.addDynBinding(p, config.dynamic[p]) )
+          }
         })
       }
     },
