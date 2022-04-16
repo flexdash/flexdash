@@ -42,7 +42,7 @@ export default {
     chip: { type: Boolean, default: false, tip: "display value in a chip/pill" },
     start_mode: { type: Number, default: 0, tip: "0=local TZ, 1=UTC, 2=ago" },
     units: { type: Array, default: () => (["now", "sec", "min", "hr", "days", "weeks", "months"]),
-      tip: "in/ago unit text" },
+      tip: "unit text" },
     zoom: { type: Number, default: 100, tip: "zoom factor in % (N/A to chip)" },
   },
 
