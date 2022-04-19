@@ -44,6 +44,8 @@
       <span>Roll widgets up/down</span>
     </v-tooltip>
 
+    <span class="mr-2">{{kind}}</span>
+
     <!-- grid title text field -->
     <v-tooltip>
       <template v-slot:activator="{ props }">
@@ -85,15 +87,13 @@
 
 <script scoped>
 
-import WidgetMenu from '/src/menus/widget-menu.vue'
-
 export default {
   name: 'GridBar',
 
-  components: { WidgetMenu },
   inject: [ 'global' ],
 
   props: {
+    kind: { type: String, default: '' }, // type of grid (StdGrid, ArrayGrid, ... )
     title: { type: String, default: '' }, // grid title
     has_widgets: false,
     rolledup: false, // whether grid is rolled-up
