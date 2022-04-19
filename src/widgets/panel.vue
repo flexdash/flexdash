@@ -36,6 +36,7 @@
 import PanelEdit from '/src/edit-panels/panel-edit.vue'
 import WidgetEdit from '/src/edit-panels/widget-edit.vue'
 import WidgetMenu from '/src/menus/widget-menu.vue'
+import widget_ops from '/src/utils/widget-grid-ops.js'
 
 export default {
   name: 'Panel',
@@ -83,53 +84,7 @@ act only as a fixed arrangement of widgets.`,
   methods: {
     toggleEdit(ix, on) { this.edit_ix = on ? ix : null },
 
-    addWidget(kind) {
-      const widget_ix = this.$store.addPanelWidget(this.id, kind)
-      this.edit_ix = widget_ix // start editing the new widget
-    },
-
-    // handle widget delete event coming up from widget-edit
-    deleteWidget(ix) {
-      this.$store.deletePanelWidget(this.id, ix)
-      this.edit_ix = null
-    },
-
-    // handle widget clone event coming up from widget-edit
-    cloneWidget(ix) {
-      // start by adding a new widget of the same kind to the end of the panel
-      const old_w = this.$store.widgetByID(this.$store.widgetIDByPanelIX(this.id, ix))
-      const widget_ix = this.$store.addPanelWidget(this.id, old_w.kind)
-      const widget_id = this.$store.widgetIDByPanelIX(this.id, widget_ix)
-      // copy the properties over
-      const props = JSON.parse(JSON.stringify(old_w)) // clone and clean of observers
-      delete props.id
-      this.$store.updateWidget(widget_id, props)
-      // move clone up to be just behind original
-      if (widget_ix != ix+1) {
-        let ww = [ ...this.widgets ] // clone
-        ww.copyWithin(ix+2, ix+1) // shift widgets up
-        ww[ix+1] = widget_id
-        this.$store.updateWidgetProp(this.id, 'static', 'widgets', ww)
-      }
-      this.edit_ix = ix+1
-    },
-
-    // move a widget up/down (dir=-1/1)
-    moveWidget(ix, dir) {
-      console.log(`Moving widget #${ix} by ${dir}`)
-      if (!(ix+dir >= 0 && ix+dir < this.widgets.length)) return
-      let ww = [ ...this.widgets ] // clone
-      let w = ww[ix]; ww[ix] = ww[ix+dir]; ww[ix+dir] = w // swap
-      this.$store.updateWidgetProp(this.id, 'static', 'widgets', ww)
-      this.edit_ix += dir
-    },
-
-    // teleport the widget to a different grid or panel
-    teleportWidget(w_id, src_id, dest_id) {
-      console.log(`Teleport widget ${w_id} from ${src_id} to ${dest_id}`)
-      this.$store.moveWidget(w_id, src_id, dest_id)
-      this.edit_ix = null
-    },
+    ...widget_ops,
 
   },
 }
