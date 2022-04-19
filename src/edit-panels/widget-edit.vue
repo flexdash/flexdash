@@ -20,7 +20,7 @@
   <!-- without div the v-for in parent gets confused by v-menu -->
   <div class="widget-edit" :style="widgetStyle">
     <!-- Widget proper -->
-    <widget-wrap :config="widget" :no_border="no_border"
+    <widget-wrap :config="widget" :no_border="no_border" :editable="editable"
                   @edit="toggleEdit" :color="edit_active?'highlight':''">
     </widget-wrap>
 
@@ -105,10 +105,11 @@ export default {
   props: {
     widget_id: { type: String, required: true }, // my widget ID
     edit_active: { type: Boolean, default: false }, // we're being edited
+    editable: { type: Boolean, default: true }, // can we be edited? (just passed down to widget-wrap)
     no_border: { type: Boolean, default: false }, // true causes no "card" border, used by panel
   },
 
-  emits: [ 'move', 'teleport', 'delete', 'clone' ],
+  emits: [ 'edit', 'move', 'teleport', 'delete', 'clone' ],
 
   data() { return {
     prop_static: {}, // manual toggle between static and dynamic binding
@@ -123,7 +124,6 @@ export default {
   }},
 
   created() {
-    console.log("Created widget", this.widget_id)
     // fetch the widget config from the store and perform some init
     const wj = JSON.stringify(this.$store.widgetByID(this.widget_id))
     const w = JSON.parse(wj)
@@ -189,6 +189,7 @@ export default {
     }
     this.child_props = cp
     this.prop_info = pi
+    console.log("Created widget", this.widget_id, w)
     // handle init edit_mode being active
     if (this.edit_active) this.propStatic()
   },

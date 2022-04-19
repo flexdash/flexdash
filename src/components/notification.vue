@@ -21,7 +21,7 @@ export default {
   name: "Notification",
 
   props: {
-    count: { type: Number, default: 10 },
+    count: { type: String, default: "10" },
   },
 
   data: () => ({
@@ -42,7 +42,8 @@ export default {
     notify(text, color) {
       let ts = new Date()
       this.notes.unshift({ ts, text, color })
-      while (this.notes.length > this.count) this.notes.pop()
+      const max = parseInt(this.count, 10)
+      while (this.notes.length > max) this.notes.pop()
       this.snackbar = true
     },
 

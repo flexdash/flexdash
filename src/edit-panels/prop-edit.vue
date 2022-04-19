@@ -43,7 +43,7 @@
         <v-text-field v-else-if="info.type === Number"
             class="flex-grow-1" style="max-width:auto"
             :label="name" type="number"
-            :model-value="value" @update:modelValue="handleEdit('static', $event)">
+            :model-value="modelValue" @update:modelValue="handleEdit('static', $event)">
         </v-text-field>
         <!-- boolean -->
         <v-switch v-else-if="info.type === Boolean"
@@ -145,7 +145,7 @@ export default {
 
   props: {
     name: { type: String, required: true }, // name of prop being edited
-    is_static: { type: Boolean, default: false }, // true: static prop, false: dynamic
+    is_static: { type: Number, default: 0 }, // 1: static prop, 0: dynamic
     modelValue: null,
     // info about prop: {type, default, validator, hint, icon, dynamic}
     // types: String, Number, Boolean, Array, Object, Date //, Function, Symbol
@@ -171,10 +171,12 @@ export default {
   methods: {
 
     handleEdit(which, value) {
+      console.log("handleEdit", which, value)
       this.$emit('update:modelValue', which, value)
     },
 
     handleColorEdit(value) {
+      console.log("handleColorEdit", value)
       if (value == "") value = null
       this.handleEdit('static', value)
     },

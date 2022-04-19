@@ -219,7 +219,7 @@ export default {
     const rs = randomStepper(0, 100)
     //this.intvl = window.setInterval(()=> this.$store.insertData("$demo_random", rs()), 3000)
 
-    setTimeout(()=>notify("Welcome to FlexDash", "secondary"), 500)
+    //setTimeout(()=>notify("Welcome to FlexDash", "secondary"), 500)
   },
 
   beforeDestroy() { window.clearInterval(this.intvl) },

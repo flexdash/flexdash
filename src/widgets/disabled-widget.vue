@@ -29,8 +29,8 @@ export default {
   computed: {
     nr_id() { return this.id.substring(1) },
     div_style() { return {
-      fontSize: this.nr_name ? "0.8rem" : "1.0rem",
-      lineHeight: this.nr_name ? "1.0" : "1.2",
+      fontSize: this.nr_name || true ? "0.8rem" : "1.0rem",
+      lineHeight: this.nr_name || true ? "1.0" : "1.2",
     }},
   },
 

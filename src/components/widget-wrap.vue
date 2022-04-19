@@ -9,16 +9,16 @@
 <template>
   <v-card :color="color" :class="full_page ? 'full-page' : undefined"
           :elevation="no_border ? 0 : undefined"
-          :outlined="no_border && global.editMode"
+          :outlined="no_border && canEdit"
           style="overflow: hidden">
 
     <!-- Widget title & buttons shown when the child component does _not_ show the title -->
     <v-card-text v-if="!('title' in child_props) && title"
-                 class="flex-grow-0 flex-shrink-0 px-0 py-1 mb-n1">
+                 class="flex-grow-0 flex-shrink-0 px-0 pt-1 pb-0 mb-n1">
       <!-- title and edit button -->
       <span v-if="title" class="mx-auto text-no-wrap">{{title}}</span>
       <v-btn density="compact" flat class="edit-btn"
-             v-if="global.editMode" @click="handleEdit">
+             v-if="canEdit" @click="handleEdit">
         <v-icon icon="mdi-pencil" size="small" />
       </v-btn>
     </v-card-text>
@@ -26,7 +26,7 @@
     <!-- Widget edit button w/o title when the child component shows the title itself -->
     <!-- we need to make sure we're floating way above the widget content... -->
     <v-btn density="compact" flat class="edit-btn" style="z-index:5"
-            v-else-if="global.editMode" @click="handleEdit">
+            v-else-if="canEdit" @click="handleEdit">
       <v-icon icon="mdi-pencil" size="small" />
     </v-btn>
 
@@ -95,6 +95,7 @@ export default {
   props: {
     color: { type: String, default: undefined }, // background color to highlight the card
     no_border: { type: Boolean, default: false }, // true causes no "card" border, used by panel
+    editable: { type: Boolean, default: true }, // whether to show edit button
 
     // config specifies how each prop of the inner component gets set. It has "static bindings"
     // to literal values and it has "dynamic bindings" to server data fields, i.e. to
@@ -104,6 +105,8 @@ export default {
     // TODO: display a 'missing' widget if the component can't be loaded
     config: { type: Object, required: true },
   },
+
+  emits: [ 'edit' ],
 
   data() { return {
     watchers: [], // list of watchers used in bindings so we can remove them
@@ -119,14 +122,19 @@ export default {
       return this.bindings.title || ""
     },
 
+    canEdit() { return this.global.editMode && this.editable },
+
     // child_props holds a description of the properties of the child component, this is used to
     // convert types and raise warning messages. (Note that this is not reactive in the component
     // definition.)
     child_props() {
       const p = this.palette.widgets
+      const t = { type: String }
       if (this.config.kind in p) return p[this.config.kind].props || {}
       return {}
     },
+    // child_props plus title prop, which may be "missing" due to being automatic
+    child_props_plus() { return { title:{type:String}, ...this.child_props } },
 
     // widgets can be shown full-page if they have a "full-page" property
     can_full_page() {
@@ -198,7 +206,7 @@ export default {
         if (config.output) this.bindings['output_binding'] = config.output
         Object.keys(config.static||{}).forEach(p => {
           if (this.is_sfc && p == 'source') return // ignore source for sfc widgets
-          const type = this.child_props[p]?.type
+          const type = this.child_props_plus[p]?.type
           if (config.static[p] !== undefined && config.dynamic[p] === undefined) {
             try {
               this.bindings[p] = this.typeCast(config.static[p], type)
@@ -223,12 +231,12 @@ export default {
     // FIXME: need to have some warning show up in UI if the validation will fail 'cause otherwise
     // it's very difficult to locate such issues
     updateBindingValue(prop, val) {
-      if (!(prop in this.child_props)) {
+      if (!(prop in this.child_props_plus)) {
         console.log(`Warning: updating value for ${prop}, but ${this.config.kind} has no ${prop}:`,
-          JSON.stringify(this.child_props))
+          JSON.stringify(this.child_props_plus))
         return
       }
-      let type = this.child_props[prop].type // note: may be undefined...
+      let type = this.child_props_plus[prop].type // note: may be undefined...
 
       try {
         val = this.typeCast(val, type)
