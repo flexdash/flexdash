@@ -14,7 +14,7 @@
     </span>
   </v-card-title>
   <div v-else class="flex-grow-1 d-flex justify-center align-center">
-    <v-chip variant="contained" :color="finalColor">{{valTxt}}<span class="unit">{{unitTxt}}</span></v-chip>
+    <v-chip variant="contained" density="comfortable" :color="finalColor">{{valTxt}}<span class="unit">{{unitTxt}}</span></v-chip>
   </div>
 </template>
 
@@ -71,7 +71,7 @@ the high-threshold. For string values low and high colors are selected using reg
           if (prefix[i] == "" && Number.isInteger(v))  return [v.toFixed(0), this.unit]
           return [ v.toFixed(1), prefix[i] + this.unit]
         } else if (v > 0) {
-          let prefix = ["m", "u", "n", "p", "f", "a", "z", "y"]
+          let prefix = ["m", "µ", "n", "p", "f", "a", "z", "y"]
           let i = 0
           while (v < 1 && i < prefix.length) {
             v *= 1000
