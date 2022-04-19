@@ -393,6 +393,7 @@ export class Store {
   // addWidget adds a new widget of the specified kind to a grid
   // returns the index of the new widget in the grid
   addWidget(grid_id, kind, widget_id=null) {
+    if (grid_id.startsWith('w')) return this.addPanelWidget(grid_id, kind)
     const grid = this.gridByID(grid_id)
     widget_id = widget_id || this.genId(this.config.widgets, "w")
     const widget_ix = grid.widgets.length
@@ -420,6 +421,7 @@ export class Store {
 
   // deleteWidget with index ix from grid grid_id
   deleteWidget(grid_id, ix) {
+    if (grid_id.startsWith('w')) return this.deletePanelWidget(grid_id, ix)
     const grid = this.gridByID(grid_id)
     const widget_id = this.widgetIDByIX(grid, ix)
     // construct mutation to delete the widget
