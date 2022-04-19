@@ -1,49 +1,34 @@
-<!-- Grid - Container to manage a grid of widgets dynamically placed on the page.
+<!-- StdGrid - Container to manage a grid of widgets dynamically placed on the page.
      Handles the layout of the widgets as well as the editing mode.
      Copyright ©2021 Thorsten von Eicken, MIT license, see LICENSE file
 -->
 
 <template>
   <div class="u-tooltip-attach">
-    <grid-bar :title="grid.title" :has_widgets="grid.widgets.length>0"
+    <grid-bar kind="StdGrid" :title="grid.title" :has_widgets="grid.widgets.length>0"
               v-model:rolledup="rolledup" @changeTitle="changeTitle"
               @delete="$emit('delete')">
       <!-- Menu to add widget -->
       <widget-menu v-if="!global.noAddDelete" @select="addWidget" class="mr-4"></widget-menu>
 
       <!-- Paste button/text field -->
-      <!--v-tooltip bottom>
-        <template v-slot:activator="{ props }">
-          <v-btn icon @click="pasting=!pasting" v-bind="props">
-            <v-icon>mdi-content-paste</v-icon>
-          </v-btn>
-        </template>
-        <span>Paste a widget, adding it to the grid</span>
-      </v-tooltip>
-      <div ref="pasteDiv" class="d-flex">
-        <input type="text" v-if="pasting" size="15"
-               placeholder="paste widget here" class="pasteinput">
-      </div-->
+      <!--
+        <v-tooltip bottom>
+          <template v-slot:activator="{ props }">
+            <v-btn icon @click="pasting=!pasting" v-bind="props">
+              <v-icon>mdi-content-paste</v-icon>
+            </v-btn>
+          </template>
+          <span>Paste a widget, adding it to the grid</span>
+        </v-tooltip>
+        <div ref="pasteDiv" class="d-flex">
+          <input type="text" v-if="pasting" size="15"
+                placeholder="paste widget here" class="pasteinput">
+        </div>
+      -->
 
       <!-- Selectors for minimum and maximum number of columns -->
-      <v-tooltip>
-        <template v-slot:activator="{ props }">
-          <div class="d-flex flex-row mr-4" v-bind="props">
-            <edit-plus-minus label="min-cols:" class="mr-0" :range="colRange" :value="minCols" @update:value="setMinCols">
-            </edit-plus-minus>
-          </div>
-        </template>
-        <span>Minimum number of columns to shrink grid to</span>
-      </v-tooltip>
-      <v-tooltip>
-        <template v-slot:activator="{ props }">
-          <div class="d-flex flex-row mr-4" v-bind="props">
-            <edit-plus-minus label="max-cols:" class="mr-0" :range="colRange" :value="maxCols" @update:value="setMaxCols">
-            </edit-plus-minus>
-          </div>
-        </template>
-        <span>Maximum number of columns to grow grid to</span>
-      </v-tooltip>
+      <min-max-cols :grid="grid"></min-max-cols>
     </grid-bar>
 
     <!-- Grid of widgets -->
@@ -80,7 +65,9 @@
 import GridBar from '/src/components/grid-bar.vue'
 import PanelEdit from '/src/edit-panels/panel-edit.vue'
 import WidgetEdit from '/src/edit-panels/widget-edit.vue'
-import EditPlusMinus from '/src/components/edit-plus-minus.vue'
+import WidgetMenu from '/src/menus/widget-menu.vue'
+import MinMaxCols from '/src/components/min-max-cols.vue' 
+import widget_ops from '/src/utils/widget-grid-ops.js'
 
 const COLW = 120 // min width of widgets in pixels
 const GAPW = 8   // gap between widgets in pixels
@@ -88,7 +75,7 @@ const GAPW = 8   // gap between widgets in pixels
 export default {
   name: 'StdGrid',
 
-  components: { GridBar, PanelEdit, WidgetEdit, EditPlusMinus },
+  components: { GridBar, PanelEdit, WidgetEdit, WidgetMenu, MinMaxCols },
   inject: [ '$store', '$config', 'palette', 'global' ],
 
   props: {
@@ -104,12 +91,6 @@ export default {
   computed: {
     // grid config: {id, kind, icon, widgets}
     grid() { return this.$store.gridByID(this.id) },
-    maxWidget() { // width of widest widget (in columns)
-      return Math.max(1, ...this.grid.widgets.map(id => this.$store.widgetByID(id).cols || 1))
-    },
-    colRange() {
-      return [...Array(21-this.maxWidget)].map((_, ix) => (this.maxWidget+ix))
-    },
     minCols() { return this.grid.min_cols || 1 },
     maxCols() { return this.grid.max_cols || 20 },
     gridStyle() {
@@ -141,94 +122,9 @@ export default {
   methods: {
     toggleEdit(ix, on) { this.edit_ix = on ? ix : null },
 
-    addWidget(kind) {
-      const widget_ix = this.$store.addWidget(this.id, kind)
-      this.edit_ix = widget_ix // start editing the new widget
-    },
-
-    // handle widget delete event coming up from widget-edit
-    deleteWidget(ix) {
-      this.$store.deleteWidget(this.id, ix)
-      this.edit_ix = null
-    },
-
-    // handle widget clone event coming up from widget-edit
-    cloneWidget(ix) {
-      // start by adding a new widget of the same kind to the end of the grid
-      const old_w = this.$store.widgetByID(this.$store.widgetIDByIX(this.grid, ix))
-      const widget_ix = this.$store.addWidget(this.id, old_w.kind)
-      const widget_id = this.$store.widgetIDByIX(this.grid, widget_ix)
-      // copy the properties over
-      const props = JSON.parse(JSON.stringify(old_w)) // clone and clean of observers
-      delete props.id
-      this.$store.updateWidget(widget_id, props)
-      // move clone up to be just behind original
-      if (widget_ix != ix+1) {
-        let ww = [ ...this.grid.widgets ] // clone
-        ww.copyWithin(ix+2, ix+1) // shift widgets up
-        ww[ix+1] = widget_id
-        this.$store.updateGrid(this.id, { widgets: ww })
-      }
-      this.edit_ix = ix+1
-    },
-
-    // move a widget up/down (dir=-1/1)
-    moveWidget(ix, dir) {
-      console.log(`Moving widget #${ix} by ${dir}`)
-      if (!(ix+dir >= 0 && ix+dir < this.grid.widgets.length)) return
-      let ww = [ ...this.grid.widgets ] // clone
-      let w = ww[ix]; ww[ix] = ww[ix+dir]; ww[ix+dir] = w // swap
-      this.$store.updateGrid(this.id, { widgets: ww })
-      this.edit_ix += dir
-    },
-
-    // teleport the widget to a different grid or panel
-    teleportWidget(widget_id, src_id, dest_id) {
-      console.log(`Teleport widget ${widget_id} from ${src_id} to ${dest_id}`)
-      this.edit_ix = null
-      this.$store.moveWidget(widget_id, src_id, dest_id)
-    },
-
-    // paste a widget
-    pasteWidget(ev) {
-      // Stop data actually being pasted into div
-      ev.stopPropagation()
-      ev.preventDefault()
-      // Get pasted data via clipboard API
-      let clipboardData = ev.clipboardData || window.clipboardData
-      let pastedData = clipboardData.getData('Text')
-      this.pasting = false
-      // Validate pasted text
-      console.log(pastedData)
-      try {
-        let w = JSON.parse(pastedData)
-        if ('id' in w && 'kind' in w) {
-          if (w.kind in this.palette.widgets) {
-            const widget_ix = this.$store.addWidget(this.id, w.kind)
-            delete w.id
-            delete w.kind
-            this.$store.updateWidget(this.$store.widgetIDByIX(this.grid, widget_ix), w)
-          } else {
-            console.log(`Widget kind '${w.kind}' not found`)
-          }
-        }
-      } catch(e) {
-        console.log(e)
-      }
-    },
-    clearPasteDiv() { this.$refs.pasteDiv.firstChild.innerHTML = "" },
+    ...widget_ops, // addWidget, deleteWidget, cloneWidget, moveWIdget, teleportWidget
 
     changeTitle(ev) { this.$store.updateGrid(this.id, { title: ev }) },
-    setMinCols(ev) {
-      this.$store.updateGrid(this.id, { min_cols: ev })
-      console.log(`setMinCols ${ev} ${this.maxCols}`)
-      if (ev > this.maxCols) this.setMaxCols(ev)
-    },
-    setMaxCols(ev) {
-      this.$store.updateGrid(this.id, { max_cols: ev })
-      console.log(`setMaxCols ${ev} ${this.minCols}`)
-      if (ev < this.minCols) this.setMinCols(ev)
-    },
 
   },
 }
