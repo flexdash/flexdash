@@ -63,7 +63,7 @@ export default {
   props: {
     widget_id: { type: String, required: true }, // my widget ID
     edit_active: { type: Boolean, default: false }, // we're being edited
-    no_border: { type: Boolean, default: false }, // not used here...
+    //no_border: { type: Boolean, default: false }, // not used here...
   },
 
   emits: [ 'move', 'teleport', 'delete', 'clone' ],
@@ -99,7 +99,9 @@ export default {
     },
 
     // panel background color
-    color() { return this.edit_active ? 'highlight' : this.solid ? '' : '#0000' },
+    color() {
+      if (this.edit_active) return 'highlight'
+      return this.widget.static.solid ? '' : '#0000' },
 
     widget() { return this.$store.widgetByID(this.widget_id) },
   },
