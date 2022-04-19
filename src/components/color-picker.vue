@@ -20,7 +20,7 @@
         </v-card-title>
         <v-color-picker hide-canvas hide-sliders mode="hexa" show-swatches swatches-max-height="auto"
                         width="100%"
-                        :swatches="swatches" :value="value" @update:color="changeColor">
+                        :swatches="swatches" :model-value="modelValue" @update:modelValue="changeColor">
         </v-color-picker>
       </v-card>
     </v-overlay>
@@ -51,6 +51,10 @@ export default {
     modelValue: { default: null },
   },
 
+  emits: [ 'update:modelValue' ],
+
+  mounted() { console.log("ColorPicker mounted", this.modelValue); },
+
   data() {
     const swatches = []
     for (let c in colors) {
@@ -70,11 +74,14 @@ export default {
   },
 
   methods: {
-    changeColor(c) {
-      if (c && c.hexa == "#00000000") {
+    changeColor(hex) {
+      console.log("changeCOlor", hex)
+      if (hex == "#00000000") {
+        console.log("Emitting color -none-")
         this.$emit('update:modelValue', "") // gives us text color with theme support
       } else {
-        this.$emit('update:modelValue', c.hex)
+        console.log("Emitting color", hex)
+        this.$emit('update:modelValue', hex)
       }
     },
   },
