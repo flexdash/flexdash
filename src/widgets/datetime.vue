@@ -35,15 +35,15 @@ export default {
   props: {
     value: { default: null, dynamic: "$demo_random" },
     color: { type: String, default: null, tip: "value color, null->text color" },
-    low_color: { type: String, default: "blue", tip: "color below low threshold" },
-    high_color: { type: String, default: "pink", tip: "color above high threshold" },
-    low_threshold: { type: Number, default: null, tip: "threshold for low_color, null to disable" },
-    high_threshold:{ type: Number, default: null, tip: "threshold for high_color, null to disable" },
-    chip: { type: Boolean, default: false, tip: "display value in a chip/pill" },
     start_mode: { type: Number, default: 0, tip: "0=local TZ, 1=UTC, 2=ago" },
+    zoom: { type: Number, default: 100, tip: "zoom factor in % (N/A to chip)" },
+    low_threshold: { type: Number, default: null, tip: "threshold in seconds-ago for low_color, null to disable" },
+    low_color: { type: String, default: "blue", tip: "color below low threshold" },
+    high_threshold:{ type: Number, default: null, tip: "threshold for in seconds-ago high_color, null to disable" },
+    high_color: { type: String, default: "pink", tip: "color above high threshold" },
+    chip: { type: Boolean, default: false, tip: "display value in a chip/pill" },
     units: { type: Array, default: () => (["now", "sec", "min", "hr", "days", "weeks", "months"]),
       tip: "unit text" },
-    zoom: { type: Number, default: 100, tip: "zoom factor in % (N/A to chip)" },
   },
 
   data() { return {
@@ -81,8 +81,9 @@ export default {
     },
     // compute the color for number values
     finalColor() {
-      if (this.low_threshold !== null && this.value <= this.low_threshold) return this.low_color
-      if (this.high_threshold !== null && this.value >= this.high_threshold) return this.high_color
+      const dt = (this.now - this.valMs)/1000
+      if (this.low_threshold !== null && dt <= this.low_threshold) return this.low_color
+      if (this.high_threshold !== null && dt >= this.high_threshold) return this.high_color
       return this.color
     },
     dateStyle() { return { color: this.finalColor } },
