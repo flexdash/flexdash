@@ -32,7 +32,7 @@
     </grid-bar>
 
     <!-- Grid of widgets -->
-    <div v-if="!rolledup" class="container foo g-grid-small pt-0 px-2 pb-2" v-bind:style="gridStyle">
+    <div v-if="!rolledup" class="container g-grid-small pt-0 px-2 pb-2" v-bind:style="gridStyle">
       <component v-for="(w,ix) in grid.widgets" :key="w" :widget_id="w" :is="editComponent[w]"
                  :edit_active="ix == edit_ix" @edit="toggleEdit(ix, $event)"
                  @move="moveWidget(ix, $event)" @delete="deleteWidget(ix)"
@@ -65,6 +65,7 @@
 import GridBar from '/src/components/grid-bar.vue'
 import PanelEdit from '/src/edit-panels/panel-edit.vue'
 import WidgetEdit from '/src/edit-panels/widget-edit.vue'
+import DisabledEdit from '/src/edit-panels/disabled-edit.vue'
 import WidgetMenu from '/src/menus/widget-menu.vue'
 import MinMaxCols from '/src/components/min-max-cols.vue' 
 import widget_ops from '/src/utils/widget-grid-ops.js'
@@ -75,7 +76,7 @@ const GAPW = 8   // gap between widgets in pixels
 export default {
   name: 'StdGrid',
 
-  components: { GridBar, PanelEdit, WidgetEdit, WidgetMenu, MinMaxCols },
+  components: { GridBar, PanelEdit, WidgetEdit, DisabledEdit, WidgetMenu, MinMaxCols },
   inject: [ '$store', '$config', 'palette', 'global' ],
 
   props: {
@@ -102,9 +103,11 @@ export default {
 
     // editComponent returns the component used to edit a widget: widget-edit or panel-edit
     editComponent() {
-      return Object.fromEntries(this.grid.widgets.map(wid =>
-        [ wid, this.$store.widgetByID(wid).kind.endsWith("Panel") ? "PanelEdit" : "WidgetEdit" ]
-      ))
+      return Object.fromEntries(this.grid.widgets.map(wid => {
+        if (wid.startsWith('x')) return [ wid, "DisabledEdit"]
+        if (this.$store.widgetByID(wid).kind.endsWith("Panel")) return [ wid, "PanelEdit" ]
+        return [ wid, "WidgetEdit" ]
+      }))
     },
   },
 
