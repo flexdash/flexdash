@@ -4,12 +4,9 @@
 
 import { createApp, reactive } from 'vue'
 import vuetify from './plugins/vuetify'
-//import { loadFonts } from './plugins/webfontloader'
 import Dash from './dash.vue'
 import Store from './store'
 import loadPalette from './utils/palette-loader'
-
-//loadFonts()
 
 // insert a title tag into the HTML head
 if (!window.flexdash_options) window.flexdash_options = {}
