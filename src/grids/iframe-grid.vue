@@ -49,7 +49,7 @@
       <v-tooltip bottom>
         <template v-slot:activator="{ props }">
           <v-text-field single-line dense hide-details label="title" class="mr-6 flex-grow-0"
-                        v-bind="props" :value="grid.title" @change="changeUrl" style="width: 20ex">
+                        v-bind="props" :model-value="grid.title" @update:modelValue="changeUrl" style="width: 20ex">
           </v-text-field>
         </template>
         <span>Title to show at top of grid, if empty the grid bar is thinner</span>
@@ -59,7 +59,7 @@
       <v-tooltip bottom>
         <template v-slot:activator="{ props }">
           <v-text-field single-line dense hide-details label="url" class="mr-6 flex-grow-1"
-                        v-bind="props" :value="grid.url" @change="changeUrl">
+                        v-bind="props" :model-value="grid.url" @update:modelValue="changeUrl">
           </v-text-field>
         </template>
         <span>Source URL to fill the iframe with</span>

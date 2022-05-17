@@ -6,7 +6,7 @@
 -->
 <template>
   <div class="d-flex">
-    <v-switch class="ma-auto" v-bind="bindings" @change="change($event)"></v-switch>
+    <v-switch class="ma-auto" v-bind="bindings" @update:modelValue="change($event)"></v-switch>
   </div>
 </template>
 
@@ -38,7 +38,7 @@ value input: the toggle will be "on" if the value is equal to the "on_value" inp
     // 'cause of name changes and some heuristics
     bindings() { return {
       //value: this.val,
-      inputValue: this.val,
+      modelValue: this.val,
       disabled: !this.enabled,
       color: this.color,
       trueValue: this.on_value,

@@ -7,47 +7,45 @@
     <v-card-text class="d-flex pa-0 pt-1 mb-0">
       <span v-if="title" class="ml-auto mr-1 text-no-wrap">{{title}}</span>
       <!-- edit button (when not editing) -->
-      <v-btn small icon class="title-btn mr-auto ml-0" v-if="editable && !editing" @click="handleEdit">
-        <v-icon small>mdi-pencil</v-icon>
+      <v-btn icon class="title-btn mr-auto ml-0" v-if="editable && !editing" @click="handleEdit">
+        <v-icon size="small" icon="mdi-pencil" />
       </v-btn>
       <!-- save/cancel buttons (when editing) -->
-      <v-btn small icon class="title-btn mr-1 ml-0" v-if="editing" @click="handleCancel">
-        <v-icon small>mdi-close-thick</v-icon>
+      <v-btn icon class="title-btn mr-1 ml-0" v-if="editing" @click="handleCancel">
+        <v-icon size="small" icon="mdi-close-thick" />
       </v-btn>
       <v-btn small icon class="title-btn mr-auto ml-1" v-if="editing" @click="handleSave">
-        <v-icon small color="green">mdi-check-bold</v-icon>
+        <v-icon size="small" icon="mdi-check-bold" />
       </v-btn>
       <span class="mr-auto"></span>
     </v-card-text>
 
     <!-- table of properties -->
-    <v-simple-table dense fixed-header class="props-table">
-      <template v-slot:default>
-        <tbody>
-          <tr v-for="key, ix in keys" :key="ix">
-            <td align="right" class="px-1"><b>{{key}}:</b></td>
-            <!-- non-editing -->
-            <td v-if="!editing" class="px-2">{{value[key]}}</td>
-            <!-- edit string -->
-            <td v-else-if="kind[key]==='string'" class="px-2">
-              <input type="text" :value="value[key]" @input="handleInput(key, $event)"/>
-            </td>
-            <!-- edit number -->
-            <td v-else-if="kind[key]==='number'" class="px-2">
-              <input type="number" :value="value[key]" @input="handleInput(key, $event)"/>
-            </td>
-            <!-- edit boolean -->
-            <td v-else-if="kind[key]==='boolean'" class="px-2">
-              <input type="checkbox" :value="value[key]" @input="handleInput(key, $event)"/>
-            </td>
-            <!-- other types: not sure.... -->
-            <td v-else class="px-2">
-              <input type="text" :value="value[key]" @input="handleInput(key, $event)"/>
-            </td>
-          </tr>
-        </tbody>
-      </template>
-    </v-simple-table>
+    <v-table class="props-table">
+      <tbody>
+        <tr v-for="key, ix in keys" :key="ix">
+          <td align="right" class="px-1"><b>{{key}}:</b></td>
+          <!-- non-editing -->
+          <td v-if="!editing" class="px-2">{{value[key]}}</td>
+          <!-- edit string -->
+          <td v-else-if="kind[key]==='string'" class="px-2">
+            <input type="text" :value="value[key]" @input="handleInput(key, $event)"/>
+          </td>
+          <!-- edit number -->
+          <td v-else-if="kind[key]==='number'" class="px-2">
+            <input type="number" :value="value[key]" @input="handleInput(key, $event)"/>
+          </td>
+          <!-- edit boolean -->
+          <td v-else-if="kind[key]==='boolean'" class="px-2">
+            <input type="checkbox" :checked="value[key]" :tada="value[key]" @input="handleInput(key, $event)"/>
+          </td>
+          <!-- other types: not sure.... -->
+          <td v-else class="px-2">
+            <input type="text" :value="value[key]" @input="handleInput(key, $event)"/>
+          </td>
+        </tr>
+      </tbody>
+    </v-table>
   </div>
 </template>
 
@@ -58,7 +56,7 @@
   .theme--dark .v-btn--icon  { background-color: rgba(30, 30, 30, 0.6); }
   .theme--light .v-card__text { color: rgba(0, 0, 0, 0.6); }
   .theme--dark .v-card__text  { color: rgba(255, 255, 255, 0.7); }
-  td input {
+  td input:not([type=checkbox]) {
     width: 100%; padding: 0px 1px;
     -webkit-appearance: none; -moz-appearance: none;
     background: none;
@@ -96,7 +94,7 @@ The table can be set as editable which allows the user to change the property va
             tip: "simple key-value pairs to show in table"},
     editable: { type: Boolean, default: false, tip: "allow editing of the table"},
     fields: { type: Array, default: () => ['key1', 'key2'],
-              tip: "fields to show in table in order, show all if empty"},
+              tip: "fields to show in table in order, show all in sorted order if empty"},
     send_all: { type: Boolean, default: false,
               tip: "send all fields to topic, not just changed ones"},
   },

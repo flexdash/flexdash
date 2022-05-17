@@ -7,8 +7,8 @@
     <v-tooltip top :open-on-hover="!!tooltip">
       <template v-slot:activator="{ props }">
         <v-file-input :accept="accept" :label="title" solo dense hide-details single-line
-                      v-bind="Object.assign(bindings, props)" :value="value" ref="fileupload"
-                      @change="clickEv($event)">
+                      v-bind="Object.assign(bindings, props)" :model-value="value" ref="fileupload"
+                      @update:modelValue="clickEv($event)">
         </v-file-input>
       </template>
       <span v-if="tooltip">{{ tooltip }}</span>

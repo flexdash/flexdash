@@ -16,17 +16,17 @@
     <p>To load/save the config over socket.io load FlexDash with a query string
     of the form <code>?sio=&lt;socket-io-url&gt;</code>.</p>
     <v-text-field label="socket.io server hostname:port" persistent-hint clearable
-        :value="config.hostname" @change="handleHostname" :rules="[validateHostname]"
+        :model-value="config.hostname" @update:modelValue="handleHostname" :rules="[validateHostname]"
         hint="server.example.com, localhost:1880">
     </v-text-field>
     <v-text-field label="socket.io path" persistent-hint clearable class="mt-2"
-        :value="config.path" @change="handlePath" :rules="[validatePath]"
+        :model-value="config.path" @update:modelValue="handlePath" :rules="[validatePath]"
         hint="webserver path for socket.io, typ /io/flexdash">
     </v-text-field>
     <v-checkbox hide-details label="use https/wss"
-                :input-value="config.tls" @change="handleTls"></v-checkbox>
+                :model-value="config.tls" @update:modelValue="handleTls"></v-checkbox>
     <v-checkbox hide-details label="enable" :disabled="disable" class="mt-3"
-                :input-value="config.enabled" @change="config.enabled=$event"></v-checkbox>
+                :model-value="config.enabled" @update:modelValue="config.enabled=$event"></v-checkbox>
     <div class="mt-3">
       Reload the dashboard from this server (looses current config):
       <v-btn :disabled="status_txt!='OK'" x-small @click="reload()">reload</v-btn>

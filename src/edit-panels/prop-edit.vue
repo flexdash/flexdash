@@ -48,7 +48,7 @@
         <!-- boolean -->
         <v-switch v-else-if="info.type === Boolean"
             :label="name" append-icon="" class="ml-2 flex-grow-1"
-            :input-value="modelValue" @change="handleEdit('static', $event)">
+            :model-value="modelValue" @update:modelValue="handleEdit('static', $event)">
         </v-switch>
         <!-- array -->
         <v-text-field v-else-if="info.type === Array"
@@ -103,8 +103,8 @@
           </v-card-title>
           <v-card-text class="flex-grow-1">
             <v-textarea dense hide-details filled class="height100"
-                :value="widget.static[dialog_prop]||prop_info[dialog_prop].default"
-                @change="handleEdit('static', dialog_prop, $event)">
+                :model-value="widget.static[dialog_prop]||prop_info[dialog_prop].default"
+                @update:modelValue="handleEdit('static', dialog_prop, $event)">
             </v-textarea>
           </v-card-text>
         </v-card>

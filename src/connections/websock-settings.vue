@@ -16,11 +16,11 @@
     <p>To load/save the config over websocket load the dashboard with a query string
     of the form <code>?ws=&lt;websocket-url&gt;</code>.</p>
     <v-text-field label="websocket server address" persistent-hint clearable
-        :value="config.address" @change="handleAddress" :rules="[validateAddress]"
+        :model-value="config.address" @update:modelValue="handleAddress" :rules="[validateAddress]"
         hint="wss://server.example.com/mydash, ws://localhost:1880/ws/fd">
     </v-text-field>
     <v-checkbox hide-details label="enable" :disabled="disable"
-                :input-value="config.enabled" @change="config.enabled=$event"></v-checkbox>
+                :model-value="config.enabled" @update:modelValue="config.enabled=$event"></v-checkbox>
     <div class="mt-3">
       Reload the dashboard from this server (looses current config):
       <v-btn :disabled="status_txt!='OK'" x-small @click="reload()">reload</v-btn>
