@@ -110,7 +110,7 @@ export default {
     activator: null,
   },
 
-  emits: [ 'update:tab_edit' ],
+  emits: [ 'update:tab_edit', 'reload' ],
 
   computed: {
     tab() { return this.tab_id ? this.$config.tabs[this.tab_id] : {} },
