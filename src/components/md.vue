@@ -30,7 +30,7 @@ export default {
   mounted() {
     const def_slot = this.$slots.default
     const text = (def_slot && def_slot()[0].children?.trim()) || ""
-    //console.log("Before:", text.replace(/\n/g, "\\n"))
+    console.log("Before:", text.replace(/\n/g, "\\n"))
     //console.log("After:", tfmarkdown(text, true))
     this.md_render = tfmarkdown(text, true)
   },
@@ -38,7 +38,7 @@ export default {
   beforeUpdate() {
     const def_slot = this.$slots.default
     const text = (def_slot && def_slot()[0].children?.trim()) || ""
-    //console.log("Before:", text.replace(/\n/g, "\\n"))
+    console.log("Before update:", text.replace(/\n/g, "\\n"))
     //console.log("After:", tfmarkdown(text, true))
     this.md_render = tfmarkdown(text, true)
   },

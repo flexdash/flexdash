@@ -16,7 +16,9 @@
     <!-- main area of the page with content -->
     <v-main>
 
-      <!-- "normal" tabs with grids and widgets -->
+      <!-- "normal" tabs with grids and widgets
+           The tab itself doesn't render anything, it's simply a vertical stacking of the
+           grids it contains -->
       <v-window v-if="ready" v-model="tab_ix"> <!-- :class="tabs_items_class"-->
 <v-defaults-provider :defaults="global.v_defaults">
         <v-window-item v-for="(id, ix) in dash_tabs" :key="id+ix" :ref="id" :value="ix">
@@ -106,6 +108,7 @@
 
 .compact-input .v-field__field { padding-top:0px !important; }
 .large-font .v-field__field { font-size: 125% !important;}
+.v-card-title button { min-width: auto; }
 
 </style>
 
@@ -161,7 +164,7 @@ export default {
     // note: some of the following get evaluated before the config is loaded, the gotEverything
     // guard ensures that they do get re-evaluated when it is loaded despite Vue2 issues...
     dash() { return this.ready ? this.$config.dash : {} },
-    dash_tabs() { return this.dash.tabs || [] }, // tabs to show, handling init
+    dash_tabs() { return this.dash.tabs.filter(id=>id.startsWith('t')) || [] }, // tabs to show, handling init
     tab() { return this.tab_id ? this.tabs[this.tab_id] : {} },
     tab_id() { return this.tab_ix != null ? this.dash_tabs[this.tab_ix] : "" }, // current tab ID
     tabs() { // make easily accessible in template
