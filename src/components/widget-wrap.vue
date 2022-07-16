@@ -31,15 +31,14 @@
     </v-btn>
 
     <!-- Icon to show widget full-page -->
-    <div v-if="(can_full_page || has_pup_info) && !global.editMode" class="full-page-btn"
-         style="position:absolute; z-index:4; right:0; top:0.5ex;">
+    <div v-if="(can_full_page || has_pup_info) && !global.editMode" class="full-page-btn">
         <v-btn density="compact" flat v-if="can_full_page" @click="toggleFullPage"
-               class="justify-center align-center mt-n1">
+               class="justify-center align-center mt-n1 px-2">
           <!--v-icon small style="background-color:red">mdi-arrow-expand-all</v-icon-->
           <v-icon size="small">{{full_page ? "mdi-arrow-collapse" : "mdi-arrow-expand"}}</v-icon>
         </v-btn>
         <v-btn density="compact" flat v-if="has_pup_info" @click="togglePupInfo"
-               class="justify-center align-center mt-n1">
+               class="justify-center align-center mt-n1 px-2">
           <v-icon size="small">{{pup_info ? "mdi-information-off" : "mdi-information"}}</v-icon>
         </v-btn>
     </div>
@@ -52,10 +51,10 @@
     <!-- dialog box to view the widget's pop-up "help" information full-page -->
     <v-dialog v-model="pup_info" width="80%" max-width="100ex">
       <v-card v-if="pup_info" class="d-flex flex-column height100">
-        <v-card-title class="d-flex align-baseline width100">
+        <v-card-title class="d-flex align-center width100">
           <span>{{title || "Information"}}</span>
           <v-spacer></v-spacer>
-          <v-btn elevation=0 icon @click="pup_info=false">
+          <v-btn elevation=0 flat class="pr-0" @click="pup_info=false">
             <v-icon>mdi-close</v-icon>
           </v-btn>
         </v-card-title>
@@ -72,7 +71,11 @@
 .v-card { height: 100%; width: 100% }
 .v-card { display: flex; flex-direction: column; justify-content: flex-start; align-items: center }
 .v-card.full-page { position: absolute; left: 1%; top: 1%; z-index: 10; width: 98%; height: 98% }
-.v-card.full-page .full-page-btn { z-index: 11 }
+.v-card .full-page-btn {
+  position:absolute; z-index:4; right:0; top:0.5ex;
+}
+.v-card .full-page-btn button { padding: 0px 8px; min-width: 0px; }
+
 .v-card .edit-btn {
   position: absolute; right: 0px; top: 0px; padding: 0px; min-width: 0px; z-index: 1;
 }
