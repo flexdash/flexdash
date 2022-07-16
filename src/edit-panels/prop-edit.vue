@@ -7,20 +7,6 @@
     <div class="width100 prop-edit" v-bind="$attrs">
       <div class="d-flex align-center width100">
         <div style="width:5em; margin-right: 4px">{{nameText}}</div>
-        <!-- menu to change type of prop ->
-        <v-menu v-model="type_menu">
-          <template v-slot:activator="{ props }">
-            <v-btn icon v-bind="props">
-              <v-icon icon="mdi-menu-down" />
-              <v-icon icon="mdi-link-variant" />
-            </v-btn>
-          </template>
-          <v-list v-model:selected="type">
-            <v-list-item v-for="t in types" :key="t">
-              <v-list-item-icon><v-icon :icon="info.icon" /></v-list-item-icon>
-            </v-list-item>
-          </v-list>
-        </v-menu-->
         <!-- toggle buttons to select static vs. dynamic -->
         <v-tooltip>
           <template v-slot:activator="{ props }">
@@ -79,6 +65,9 @@
               @update:modelValue="handleEdit('static', $event)"
               @click:append-inner="popupTextField(name)">
           </v-text-field>
+          <v-btn icon @click="popupTextField(name)" class="mt-1">
+            <v-icon icon="mdi-arrow-expand-all" />
+          </v-btn>
         </div>
       </div>
 
@@ -90,25 +79,25 @@
 
       </div>
 
-      <!-- dialog box to edit a string input value full-page ->
-      <v-dialog v-model="dialog" content-class="height80 widget-edit-dialog"
-                width="80%" max-width="100ex">
+      <!-- dialog box to edit a string input value full-page -->
+      <v-dialog v-model="dialog" content-class="height80 width100 widget-edit-dialog"
+                class="prop-edit-dialog" width="80%" max-width="100ex">
         <v-card v-if="dialog" class="d-flex flex-column height100">
-          <v-card-title class="d-flex align-baseline">
+          <v-card-title class="d-flex align-center width100">
             <span>Edit <span style="font-weight: 700">{{dialog_prop}}</span></span>
             <v-spacer></v-spacer>
-            <v-btn elevation=0 icon @click="dialog=false">
+            <v-btn elevation=0 flat class="pr-0" @click="dialog=false">
               <v-icon>mdi-close</v-icon>
             </v-btn>
           </v-card-title>
-          <v-card-text class="flex-grow-1">
-            <v-textarea dense hide-details filled class="height100"
-                :model-value="widget.static[dialog_prop]||prop_info[dialog_prop].default"
-                @update:modelValue="handleEdit('static', dialog_prop, $event)">
+          <v-card-text class="flex-grow-1 height100">
+            <v-textarea hide-details
+                :model-value="modelValue||info.default"
+                @update:modelValue="handleEdit('static', $event)">
             </v-textarea>
           </v-card-text>
         </v-card>
-      </v-dialog-->
+      </v-dialog>
     </div>
   </v-defaults-provider>
 </template>
@@ -126,9 +115,16 @@
   .prop-edit .v-field--appended { padding-right: 4px; }
 
   .prop-edit {
-      break-inside: avoid-column; /* CSS std */
-      page-break-inside: avoid; /* for older firefox */
+    break-inside: avoid-column; /* CSS std */
+    page-break-inside: avoid; /* for older firefox */
   }
+
+  .prop-edit-dialog.v-overlay .v-textarea {
+    height: 100%;
+    grid-template-rows: auto max-content;
+  }
+  .prop-edit-dialog .v-field { height: 100%; }
+    
 </style>
 
 <script scoped>
