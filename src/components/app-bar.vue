@@ -130,7 +130,7 @@ export default {
 
   computed: {
     dash() { return this.$config.dash },
-    dash_tabs() { return this.dash?.tabs || [] }, // IDs of tabs to show, handling init
+    dash_tabs() { return this.dash?.tabs.filter(id=>id.startsWith('t')) || [] }, // IDs of tabs to show, handling init
     tab_id() { return this.tab_ix >= 0 ? this.dash_tabs[this.tab_ix] : "" }, // current tab ID
     tabs() { return this.$config.tabs },
     tab() { return this.tab_id ? this.tabs[this.tab_id] : {} },
