@@ -13,9 +13,7 @@ if (!window.flexdash_options) window.flexdash_options = {}
 const fo = window.flexdash_options
 console.log("FlexDash options:", JSON.stringify(fo))
 if (!fo.title) fo.title = "FlexDash"
-document.getElementsByTagName('head')[0].insertAdjacentHTML('beforeend',
-  `<title>${fo.title}</title>`
-)
+document.getElementsByTagName('title')[0].innerText = fo.title
 
 const app = createApp(Dash)
 app.use(vuetify)
