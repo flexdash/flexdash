@@ -87,6 +87,7 @@ export default {
     let grid_tabs = {}
     this.$config.dash.tabs.forEach((t_id, t_ix) => {
       const tab = this.$config.tabs[t_id]
+      if (!tab.grids) return // iframe doesn't have .grids
       tab.grids.forEach((g_id, g_ix) => {
         grid_tabs[g_id] = {
           title: tab.title ? tab.title.toUpperCase() : `#${t_ix+1}`,
