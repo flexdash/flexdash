@@ -3,7 +3,7 @@
 -->
 
 <template>
-  <v-card-title class="d-flex" v-bind="$attrs">
+  <v-card-title class="d-flex">
     <span>Edit {{what}}</span>
     <v-text-field hide-details single-line
                   class="ml-3 mt-0 flex-grow-1 compact-input large-font"
