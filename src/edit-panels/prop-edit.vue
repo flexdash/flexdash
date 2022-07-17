@@ -10,7 +10,7 @@
         <!-- toggle buttons to select static vs. dynamic -->
         <v-tooltip>
           <template v-slot:activator="{ props }">
-            <v-btn-toggle mandatory class="ma-0" variant="contained-text"
+            <v-btn-toggle mandatory class="ma-0" variant="tonal"
                           :modelValue="is_static"
                           @update:modelValue="$emit('update:is_static', $event)">
               <v-btn xsize="small" icon v-bind="props"><v-icon icon="mdi-link-variant" /></v-btn>

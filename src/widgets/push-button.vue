@@ -3,7 +3,7 @@
 -->
 <template>
   <div class="pushbutton d-flex align-center justify-center">
-    <v-btn variant="contained" class="ma-auto" max-width="95%"
+    <v-btn variant="elevated" class="ma-auto" max-width="95%"
            density="default"
            v-bind="bindings" @click="clickEv($event)">
       <v-icon :large="!title" v-if="icon" :icon=icon />

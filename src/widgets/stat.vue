@@ -14,7 +14,7 @@
     </span>
   </v-card-title>
   <div v-else class="flex-grow-1 d-flex justify-center align-center">
-    <v-chip variant="contained" density="comfortable" :color="finalColor">{{valTxt}}<span class="unit">{{unitTxt}}</span></v-chip>
+    <v-chip variant="tonal" density="comfortable" :color="finalColor">{{valTxt}}<span class="unit">{{unitTxt}}</span></v-chip>
   </div>
 </template>
 
