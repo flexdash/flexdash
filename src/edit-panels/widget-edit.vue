@@ -25,57 +25,56 @@
     </widget-wrap>
 
     <!-- v-overlay is used to display a floating v-card below the component for editing -->
-    <!-- :activator="'#'+id" absolute positionStrategy="connected" -->
-    <v-overlay :model-value="edit_active" width="90%" absolute class="widget-edit"
-               allow-overflow :scrim="false" @click:outside="endEdit">
-      <v-defaults-provider :defaults="{global: {density: 'compact'}}">
+    <v-overlay :model-value="edit_active" width="90%" class="widget-edit"
+               :activator="'#'+widget_id" location-strategy="connected"
+               location="bottom" origin="top" offset="4"
+               :scrim="false" @click:outside="endEdit">
 
-        <!-- Editing panel shown floating below widget -->
-        <v-card color="panel" class='mt-1'>
-          <!-- title and close button -->
-          <title-edit :what="widget.kind + ' widget'" class="mt-1"
-                      :title="widget.static['title']"
-                      @close="endEdit"
-                      @update:title="handleEdit('static', 'title', $event)">
-          </title-edit>
+      <!-- Editing panel shown floating below widget -->
+      <v-card color="panel" class='mt-1'>
+        <!-- title and close button -->
+        <title-edit :what="widget.kind + ' widget'" class="mt-1"
+                    :title="widget.static['title']"
+                    @close="endEdit"
+                    @update:title="handleEdit('static', 'title', $event)">
+        </title-edit>
 
-          <!-- Display widget help text -->
-          <help-edit :text="child_help"></help-edit>
+        <!-- Display widget help text -->
+        <help-edit :text="child_help"></help-edit>
 
-          <!-- toolbar with delete move, resize, etc -->
-          <widget-edit-toolbar :widget_id="widget_id" kind="widget"
-                               @delete="$emit('delete')"  @clone="$emit('clone')"
-                               @move="dir=>$emit('move', dir)"
-                               @teleport="(src, dst)=>$emit('teleport', src, dst)">
-          </widget-edit-toolbar>
+        <!-- toolbar with delete move, resize, etc -->
+        <widget-edit-toolbar :widget_id="widget_id" kind="widget"
+                              @delete="$emit('delete')"  @clone="$emit('clone')"
+                              @move="dir=>$emit('move', dir)"
+                              @teleport="(src, dst)=>$emit('teleport', src, dst)">
+        </widget-edit-toolbar>
 
-          <!-- main part with properties -->
-          <v-card-text>
-            <div class="prop-columns">
-              <!-- Display component properties for editing -->
-              <prop-edit v-for="prop in edit_props" :key=prop
-                         class="mb-2" :name="prop" :info="prop_info[prop]"
-                         :is_static="prop_static[prop]"
-                         @update:is_static="toggleStatic(prop, $event)"
-                         :model-value="propVal(prop)"
-                         @update:modelValue="(w,v)=>handleEdit(w, prop, v)"
-                       >
-              </prop-edit>
+        <!-- main part with properties -->
+        <v-card-text>
+          <div class="prop-columns">
+            <!-- Display component properties for editing -->
+            <prop-edit v-for="prop in edit_props" :key=prop
+                        class="mb-2" :name="prop" :info="prop_info[prop]"
+                        :is_static="prop_static[prop]"
+                        @update:is_static="toggleStatic(prop, $event)"
+                        :model-value="propVal(prop)"
+                        @update:modelValue="(w,v)=>handleEdit(w, prop, v)"
+                      >
+            </prop-edit>
 
-              <!-- row for output binding -->
-              <!--v-combobox
-                  label="output binding" clearable dense persistent-hint
-                  :hint='output_tip'
-                  :items="sd_keys"
-                  :value="widget.output"
-                  @input="handleEditOutput($event)">
-              </v-combobox-->
+            <!-- row for output binding -->
+            <!--v-combobox
+                label="output binding" clearable dense persistent-hint
+                :hint='output_tip'
+                :items="sd_keys"
+                :value="widget.output"
+                @input="handleEditOutput($event)">
+            </v-combobox-->
 
-            </div>
-          </v-card-text>
+          </div>
+        </v-card-text>
 
-        </v-card>
-      </v-defaults-provider>
+      </v-card>
     </v-overlay>
   </div>
 </template>
