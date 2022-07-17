@@ -3,7 +3,7 @@
 
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
-import vuetify from '@vuetify/vite-plugin'
+import vuetify from 'vite-plugin-vuetify'
 import visualizer from 'rollup-plugin-visualizer'
 
 // https://vitejs.dev/config/
