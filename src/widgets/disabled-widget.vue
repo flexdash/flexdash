@@ -2,7 +2,7 @@
      Copyright ©2021 Thorsten von Eicken, MIT license, see LICENSE file
 -->
 <template>
-  <div class="text-center unknown" :style="div_style">
+  <div :id="id" class="text-center unknown" :style="div_style">
     disabled<br>
     <span>node {{nr_name}}<br></span>
     <span>{{nr_id}}</span>
