@@ -4,8 +4,17 @@
 -->
 
 <template>
-  <time-plot-raw :data="data" :options="options"></time-plot-raw>
+  <time-plot-raw :data="data" :options="options" :class="classes"></time-plot-raw>
 </template>
+
+<style>
+  .reverse-legend .u-legend {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    flex-direction: row-reverse;
+  }
+</style>
 
 <script scoped>
 
@@ -42,9 +51,10 @@ array inputs are specified the longest array determines the number of series.
 
 The default color sequence is blue, green, yellow, red, cyan, purple, orange, teal, pink, lime,
 magenta, lavender, brown, beige, maroon, mint, olive, apricot, navy, and grey from
-https://sashamaps.net/docs/resources/20-colors/
+https://sashamaps.net/docs/resources/20-colors/.
+These color names can be used in the \`colors\` prop.
 
-The data must be input in the form of "data points" where a data point is an array consisting
+The data must be input in the form of "data points" where a data point is an array consisting of
 a unix timestamp (seconds since 1970-01-01) followed by a value per series. Null values are OK
 to designate missing data.
 **Important**: each and every data point must have _exactly_ one value per series, otherwise
@@ -80,6 +90,7 @@ Note that this "row-wise" structure gets transposed to the columnar structure ex
     right_min: { type: Number, default: null, tip: "minimum for right axis" },
     right_max: { type: Number, default: null, tip: "maximum for right axis" },
     right_decimals: { type: Number, default: 1, tip: "decimals on right axis" },
+    reverse_legend: { type: Boolean, default: false, tip: "reverse legend order" },
   },
 
   output: { default: null, tip: "options passed into uPlot" },
@@ -93,7 +104,7 @@ Note that this "row-wise" structure gets transposed to the columnar structure ex
       const ns = Math.max(this.labels.length, this.colors.length, this.axes.length,
           this.widths.length, this.span_gaps.length)
 
-      // declare the series for them to show
+      // declare the series
       let got_r = false
       const series = [ { label: "time" } ]
       for (let s=0; s<ns; s++) {
@@ -142,11 +153,18 @@ Note that this "row-wise" structure gets transposed to the columnar structure ex
           Object.assign(scales.R.range.max, { soft: this.right_max, mode: 1 })
       }
 
+      // put uplot options together
       const opts = { series, axes, scales }
       console.log(`Options for time-plot-raw:`, opts);
       // emit in the next tick in order not to affect the dependency stuff
       this.$nextTick(() => { this.$emit('send', opts) })
       return opts
+    },
+
+    classes() {
+      return {
+        "reverse-legend": !!this.reverse_legend,
+      }
     },
 
   },
