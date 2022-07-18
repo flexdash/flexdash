@@ -44,8 +44,8 @@
   display: inline-block;
 }
 .u-tooltip { background: rgba(230, 230, 230, 0.8); }
-.theme--light .u-tooltip { background: rgba(230, 230, 230, 0.8); }
-.theme--dark  .u-tooltip { background: rgba(64, 64, 64, 0.8); }
+.v-theme--flexdashLight .u-tooltip { background: rgba(230, 230, 230, 0.8); }
+.v-theme--flexdashDark  .u-tooltip { background: rgba(64, 64, 64, 0.8); }
 
 .uplot-message {
   position: absolute; top: 24px; left: 0px; z-index: 2;
@@ -82,9 +82,9 @@ See https://github.com/leeoniya/uPlot/tree/master/docs for an overview.
 More info can be gleaned from the demos at https://leeoniya.github.io/uPlot/demos/index.html
 and the ultimate reference is https://github.com/leeoniya/uPlot/blob/master/dist/uPlot.d.ts
 
-The data must be input in the form of "data points" where a data point is an array consisting
+The data must be input in the form of "data points" where a data point is an array consisting of
 a unix timestamp (seconds since 1970-01-01) followed by a value per series. Null values are OK
-to designate missing data. Note: each an every data point must have one value per series.
+to designate missing data. Note: each and every data point must have one value per series.
 
 Each data message may be either an array of data points or a single data point. If an array is
 provided then it replaces the entire dataset being shown. If a single point is provided
@@ -110,6 +110,7 @@ Note that this "row-wise" structure gets transposed to the columnar structure ex
     width: 40, // width in pixels
     chart_data: null, // actual data fed to uPlot (i.e. transposed from data)
     dark_watcher: null, // watcher on $vuetify.theme.dark used to adjust chart colors
+    is_dark: false, // true if dark theme is active
     error_message: null, // error message acros top of widget
   }; },
 
@@ -157,9 +158,13 @@ Note that this "row-wise" structure gets transposed to the columnar structure ex
   mounted() {
     if (this.chart) console.log("Error: uPlot chart created too early")//no resizeObs before mount!
     this._create()
+    // theme switching, there must be an easier way to detect the current theme...
+    let vt = this.$vuetify.theme
     this.dark_watcher = this.$watch(
-      ()=> this.$vuetify.theme.dark,
-      ()=>{ this._destroy(); this._create() })
+      ()  => vt.name,
+      (v) => { this.is_dark = vt.themes[vt.name].dark; this._destroy(); this._create() },
+      { deep: false })
+    this.is_dark = vt.themes[vt.name].dark
   },
 
   beforeDestroy() {
@@ -251,7 +256,7 @@ Note that this "row-wise" structure gets transposed to the columnar structure ex
         if (typeof serie.value === 'string') {
           serie.value = new Function('u', 'v', `"use strict";return (${serie.value})`)
           // handle point fill for dark mode
-          if (this.$vuetify.theme.dark) {
+          if (this.is_dark) {
             if (!serie.points) serie.points = {}
             if (!serie.points.fill) serie.points.fill = '#1e1e1e'
           }
@@ -270,7 +275,7 @@ Note that this "row-wise" structure gets transposed to the columnar structure ex
         }
         // handle grid in dark mode
         // FIXME: actually need to cause a redraw when switching between light&dark
-        if (this.$vuetify.theme.dark) {
+        if (this.is_dark) {
           if (!ax.grid) ax.grid = {}
           if (!ax.grid.stroke) ax.grid.stroke = '#444'
           if (!ax.stroke) ax.stroke = '#ccc'
