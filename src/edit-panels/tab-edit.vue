@@ -3,14 +3,13 @@
 -->
 
 <template>
-  <v-btn density="compact" flat position="absolute" right top class="px-0" min-width="0"
+  <v-btn flat position="absolute" location="right top" class="px-0" min-width="0"
          @click.stop="tab_edit=!tab_edit">
     <v-icon icon="mdi-pencil" size="small" />
   </v-btn>
 
-  <v-menu v-model="tab_edit" anchor="bottom center" xorigin="top center" class="mt-1"
-          allow-overflow :activator="activator"
-          max-width="40ex" :close-on-content-click="false">
+  <v-menu v-model="tab_edit" class="mt-1" :activator="activator"
+          :close-on-content-click="false">
     <v-defaults-provider :defaults="{VTextField:{hideDetails:false}}">
       <!-- Editing panel shown floating below tab -->
       <v-card color="surface">
@@ -94,7 +93,8 @@
   </v-menu>
 </template>
 
-<style scoped>
+<style>
+  .v-overlay__content { max-width: 40ex !important; }
 </style>
 
 <script scoped>
@@ -102,15 +102,13 @@ export default {
   name: "TabEdit",
   inject: [ '$config', '$store', 'global' ],
 
-  model: { prop: "tab_edit", event: "change" },
-
   props: {
     tab_ix: null,
     tab_id: null,
     activator: null,
   },
 
-  emits: [ 'update:tab_edit', 'reload' ],
+  emits: [ 'update:tab_ix' ],
 
   computed: {
     tab() { return this.tab_id ? this.$config.tabs[this.tab_id] : {} },
@@ -126,8 +124,6 @@ export default {
   methods: {
     deleteTab() {
       this.$store.deleteTab(this.tab_ix)
-      // tab_ix will auto-update in the parent component
-      this.$emit('change', false) // i.e.: this.tab_edit = false
     },
 
     // edit tab props, such as title
@@ -144,10 +140,8 @@ export default {
       let tt = [ ...tabs ] // clone
       let t = tt[ix]; tt[ix] = tt[ix+dir]; tt[ix+dir] = t // swap
       this.$store.updateDash({ tabs: tt })
-      // we need to force a full re-eval of the rendered stuff else the association between
-      // the tabs and the content is screwed-up
       console.log(`Moving tab ${this.tab_ix} to ${ix+dir}`)
-      this.$emit('reload', ix+dir)
+      this.$emit('update:tab_ix', ix+dir)
     },
 
     addGrid() {

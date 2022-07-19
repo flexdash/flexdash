@@ -3,7 +3,7 @@
 -->
 
 <template>
-  <v-app-bar app>
+  <v-app-bar>
 
     <!-- Hamburger menu shown on smallest devices only -->
     <template v-slot:prepend v-if="ready && mobile">
@@ -20,14 +20,16 @@
 
     <!-- Tabs -->
     <v-tabs stacked color="primary" v-if="ready && !mobile"
+            style="min-width: 300px;" height="48"
             :modelValue="tab_ix" @update:modelValue="$emit('update:tab_ix', $event)">
       <v-tab v-for="(tid, ix) in dash_tabs" :key="tid" :value="ix" :id="'tab-'+tid">
         <!-- Text and icon for the tab -->
         <v-icon :size="tabs[tid].title?'default':'x-large'" class="mb-0" :icon="tabs[tid].icon" />
         {{tabs[tid].title}}
         <!-- Button and menu to edit tab properties -->
-        <tab-edit :tab_ix="tab_ix" :tab_id="tab_id" v-if="global.editMode && ix==tab_ix"
-                  :activator="'#tab-'+tid">
+        <tab-edit v-if="global.editMode && ix==tab_ix"
+                  :tab_ix="tab_ix" :tab_id="tab_id" :activator="'#tab-'+tid"
+                  @update:tab_ix="$emit('update:tab_ix', $event)">
         </tab-edit>
       </v-tab>
       <!-- Button to add a tab -->
@@ -80,14 +82,11 @@
 <style>
 /* Remove some excessive padding at left&right, especially for small devices */
 .v-app-bar > .v-toolbar__content { padding: 0px 0px !important; }
+/* Fix height of tabs to match app bar */
+.v-app-bar button.v-tab { height: 48px !important; }
+</style>
 
-/* fix height of tabs, https://github.com/vuetifyjs/vuetify/issues/14863 */
-.xv-app-bar button.v-tab { height: 48px }
-.xv-app-bar .v-tabs--stacked { height: 48px !important }
-
-/* Make tabs fit between title on the left and buttons on the right, why is this so hard? */
-.xxxv-app-bar .v-tabs { overflow: auto }
-
+<style scoped>
 .version {
   position: absolute; top: 0px; right: 14px; z-index: 2;
   font-size: 9pt; font-weight: 700; color: #e5504d;
@@ -135,11 +134,6 @@ export default {
     tabs() { return this.$config.tabs },
     tab() { return this.tab_id ? this.tabs[this.tab_id] : {} },
     canUndo() { return this.$store.undo.buf.length > 0 },
-  },
-
-  watch: {
-    // ensure the current tab exists
-    tabs(tt) { if (this.tab_ix >= tt.length) this.tab_ix = tt.length-1 },
   },
 
   methods: {
