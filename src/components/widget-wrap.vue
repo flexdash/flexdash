@@ -242,8 +242,8 @@ export default {
       let type = this.child_props_plus[prop].type // note: may be undefined...
 
       try {
+        console.log(`Updating ${this.config.kind}.${prop}[${type&&type.name}] <- ${typeof val}`, val)
         val = this.typeCast(val, type)
-        console.log(`Updating ${this.config.kind}.${prop}[${type&&type.name}] <- ${typeof val} ${val}`)
         this.bindings[prop] = val
       } catch(e) {
         console.log(`Warning: failed to type-cast prop '${prop}': ${e}`)
