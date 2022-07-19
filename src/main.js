@@ -32,7 +32,7 @@ app.provide('$store', store)
 app.provide('global', reactive({
   editMode: !!fo.edit, // variable used "everywhere", initialized from fd options
   noAddDelete: !!fo.no_add_delete, // suppresses add/delete buttons
-  v_defaults: window.v_defaults, // hack while Vuetify resets defaults in too many places
+  noDemo: !!fo.no_demo, // suppresses demo mode
   route: window.location.hash, // #xxx in URL, determines initial tab shown
   params: (new URL(document.location)).searchParams, // options passed in on page load
 }))

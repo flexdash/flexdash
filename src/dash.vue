@@ -3,7 +3,7 @@
 -->
 
 <template>
-  <v-app :theme="theme">
+  <v-app>
 
     <!-- Top title/navigation bar -->
     <app-bar v-model:tab_ix="tab_ix" v-model:theme="theme" :title="title" :ready="ready"
@@ -20,21 +20,14 @@
            The tab itself doesn't render anything, it's simply a vertical stacking of the
            grids it contains -->
       <v-window v-if="ready" v-model="tab_ix"> <!-- :class="tabs_items_class"-->
-<v-defaults-provider :defaults="global.v_defaults">
         <v-window-item v-for="(id, ix) in dash_tabs" :key="id+ix" :ref="id" :value="ix">
-          <!-- key={{id}} grids:{{tabs[id].grids}}
-          <div v-for="(g, ix) in tabs[id].grids" :key="g">
-            Grid {{g}} kind {{grids[g].kind}} palette {{palette.grids}</div -->
-          <!-- "normal" tab with grids with widgets -->
           <div v-if="tabs[id].grids">
-
             <component v-for="(g, ix) in tabs[id].grids" :key="g" :id="g"
                       v-bind:is="grids[g].kind in palette.grids ? grids[g].kind : 'div'"
                       @delete="deleteGrid(id, ix)">
             </component>
           </div>
         </v-window-item>
-</v-defaults-provider>
       </v-window>
 
       <!-- iframe tabs, we have two "slots" where content can persist -->
@@ -78,13 +71,7 @@
 <style>
 /* make tab content 100% height so we can size iframe for iframe-grid to full page */
 .xv-item-group { height: 100%; }
-.xv-window-item { height: 100%; }
-
-/* hide tabs when showing an iframe */
-.xv-tabs-items { display: none; }
-.xv-tabs-items.tabs--active { display: block; }
-
-.xxxv-main { background: rgb(var(--v-theme-background)) }
+.v-window-item { height: 100%; }
 
 /* iframe for external tab content */
 .iframe-tab-wrap { position: relative; width: 100%; height: 100%; display: none; }
@@ -142,10 +129,9 @@ export default {
 
     settings_menu: null, // whether settings menu is open or not
     settings: { edit: 'Edit mode', theme: 'Toggle theme' }, // options in the settings menu
+    theme: null, // initialized in beforeMount handler below
 
-    theme: window.flexdash_options?.theme == "dark" ? "flexdashDark" : "flexdashLight",
-
-    config_src: "",
+    config_src: "", // which connection we're getting the dash configuration from
   }),
 
   computed: {
@@ -191,19 +177,28 @@ export default {
 
   watch: {
     // ensure the current tab exists
-    tabs(tt) { if (this.tab_ix >= tt.length) this.tab_ix = tt.length-1 },
+    tabs(tt) {
+      if (this.tab_ix >= tt.length) { this.tab_ix = tt.length-1; console.log("Forcing tab_ix to", this.tab_ix) }
+    },
     // adjust the iframe url when we display an iframe tab
     tab: { deep: true, immediate: true, handler(t) {
       if (t.url) {
         if (t.slot == 'a') this.iframe_a_src = t.url
         if (t.slot == 'b') this.iframe_b_src = t.url
-        console.log("iframe_a_src:", this.iframe_a_src)
       }
     }},
+    theme() { this.$vuetify.theme.global.name = this.theme },
   },
 
-  mounted() {
-    console.log(`FlexDash! route=${this.global.route} params=${this.global.params}`)
+  beforeMount() {
+    console.log(`FlexDash! route=${this.global.route} params:${this.global.params}`)
+
+    // select theme
+    let theme = 'light'
+    if (window.flexdash_options.theme) theme = window.flexdash_options.theme
+    if (this.global.params.has('theme')) theme = this.global.params.get('theme')
+    this.theme = theme == "dark" ? "flexdashDark" : "flexdashLight"
+
     // select tab by index
     if (this.global.route.match(/^#[0-9]+$/)) {
       const ix = Number.parseInt(this.global.route.substr(1), 10)
@@ -241,13 +236,13 @@ export default {
 
   methods: {
     // handle buttons for tab editing
-    addTab(kind) {
-      const tab_ix = this.$store.addTab(kind)
-      this.$nextTick(() => {
-        this.tab_ix = tab_ix
-        this.tab_edit = true // switch to editing the new tab
-      })
-    },
+    // addTab(kind) {
+    //   const tab_ix = this.$store.addTab(kind)
+    //   this.$nextTick(() => {
+    //     this.tab_ix = tab_ix
+    //     this.tab_edit = true // switch to editing the new tab
+    //   })
+    // },
 
     // delete event coming up from the grid component
     deleteGrid(tab_id, grid_ix) {
@@ -256,15 +251,15 @@ export default {
 
     // force a full re-eval of the rendered stuff - invoked by TabEdit
     // there's a bug in Vuetify's tab-items that causes the tabs and the content to be mixed-up
-    reload(tab_ix) {
-      this.tab_ix = tab_ix
-      this.$forceUpdate()
-      /*
-      console.log("Trying to force an update")
-      const title = this.$config.dash.title
-      delete this.$config.dash.title
-      this.$nextTick( ()=> { this.$config.dash.title = title; this.tab_ix = tab_ix })*/
-    },
+    // reload(tab_ix) {
+    //   this.tab_ix = tab_ix
+    //   this.$forceUpdate()
+    //   /*
+    //   console.log("Trying to force an update")
+    //   const title = this.$config.dash.title
+    //   delete this.$config.dash.title
+    //   this.$nextTick( ()=> { this.$config.dash.title = title; this.tab_ix = tab_ix })*/
+    // },
 
     changeConfigSrc(ev) {
       console.log("Change config source: ", ev)
