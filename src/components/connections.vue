@@ -212,6 +212,8 @@ export default {
     } else if (window.flexdash_options.ws) {
       setup_sio(window.flexdash_options.ws) // got global option for websocket
       count++
+    } else if (this.global.noDemo) {
+      // no real network connection, and demo mode prohibited
     } else {
       // no real network connection, set-up demo mode
       conn.demo.enabled = true
