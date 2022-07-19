@@ -32,12 +32,15 @@
     </grid-bar>
 
     <!-- Grid of widgets -->
-    <div v-if="!rolledup" class="container g-grid-small pt-0 px-2 pb-2" v-bind:style="gridStyle">
+    <div v-if="!rolledup" v-bind:style="gridScale">
+      <div class="container g-grid-small pt-0 px-2 pb-2"
+           v-resize="scaleGrid" v-bind:style="gridStyle" ref="grid">
       <component v-for="(w,ix) in grid.widgets" :key="w" :widget_id="w" :is="editComponent[w]"
                  :edit_active="ix == edit_ix" @edit="toggleEdit(ix, $event)"
                  @move="moveWidget(ix, $event)" @delete="deleteWidget(ix)"
                  @clone="cloneWidget(ix)" @teleport="(src,dst)=>teleportWidget(w, src, dst)">
       </component>
+      </div>
     </div>
   </div>
 </template>
@@ -87,6 +90,7 @@ export default {
     edit_ix: null, // widget being edited
     rolledup: false, // whether grid is rolled-up
     pasting: false, // controls display of paste div
+    gridScale: "", // style to scale grid up to fill width
   }},
 
   computed: {
@@ -97,7 +101,7 @@ export default {
     gridStyle() {
       // min width to fit N widgets is N*COLW, plus gaps: (N-1)*GAPW, plus l/r padding: 2*GAPW
       let min_width = this.minCols * COLW + (this.minCols+1) * GAPW
-      let max_width = this.maxCols * COLW + (this.maxCols+1) * GAPW + 118
+      let max_width = this.maxCols * COLW + (this.maxCols+1) * GAPW + (COLW+GAPW-2)
       return { minWidth: `${min_width}px`, maxWidth: `${max_width}px` }
     },
 
@@ -128,6 +132,22 @@ export default {
     ...widget_ops, // addWidget, deleteWidget, cloneWidget, moveWIdget, teleportWidget
 
     changeTitle(ev) { this.$store.updateGrid(this.id, { title: ev }) },
+
+    scaleGrid() {
+      let g = this.$refs.grid
+      //console.log(`clientHeight=${g.clientHeight} offsetHeight=${g.offsetHeight}`)
+      let p = g.parentElement
+      //console.log(`parentWidth=${p.clientWidth} offsetWidth=${p.offsetWidth}`)
+      let scale = p.clientWidth / g.clientWidth
+      if (scale > 1.5) scale = 1.5
+      if (scale < 0.75) scale = 0.75
+      if (scale != 1.0) console.log(`grid scale=${scale}`)
+      this.gridScale = {
+        'transform-origin': 'top left',
+        transform: `scale(${scale})`,
+        height: `${g.clientHeight*scale}px`,
+      }
+    },
 
   },
 }
