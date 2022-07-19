@@ -41,21 +41,19 @@ const flexdashDark = {
   }
 }
 
-window.v_defaults = {
-  global: {
-    density: 'compact',
-    'hide-details': true,
-  },
-  'VTooltip': {
-    anchor: 'bottom',
-  },
-}
-
 export default createVuetify({
   display: {
     mobileBreakpoint: 'sm'
   },
-  defaults: window.v_defaults,
+  defaults: {
+    global: {
+      density: 'compact',
+      'hide-details': true,
+    },
+    'VTooltip': {
+      anchor: 'bottom',
+    },
+  },
   theme: {
     defaultTheme: 'flexdashDark',
     themes: { flexdashLight, flexdashDark },
