@@ -155,19 +155,21 @@ Note that this "row-wise" structure gets transposed to the columnar structure ex
     }
   },
 
+  created() {
+    // theme switching, there must be an easier way to detect the current theme...
+    this.dark_watcher = this.$watch(
+      ()  => this.$vuetify.theme.global.current.dark,
+      (v) => { this.is_dark = v; this._destroy(); this._create() },
+      { deep: false })
+    this.is_dark = this.$vuetify.theme.global.current.dark
+  },
+
   mounted() {
     if (this.chart) console.log("Error: uPlot chart created too early")//no resizeObs before mount!
     this._create()
-    // theme switching, there must be an easier way to detect the current theme...
-    let vt = this.$vuetify.theme
-    this.dark_watcher = this.$watch(
-      ()  => vt.name,
-      (v) => { this.is_dark = vt.themes[vt.name].dark; this._destroy(); this._create() },
-      { deep: false })
-    this.is_dark = vt.themes[vt.name].dark
   },
 
-  beforeDestroy() {
+  unmounted() {
     if (this.ro) this.ro.disconnect()
     this.ro = null // being paranoid...
     this._destroy()
@@ -239,7 +241,7 @@ Note that this "row-wise" structure gets transposed to the columnar structure ex
 
     _create() {
       const self = this
-      //console.log("Creating uPlot")
+      console.log("Creating uPlot")
       if (!this.chart_data || this.chart_data.length === 0) return
       if (!this.options || !this.options.series || this.options.series.length < 2) return
 
