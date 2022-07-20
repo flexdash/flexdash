@@ -42,6 +42,7 @@
       </component>
       </div>
     </div>
+    <div v-if="gridScale" class="scale">{{ scale }}x</div>
   </div>
 </template>
 
@@ -60,6 +61,14 @@
   margin: 0 4px; padding: 0 2px; min-width: 20ex;
   color: #888;
   border: 1px solid #888; border-radius: 4px;
+}
+
+.scale {
+  transform-origin: top right;
+  rotate: 90deg;
+  position: absolute; bottom: 0px; right: 1px; z-index: 2;
+  font-size: 9pt; font-weight: 700; color: #808080;
+  line-height: 10pt;
 }
 </style>
 
@@ -91,6 +100,7 @@ export default {
     rolledup: false, // whether grid is rolled-up
     pasting: false, // controls display of paste div
     gridScale: "", // style to scale grid up to fill width
+    scale: 1, // scale of grid for debug purposes
   }},
 
   computed: {
@@ -138,10 +148,14 @@ export default {
       //console.log(`clientHeight=${g.clientHeight} offsetHeight=${g.offsetHeight}`)
       let p = g.parentElement
       //console.log(`parentWidth=${p.clientWidth} offsetWidth=${p.offsetWidth}`)
+      if (!p.clientWidth || ! g.clientWidth) {
+        this.gridScale = ""
+        return
+      }
       let scale = p.clientWidth / g.clientWidth
-      if (scale > 1.5) scale = 1.5
+      if (scale > 1.33) scale = 1.33
       if (scale < 0.75) scale = 0.75
-      if (scale != 1.0) console.log(`grid scale=${scale}`)
+      this.scale = scale.toFixed(2)
       this.gridScale = {
         'transform-origin': 'top left',
         transform: `scale(${scale})`,
