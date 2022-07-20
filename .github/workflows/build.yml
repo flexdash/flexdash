@@ -70,10 +70,9 @@ jobs:
 
       - name: Upload major.minor package to S3 repo
         run: |
-          V=${{env.VERSION}}
-          V=${V%.*}
-          aws s3 cp --acl public-read flexdash-$V.tgz s3://${{env.S3_PATH}}/
-          aws s3 cp --acl public-read flexdash-$V-src.tgz s3://${{env.S3_PATH}}/
+          V=${${{env.VERSION}}%.*}
+          aws s3 cp --acl public-read flexdash-${{env.VERSION}}.tgz s3://${{env.S3_PATH}}/flexdash-$V.tgz
+          aws s3 cp --acl public-read flexdash-${{env.VERSION}}-src.tgz s3://${{env.S3_PATH}}/flexdash-$V-src.tgz
 
       - name: Create annotation with link to S3
         run: |
