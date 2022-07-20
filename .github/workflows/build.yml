@@ -68,6 +68,13 @@ jobs:
           aws s3 cp --acl public-read flexdash-${{env.VERSION}}.tgz s3://${{env.S3_PATH}}/
           aws s3 cp --acl public-read flexdash-${{env.VERSION}}-src.tgz s3://${{env.S3_PATH}}/
 
+      - name: Upload major.minor package to S3 repo
+        run: |
+          V=${{env.VERSION}}
+          V=${V%.*}
+          aws s3 cp --acl public-read flexdash-$V.tgz s3://${{env.S3_PATH}}/
+          aws s3 cp --acl public-read flexdash-$V-src.tgz s3://${{env.S3_PATH}}/
+
       - name: Create annotation with link to S3
         run: |
           S3=s3.amazonaws.com/${{env.S3_PATH}}
