@@ -70,7 +70,9 @@ jobs:
 
       - name: Upload major.minor package to S3 repo
         run: |
-          V=${${{env.VERSION}}%.*}
+          V=${{env.VERSION}}
+          V=${V%.*}
+          echo $V
           aws s3 cp --acl public-read flexdash-${{env.VERSION}}.tgz s3://${{env.S3_PATH}}/flexdash-$V.tgz
           aws s3 cp --acl public-read flexdash-${{env.VERSION}}-src.tgz s3://${{env.S3_PATH}}/flexdash-$V-src.tgz
 
