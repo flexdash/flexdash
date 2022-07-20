@@ -31,6 +31,7 @@ jobs:
           npm install --production=false
           npm run build
           echo ${{env.VERSION}} >dist/VERSION
+          ls dist
           tar czf flexdash-${{env.VERSION}}.tgz -C dist .
           ls -ls *.tgz
       
