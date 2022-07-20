@@ -128,7 +128,6 @@ export default {
 
     // edit tab props, such as title
     handleEdit(what, ev) {
-      console.log('handleEdit', what, ev)
       const prop = {}; prop[what] = ev
       this.$store.updateTab(this.tab_id, prop)
     },

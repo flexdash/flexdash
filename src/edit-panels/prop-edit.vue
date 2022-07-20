@@ -167,12 +167,10 @@ export default {
   methods: {
 
     handleEdit(which, value) {
-      console.log("handleEdit", which, value)
       this.$emit('update:modelValue', which, value)
     },
 
     handleColorEdit(value) {
-      console.log("handleColorEdit", value)
       if (value == "") value = null
       this.handleEdit('static', value)
     },

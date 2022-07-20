@@ -94,7 +94,6 @@ export default {
         } else {
           ret = { name: `${name}: ${value}`, id }
         }
-        //console.log(`children(${name}) -> ${JSON.stringify(ret)}`)
         return ret
       }
       
@@ -103,7 +102,6 @@ export default {
 
     treeSelect(ev) {
       this.show_tree = false
-      console.log(`treeview ev=${JSON.stringify(ev)}`)
       this.$emit('update:modelValue', ev[0])
     },
 

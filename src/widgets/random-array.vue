@@ -49,7 +49,6 @@ input to TimePlot.`,
     // stepper is a variable that contains a function to produce the next random value
     // by being a computed variable, a fresh function is generated every time an input is changed
     steppers() {
-      console.log("producing new steppers");
       return Array.from({length: this.length}, (v, ix) => {
         if (ix == 0 && this.time) return ()=>Date.now()/1000
         else return randomStepper(this.min, this.max, this.round)

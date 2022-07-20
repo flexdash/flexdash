@@ -155,7 +155,7 @@ Note that this "row-wise" structure gets transposed to the columnar structure ex
 
       // put uplot options together
       const opts = { series, axes, scales }
-      console.log(`Options for time-plot-raw:`, opts);
+      //console.log(`Options for time-plot-raw:`, opts);
       // emit in the next tick in order not to affect the dependency stuff
       this.$nextTick(() => { this.$emit('send', opts) })
       return opts

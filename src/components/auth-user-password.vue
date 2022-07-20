@@ -56,7 +56,7 @@ export default {
 
   methods: {
     doLogin() {
-      console.log("doLogin", 'user='+this.user, 'pass='+this.password)
+      //console.log("doLogin", 'user='+this.user, 'pass='+this.password)
       this.req = fetch(this.config.url, {
         method: "POST",
         mode: 'cors',

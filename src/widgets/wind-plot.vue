@@ -150,7 +150,7 @@ Note that this "row-wise" structure gets transposed to the columnar structure ex
       const cursor = { points: { size: (u,s) => s>1?6:0 } }
 
       const opts = { series, axes, scales, cursor }
-      console.log("WindPlot options for time-plot-raw:", opts);
+      //console.log("WindPlot options for time-plot-raw:", opts);
       // emit in the next tick in order not to affect the dependency stuff
       this.$nextTick(() => { this.$emit('send', opts) })
       return opts

@@ -93,7 +93,7 @@ export class Store {
 
     if (topic === "$config") {
       this.config = this.root.$config = payload
-      console.log("Replaced $config with:", payload)
+      //console.log("Replaced $config with:", payload)
       return
     }
 
@@ -129,11 +129,11 @@ export class Store {
     } else if (typeof(dir) === 'object') {
       old = dir[t]
       if (payload !== undefined) {
-        console.log(`Updated ${topic} with:`, payload)
+        //console.log(`Updated ${topic} with:`, payload)
         //Vue.set(dir, t, payload) // $set 'cause we may add new props to dir
         dir[t] = payload
       } else {
-        console.log(`Deleted ${topic}`)
+        //console.log(`Deleted ${topic}`)
         // Vue.delete(dir, t)
         delete dir[t]
       }
@@ -165,7 +165,7 @@ export class Store {
   // performUndo replays a recorded undo mutation off the stack.
   // TODO: consider implementing redo?
   performUndo() {
-    console.log("perform undo")
+    //console.log("perform undo")
     const u = this.undo
     if (u.buf.length == 0) throw new StoreError("undo buffer is empty")
     const m = u.buf.pop()
@@ -182,7 +182,7 @@ export class Store {
   // If tagline is null, no undo steps are recorded, this is primarily used to perform
   // undo steps themselves.
   qMutation(tagline, msgs) {
-    console.log("queueing mutation", tagline) //, JSON.stringify(msgs))
+    //console.log("queueing mutation", tagline) //, JSON.stringify(msgs))
     // apply the mutation locally and save the undo steps
     let undo = []
     for (const m of msgs) {
@@ -490,7 +490,6 @@ export class Store {
     }
 
     var ops = [ del_op, resize_op, add_op ].filter((o) => o != null)
-    console.log(`Widget move ops = ${JSON.stringify(ops)}`)
     this.qMutation("move widget to another grid/panel", ops)
   }
 

@@ -40,7 +40,6 @@ export default {
     emit() { this.$emit('update:value', this.range[this.ix]) },
     // findIx finds the index at which the passed value is found
     findIx(v) {
-      //console.log("edit-plus-minus.value:", v)
       let ix = this.range.findIndex(x => x == v)
       return ix >= 0 ? ix : 0
     },

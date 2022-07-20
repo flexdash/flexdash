@@ -53,8 +53,6 @@ export default {
 
   emits: [ 'update:modelValue' ],
 
-  mounted() { console.log("ColorPicker mounted", this.modelValue); },
-
   data() {
     const swatches = []
     for (let c in colors) {
@@ -75,12 +73,9 @@ export default {
 
   methods: {
     changeColor(hex) {
-      console.log("changeCOlor", hex)
       if (hex == "#00000000") {
-        console.log("Emitting color -none-")
         this.$emit('update:modelValue', "") // gives us text color with theme support
       } else {
-        console.log("Emitting color", hex)
         this.$emit('update:modelValue', hex)
       }
     },

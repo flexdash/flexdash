@@ -58,12 +58,10 @@ export default {
   methods: {
     setMinCols(ev) {
       this.$store.updateGrid(this.grid.id, { min_cols: ev })
-      console.log(`setMinCols ${ev} ${this.maxCols}`)
       if (ev > this.maxCols) this.setMaxCols(ev)
     },
     setMaxCols(ev) {
       this.$store.updateGrid(this.grid.id, { max_cols: ev })
-      console.log(`setMaxCols ${ev} ${this.minCols}`)
       if (ev < this.minCols) this.setMinCols(ev)
     },
   },

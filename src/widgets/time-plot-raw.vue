@@ -241,7 +241,7 @@ Note that this "row-wise" structure gets transposed to the columnar structure ex
 
     _create() {
       const self = this
-      console.log("Creating uPlot")
+      //console.log("Creating uPlot")
       if (!this.chart_data || this.chart_data.length === 0) return
       if (!this.options || !this.options.series || this.options.series.length < 2) return
 

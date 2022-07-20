@@ -95,9 +95,7 @@ for (const path in auth_modules) {
   const name = path.split('/').pop().replace('.vue', '')
   if (name !== 'unknown') auth_strategies.push(name.replace('auth-', ''))
   defineAsyncComponent(name, auth_modules[path])
-  //console.log("imported " + name)
 }
-console.log("auth strategies: " + auth_strategies)
 
 export default {
   name: "Connections",
@@ -168,7 +166,6 @@ export default {
   // created is called before child components are created, so we can parse the URL and prep
   // some config for them.
   created() {
-    console.log("Connection: created")
     const conn = this.$config.conn
     conn['demo'] = { enabled: false, config: false }
     conn['websocket'] = { enabled: false, config: false, address: "" }
@@ -221,7 +218,7 @@ export default {
       this.config_source = "demo"
       this.$emit('update:src', 'demo')
     }
-    console.log("Initial connection config:", JSON.stringify(conn))
+    //console.log("Initial connection config:", JSON.stringify(conn))
     this.multiple = count != 1
 
     // set a global variable with our serverSend method so the widget-wrapper can send
@@ -234,7 +231,6 @@ export default {
   },
 
   mounted() {
-    //console.log("Connection: mounted")
     // pop-up the connections dialog if nothing happens in 5 seconds
     if (this.multiple) {
       window.setTimeout(()=>{ if (!this.gotConfig) this.show_dialog = true }, 5000)
@@ -242,7 +238,6 @@ export default {
   },
 
   beforeDestroy() {
-    console.log("Connection: beforeDestroy")
     for (const name in this.connections) {
       const c = this.connections[name]
       if (c.conn) c.conn.stop()
@@ -317,7 +312,6 @@ export default {
 
       // handleMsg("download", url, filename, root_url)
       if (kind === "download") {
-        console.log("*** got download request:", params)
         this.download(params[0], params[1], params[2])
         return
       }
@@ -368,7 +362,7 @@ export default {
       } else {
         for (let c in this.connections) {
           const conn = this.connections[c].conn
-          console.log(c, conn, this.$config.conn[c])
+          //console.log(c, conn, this.$config.conn[c])
           if (conn && this.$config.conn[c].enabled) conn.serverSend(topic, payload, kind)
         }
       }

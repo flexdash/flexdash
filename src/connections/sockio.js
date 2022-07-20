@@ -113,7 +113,7 @@ export default class SockioConnection {
 
     // handle resp message (response to request)
     this.sock.on("resp", (id, payload) => {
-      console.log("SIO resp:", id, payload)
+      //console.log("SIO resp:", id, payload)
       if (this.requests[id]) {
         this.requests[id](payload)
         delete this.requests[id]
@@ -148,7 +148,7 @@ export default class SockioConnection {
 
   // send a "regular" one-way message to the server with a topic and a payload
   serverSend(topic, payload, kind="msg") {
-    console.log("serverSend, kind=" + kind)
+    //console.log("serverSend, kind=" + kind)
     if (this.sock) {
       this.sock.emit(kind, topic, payload)
       if (this.sock.sendBuffer.length > 0 && this.checker === null) {
@@ -166,7 +166,7 @@ export default class SockioConnection {
   // send a request to the server with a topic and a payload and resolve the promise when a
   // response comes back or reject it on timeout. serverQuery returns a promise!
   serverQuery(topic, payload, kind="req") {
-    console.log("serverQuery, kind=" + kind)
+    //console.log("serverQuery, kind=" + kind)
     return new Promise((resolve, reject) => {
       if (!this.sock) return reject("SIO: not connected")
       let id = this.reqId++

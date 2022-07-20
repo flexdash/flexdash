@@ -73,7 +73,6 @@ export default {
   }},
 
   created() {
-    console.log("Created panel", this.widget_id)
     // ensure the panel widget has a widgets array property
     const p = this.$store.widgetByID(this.widget_id)
     if (!('widgets' in p.static)) {

@@ -154,11 +154,11 @@ export default {
     tab() { return this.tab_id ? this.tabs[this.tab_id] : {} },
     tab_id() { return this.tab_ix != null ? this.dash_tabs[this.tab_ix] : "" }, // current tab ID
     tabs() { // make easily accessible in template
-      console.log(`Tabs: ${JSON.stringify(this.$config.tabs)}`)
+      //console.log(`Tabs: ${JSON.stringify(this.$config.tabs)}`)
       return this.ready ? this.$config.tabs : {}
     },
     grids() { // make easily accessible in template
-      console.log(`Grids: ${JSON.stringify(this.$config.grids)}`)
+      //console.log(`Grids: ${JSON.stringify(this.$config.grids)}`)
       return this.ready ? this.$config.grids : {}
     },
     canUndo() { return this.$store.undo.buf.length > 0 },

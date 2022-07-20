@@ -143,8 +143,6 @@ thereby alter the number of values shown).
     },
 
     create() {
-      console.log(
-        `SparkLine create ${this.opts.width}x${this.opts.height} data:${this.data.length}`)
       if (this.data.length == 0) return;
       const x = Array.from({length: this.data.length}, (v,ix)=>ix)
       this.chart = new uPlot(this.opts, [x, this.data], this.$el)

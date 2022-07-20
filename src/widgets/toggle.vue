@@ -60,7 +60,6 @@ value input: the toggle will be "on" if the value is equal to the "on_value" inp
   methods: {
     // change from v-switch is only emitted when the user toggles, not when input value changes
     change(ev) {
-      console.log("toggle event:", ev)
       this.$emit('send', ev)
     },
   },

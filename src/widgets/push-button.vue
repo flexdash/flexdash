@@ -42,7 +42,6 @@ Icon names can be found at https://materialdesignicons.com.`,
 
   methods: {
     clickEv(ev) {
-      console.log("PushButton event:", ev)
       this.$emit('send', this.output_value)
     },
   },

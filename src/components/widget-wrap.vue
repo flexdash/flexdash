@@ -242,7 +242,7 @@ export default {
       let type = this.child_props_plus[prop].type // note: may be undefined...
 
       try {
-        console.log(`Updating ${this.config.kind}.${prop}[${type&&type.name}] <- ${typeof val}`, val)
+        //console.log(`Updating ${this.config.kind}.${prop}[${type&&type.name}] <- ${typeof val}`, val)
         val = this.typeCast(val, type)
         this.bindings[prop] = val
       } catch(e) {
@@ -293,7 +293,7 @@ export default {
     sendData(data) {
       let o = this.config.output
       if (o) {
-        if (!o.startsWith("$demo"))
+        if (false && !o.startsWith("$demo"))
           console.log(`Widget ${this.config.kind}[${this.config.id}] sending ${o} <-`, data)
         this.$conn.serverSend(o, data)
       }

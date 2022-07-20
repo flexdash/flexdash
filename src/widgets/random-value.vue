@@ -49,7 +49,6 @@ Originally from https://stackoverflow.com/a/22080644.`,
     // stepper is a variable that contains a function to produce the next random value
     // by being a computed variable, a fresh function is generated every time an input is changed
     stepper() {
-      console.log("producing new stepper");
       return randomStepper(this.min, this.max, this.round)
     },
   },

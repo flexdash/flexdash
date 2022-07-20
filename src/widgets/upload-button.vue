@@ -60,7 +60,6 @@ file to the server.`,
   methods: {
     clickEv(ev) {
       if (!ev) return
-      console.log("UploadButton event:", ev)
       const conn = { serverQuery: this.$store.serverQuery, serverSend: this.$store.serverSend }
       upload(this.output_binding, ev, conn)
       //this.value = [] // reset file input, FIXME: show some progress thing...

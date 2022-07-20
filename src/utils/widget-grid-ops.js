@@ -48,7 +48,6 @@ export default {
 
   // move a widget up/down (dir=-1/1)
   moveWidget(ix, dir) {
-    console.log(`Moving widget #${ix} by ${dir}`)
     const is_grid = this.id.startsWith('g') // vs. is panel
     const widgets = is_grid ? this.grid.widgets : this.widgets
     if (!(ix+dir >= 0 && ix+dir < widgets.length)) return
@@ -61,7 +60,6 @@ export default {
 
   // teleport the widget to a different grid or panel
   teleportWidget(widget_id, src_id, dest_id) {
-    console.log(`Teleport widget ${widget_id} from ${src_id} to ${dest_id}`)
     this.edit_ix = null
     this.$store.moveWidget(widget_id, src_id, dest_id)
   },
@@ -76,7 +74,6 @@ export default {
     let pastedData = clipboardData.getData('Text')
     this.pasting = false
     // Validate pasted text
-    console.log(pastedData)
     try {
       let w = JSON.parse(pastedData)
       if ('id' in w && 'kind' in w) {

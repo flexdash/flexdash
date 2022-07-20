@@ -166,7 +166,6 @@ export default {
       // if the prop definition says it's dynamic and it's completely unset, then set it
       if (pi[p].dynamic && !(p in w.dynamic) && !(p in w.static)) {
         w.dynamic[p] = pi[p].dynamic
-        console.log("Need update: dynamic")
       }
     }
     // process any widget output binding
@@ -183,12 +182,12 @@ export default {
     if (w.output_hint) w.output_hint = null // patch a bug
     // update instance variables
     if (wj != JSON.stringify(w)) {
-      console.log(`UPDATE ${wj}\n-----> ${JSON.stringify(w)}`)
+      //console.log(`UPDATE ${wj}\n-----> ${JSON.stringify(w)}`)
       this.$store.updateWidget(this.widget_id, w)
     }
     this.child_props = cp
     this.prop_info = pi
-    console.log("Created widget", this.widget_id, w)
+    //console.log("Created widget", this.widget_id, w)
     // handle init edit_mode being active
     if (this.edit_active) this.propStatic()
   },
@@ -263,7 +262,6 @@ export default {
     endEdit() { this.$emit('edit', false) },
 
     handleEdit(which, prop, value) {
-      console.log("edit:", which, prop, value)
       if (!(which in this.widget)) return
 
       if (prop != 'title' && prop != 'output_binding') {
@@ -287,7 +285,6 @@ export default {
     },
 
     handleEditOutput(value) {
-      console.log("edit: output:", value)
       this.$store.updateWidget(this.widget_id, {output: value})
     },
 

@@ -57,10 +57,6 @@ export default {
     btnid: 'btn' + Math.trunc(Math.random() * 1000000),
   }},
 
-  watch: {
-    show(val) { console.log("Show menu:", val) },
-  },
-
   computed: {
     // list of available widgets for the menu
     widget_list() {
