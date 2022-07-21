@@ -23,6 +23,7 @@
     <widget-wrap :config="widget" :no_border="no_border" :editable="editable"
                   @edit="toggleEdit" :color="edit_active?'highlight':''">
     </widget-wrap>
+    <div v-if="global.editMode" class="ix">#{{ix}}</div>
 
     <!-- v-overlay is used to display a floating v-card below the component for editing -->
     <v-overlay :model-value="edit_active" width="90%" class="widget-edit"
@@ -79,10 +80,14 @@
   </div>
 </template>
 
-<style>
-.widget-edit { max-width: 100%; }
+<style scoped>
+.widget-edit { max-width: 100%; position: relative; }
 .widget-edit .prop-columns {
   width: 100%; columns: 340px; column-gap: 1.5em; column-rule: 1px solid #888;
+}
+.ix {
+  position: absolute; left: 0px; top: -8px; padding: 0px; min-width: 0px; z-index: 1;
+  color: #888; font-size: 0.8em;
 }
 </style>
 
@@ -99,13 +104,14 @@ export default {
   name: 'WidgetEdit',
 
   components: { WidgetWrap, WidgetEditToolbar, TitleEdit, HelpEdit, PropEdit, md },
-  inject: [ '$store', 'palette' ],
+  inject: [ '$store', 'palette', 'global' ],
 
   props: {
     widget_id: { type: String, required: true }, // my widget ID
     edit_active: { type: Boolean, default: false }, // we're being edited
     editable: { type: Boolean, default: true }, // can we be edited? (just passed down to widget-wrap)
     no_border: { type: Boolean, default: false }, // true causes no "card" border, used by panel
+    ix: { type: Number, default: 0 }, // index of widget in grid/panel, only used for debug display
   },
 
   emits: [ 'edit', 'move', 'teleport', 'delete', 'clone' ],

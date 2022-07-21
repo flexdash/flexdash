@@ -33,16 +33,15 @@
 
     <!-- Grid of widgets -->
     <div v-if="!rolledup" v-bind:style="gridScale">
-      <div class="container g-grid-small pt-0 px-2 pb-2"
-           v-resize="scaleGrid" v-bind:style="gridStyle" ref="grid">
-      <component v-for="(w,ix) in grid.widgets" :key="w" :widget_id="w" :is="editComponent[w]"
-                 :edit_active="ix == edit_ix" @edit="toggleEdit(ix, $event)"
-                 @move="moveWidget(ix, $event)" @delete="deleteWidget(ix)"
-                 @clone="cloneWidget(ix)" @teleport="(src,dst)=>teleportWidget(w, src, dst)">
-      </component>
+      <div class="container g-grid-small pt-0 px-2 pb-2" v-bind:style="gridStyle" ref="grid">
+        <component v-for="(w,ix) in grid.widgets" :key="w" :widget_id="w" :is="editComponent[w]"
+                  :ix="ix" :edit_active="ix == edit_ix" @edit="toggleEdit(ix, $event)"
+                  @move="moveWidget(ix, $event)" @delete="deleteWidget(ix)"
+                  @clone="cloneWidget(ix)" @teleport="(src,dst)=>teleportWidget(w, src, dst)">
+        </component>
       </div>
     </div>
-    <div v-if="gridScale" class="scale">{{ scale }}x</div>
+    <div v-if="gridScale" class="scale">grid scale {{ scale }}x</div>
   </div>
 </template>
 
@@ -125,6 +124,10 @@ export default {
     },
   },
 
+  created() { this._ro = new ResizeObserver(() => this.scaleGrid()) },
+  mounted() { this._ro.observe(this.$refs.grid) },
+  unmounted() { if(this._ro) this._ro.disconnect() },
+
   watch: {
     pasting(nv) {
       if (nv) {
@@ -145,9 +148,7 @@ export default {
 
     scaleGrid() {
       let g = this.$refs.grid
-      //console.log(`clientHeight=${g.clientHeight} offsetHeight=${g.offsetHeight}`)
       let p = g.parentElement
-      //console.log(`parentWidth=${p.clientWidth} offsetWidth=${p.offsetWidth}`)
       if (!p.clientWidth || ! g.clientWidth) {
         this.gridScale = ""
         return
@@ -156,6 +157,7 @@ export default {
       if (scale > 1.33) scale = 1.33
       if (scale < 0.75) scale = 0.75
       this.scale = scale.toFixed(2)
+      //console.log(`parentWidth=${p.clientWidth} gridWidth=${g.clientWidth} gridHeight=${g.clientHeight} scale=${scale}`)
       this.gridScale = {
         'transform-origin': 'top left',
         transform: `scale(${scale})`,
