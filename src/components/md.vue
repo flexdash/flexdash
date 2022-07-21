@@ -23,6 +23,17 @@
 export default {
   name: 'Md',
 
+  computed: {
+    md_render() {
+      const def_slot = this.$slots.default
+      const text = (def_slot && def_slot()[0].children?.trim()) || ""
+      //console.log("Before:", text.replace(/\n/g, "\\n"))
+      //console.log("After:", tfmarkdown(text, true))
+      return tfmarkdown(text, true)
+    },
+  },
+
+/*
   data() { return {
     md_render: "",
   }},
@@ -42,6 +53,7 @@ export default {
     //console.log("After:", tfmarkdown(text, true))
     this.md_render = tfmarkdown(text, true)
   },
+  */
 }
 
 
