@@ -23,7 +23,7 @@
     <widget-wrap :config="widget" :no_border="no_border" :editable="editable"
                   @edit="toggleEdit" :color="edit_active?'highlight':''">
     </widget-wrap>
-    <div v-if="global.editMode" class="ix">#{{ix}}</div>
+    <div v-if="global.editMode" class="ix">#{{ix+1}}</div>
 
     <!-- v-overlay is used to display a floating v-card below the component for editing -->
     <v-overlay :model-value="edit_active" width="90%" class="widget-edit"

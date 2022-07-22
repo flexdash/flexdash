@@ -9,12 +9,14 @@ export default {
   },
 
   // handle widget delete event coming up from widget-edit
+  // Caution: does not deal with widget groups!
   deleteWidget(ix) {
     this.$store.deleteWidget(this.id, ix)
     this.edit_ix = null
   },
 
   // handle widget clone event coming up from widget-edit
+  // Caution: does not deal with widget groups!
   cloneWidget(ix) {
     // start by adding a new widget of the same kind to the end of the grid
     let widget_ix, widget_id
@@ -46,8 +48,52 @@ export default {
     this.edit_ix = ix+1
   },
 
+  // if widget is in a group, return ix of first widget in group, else return ix unchanged
+  firstInGroup(widgets, ix) {
+    const w_ix = this.$store.widgetByID(widgets[ix])
+    if (! w_ix.group) return ix
+    const group = w_ix.group
+    while (ix > 0 && this.$store.widgetByID(widgets[ix-1]).group == group) ix--
+    return ix
+  },
+
+  // return size of widget group, or 1 if non-grouped widget
+  groupSize(widgets, ix) {
+    const w_ix = this.$store.widgetByID(widgets[ix])
+    if (! w_ix.group) return 1
+    const first = this.firstInGroup(widgets, ix)
+    const group = w_ix.group
+    while (ix+1 < widgets.length && this.$store.widgetByID(widgets[ix+1]).group == group) ix++
+    return ix - first + 1
+  },
+
   // move a widget up/down (dir=-1/1)
   moveWidget(ix, dir) {
+    const is_grid = this.id.startsWith('g') // vs. is panel
+    const widgets = is_grid ? this.grid.widgets : this.widgets
+    // if the widget is in a group, move the first widget of the group
+    ix = this.firstInGroup(widgets, ix)
+    // figure out distance to move and adjust dir
+    const gs = this.groupSize(widgets, ix)
+    if (dir < 0) {
+      if (ix == 0) return
+      dir = -this.groupSize(widgets, ix-1)
+    } else {
+      if (ix+gs >= widgets.length) return
+      dir = this.groupSize(widgets, ix+gs)
+    }
+    console.log(`moveWidget: ix=${ix}, gs=${gs}, dir=${dir}`)
+    // perform move
+    let ww = [ ...widgets ] // clone
+    let w = ww.splice(ix, gs) // remove widget/group
+    ww.splice(ix+dir, 0, ...w) // insert widget/group
+    if (is_grid) this.$store.updateGrid(this.id, { widgets: ww })
+    else this.$store.updateWidgetProp(this.id, 'static', 'widgets', ww)
+    this.edit_ix += dir
+  },
+
+  // move a widget up/down (dir=-1/1)
+  moveWidgetOLD(ix, dir) {
     const is_grid = this.id.startsWith('g') // vs. is panel
     const widgets = is_grid ? this.grid.widgets : this.widgets
     if (!(ix+dir >= 0 && ix+dir < widgets.length)) return
