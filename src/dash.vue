@@ -20,7 +20,7 @@
            The tab itself doesn't render anything, it's simply a vertical stacking of the
            grids it contains -->
       <v-window v-if="ready" v-model="tab_ix"> <!-- :class="tabs_items_class"-->
-        <v-window-item v-for="(id, ix) in dash_tabs" :key="id+ix" :ref="id" :value="ix">
+        <v-window-item v-for="(id, ix) in dash_tabs" :key="id" :value="ix">
           <div v-if="tabs[id].grids">
             <component v-for="(g, ix) in tabs[id].grids" :key="g" :id="g"
                       v-bind:is="grids[g].kind in palette.grids ? grids[g].kind : 'div'"
@@ -67,7 +67,7 @@
 
   </v-app>
 </template>
-  
+
 <style>
 /* make tab content 100% height so we can size iframe for iframe-grid to full page */
 .xv-item-group { height: 100%; }
