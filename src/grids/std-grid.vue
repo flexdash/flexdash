@@ -4,7 +4,7 @@
 -->
 
 <template>
-  <div class="u-tooltip-attach">
+  <div class="u-tooltip-attach" ref="outer">
     <grid-bar kind="StdGrid" :title="grid.title" :has_widgets="grid.widgets.length>0"
               v-model:rolledup="rolledup" @changeTitle="changeTitle"
               @delete="$emit('delete')">
@@ -28,7 +28,7 @@
       -->
 
       <!-- Selectors for minimum and maximum number of columns -->
-      <min-max-cols :grid="grid"></min-max-cols>
+      <min-max-cols :grid="grid" :max-widget="maxWidget"></min-max-cols>
     </grid-bar>
 
     <!-- Grid of widgets -->
@@ -41,7 +41,7 @@
         </component>
       </div>
     </div>
-    <div v-if="gridScale" class="scale">grid scale {{ scale }}x</div>
+    <div v-if="gridScale && scale != '1.00'" class="scale">grid scale {{ scale }}x</div>
   </div>
 </template>
 
@@ -105,27 +105,33 @@ export default {
   computed: {
     // grid config: {id, kind, icon, widgets}
     grid() { return this.$store.gridByID(this.id) },
-    minCols() { return this.grid.min_cols || 1 },
+    minCols() { return Math.max(this.grid.min_cols || 1, this.maxWidget) },
     maxCols() { return this.grid.max_cols || 20 },
+    maxWidget() { // width of widest widget (in columns)
+      return Math.max(1, ...this.grid.widgets.map(id => {
+        try { return this.$store.widgetByID(id).cols }
+        catch (e) { return 1 }
+      }))
+    },
     gridStyle() {
       // min width to fit N widgets is N*COLW, plus gaps: (N-1)*GAPW, plus l/r padding: 2*GAPW
-      let min_width = this.minCols * COLW + (this.minCols+1) * GAPW
-      let max_width = this.maxCols * COLW + (this.maxCols+1) * GAPW + (COLW+GAPW-2)
+      let min_width = this.minCols * COLW + (this.minCols + 1) * GAPW
+      let max_width = this.maxCols * COLW + (this.maxCols + 1) * GAPW + (COLW + GAPW - 2)
       return { minWidth: `${min_width}px`, maxWidth: `${max_width}px` }
     },
 
     // editComponent returns the component used to edit a widget: widget-edit or panel-edit
     editComponent() {
       return Object.fromEntries(this.grid.widgets.map(wid => {
-        if (wid.startsWith('x')) return [ wid, "DisabledEdit"]
-        if (this.$store.widgetByID(wid).kind.endsWith("Panel")) return [ wid, "PanelEdit" ]
-        return [ wid, "WidgetEdit" ]
+        if (wid.startsWith('x')) return [wid, "DisabledEdit"]
+        if (this.$store.widgetByID(wid).kind.endsWith("Panel")) return [wid, "PanelEdit"]
+        return [wid, "WidgetEdit"]
       }))
     },
   },
 
   created() { this._ro = new ResizeObserver(() => this.scaleGrid()) },
-  mounted() { this._ro.observe(this.$refs.grid) },
+  mounted() { this._ro.observe(this.$refs.grid); this._ro.observe(this.$refs.outer) },
   unmounted() { if(this._ro) this._ro.disconnect() },
 
   watch: {

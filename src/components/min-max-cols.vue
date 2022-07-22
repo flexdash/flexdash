@@ -38,17 +38,12 @@ export default {
 
   props: {
     grid: { type: Object, required: true },
+    maxWidget: { type: Number, default: 1 },
   },
 
   computed: {
     minCols() { return this.grid.min_cols || 1 },
     maxCols() { return this.grid.max_cols || 20 },
-    maxWidget() { // width of widest widget (in columns)
-      return Math.max(1, ...this.grid.widgets.map(id => {
-        try { return this.$store.widgetByID(id).cols }
-        catch (e) { return 1 }
-      }))
-    },
     colRange() { // range for min/maxCols: [ maxWidget .. 20 ], i.e., no smaller than widest widget
       // need to provide array with values: construct [ maxWidget, maxWidget+1, ..., 20 ]
       return [...Array(21-this.maxWidget)].map((_, ix) => (this.maxWidget+ix))
