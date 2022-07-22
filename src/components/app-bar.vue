@@ -137,7 +137,6 @@ export default {
   },
 
   methods: {
-    // handle buttons for tab editing
     addTab(kind) {
       this.tab_add = false // close-on-content-click in v-menu not implemented yet (!@#$%^)
       this.$emit('update:tab_ix', this.$store.addTab(kind))

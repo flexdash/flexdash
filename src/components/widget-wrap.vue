@@ -214,7 +214,7 @@ export default {
             try {
               this.bindings[p] = this.typeCast(config.static[p], type)
             } catch(e) {
-              console.log(`Warning: failed to type-cast prop '${p}': ${e}`) // FIXME: show in UI!
+              console.log(`Warning: for ${this.widget_kind} failed to type-cast prop '${p}': ${e}`) // FIXME: show in UI!
             }
           }
         })
