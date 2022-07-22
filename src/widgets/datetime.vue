@@ -6,7 +6,7 @@
        the title is rendered as v-card-text while the value is rendered here as v-card-title,
        that's so the value is more prominent than the title... ma-auto applies auto margins all
        around, which centers the value. -->
-  <v-card-title v-if="!chip" class="headline pa-0 flex-grow-1" @click="click">
+  <v-card-title v-if="!chip" class="headline pa-0 flex-grow-1 d-flex" @click="click">
     <span class="ma-auto" :style="dateStyle">
       <span class="font-weight-medium" :style="zoomStyle">{{valTxt}}</span>
     </span>
