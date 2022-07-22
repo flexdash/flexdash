@@ -16,6 +16,8 @@ permissions:
 jobs:
   build-all:
     runs-on: ubuntu-latest
+    outputs:
+      version: ${{ env.VERSION }}
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -24,7 +26,8 @@ jobs:
 
       # use branch or tag name in S3 upload path
       - run: |
-          echo VERSION=$(egrep version.: package.json) | sed -E 's/=.*"([0-9]\..*)".*/=\1/' >>$GITHUB_ENV
+          V=$(egrep version.: package.json | sed -E 's/=.*"([0-9]\..*)".*/=\1/')
+          echo VERSION=$V >>$GITHUB_ENV
 
       - name: npm build
         run: |
@@ -33,7 +36,6 @@ jobs:
           echo ${{env.VERSION}} >dist/VERSION
           ls dist
           tar czf flexdash-${{env.VERSION}}.tgz -C dist .
-          ls -ls *.tgz
       
       - name: source tgz
         run: |
@@ -51,6 +53,12 @@ jobs:
       #     git commit -m 'gen html for ${{env.VERSION}}'
       #     git push
 
+      - name: Upload tgz artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: flexdash-${{env.VERSION}}-tgz
+          path: flexdash-${{env.VERSION}}*.tgz
+
       - name: Configure AWS Credentials
         # See https://docs.github.com/en/actions/deployment/security-hardening-your-deployments/configuring-openid-connect-in-amazon-web-services
         uses: aws-actions/configure-aws-credentials@master
@@ -59,15 +67,39 @@ jobs:
           role-session-name: GithubActionsFlexDash
           aws-region: ${{ env.S3_REGION }}
 
-      - name: Upload to AWS S3 repo
+      - name: Upload tgz's to S3 repo
         run: |
-          aws s3 sync --acl public-read dist s3://${{env.S3_PATH}}/${{env.VERSION}}/
-
-      - name: Upload package to S3 repo
-        run: |
-          ls -ls *.tgz
           aws s3 cp --acl public-read flexdash-${{env.VERSION}}.tgz s3://${{env.S3_PATH}}/
           aws s3 cp --acl public-read flexdash-${{env.VERSION}}-src.tgz s3://${{env.S3_PATH}}/
+
+      - name: Create annotation with link to S3
+        run: |
+          S3=s3.amazonaws.com/${{env.S3_PATH}}
+          echo "https://$S3/$GIT_REF/$SG_ZIP"
+          echo "::notice title=FlexDash dist::https://$S3/flexdash-${{env.VERSION}}.tgz "
+          echo "::notice title=FlexDash src::https://$S3/flexdash-${{env.VERSION}}-src.tgz "
+
+  publish:
+    if: github.repository == 'flexdash/flexdash' && \
+        github.tag.startsWith('refs/tags/v') && \
+        github.eventName == 'push'
+    runs-on: ubuntu-latest
+    needs: build-all
+    env:
+      VERSION: ${{ needs.build-all.outputs.version }}
+    steps:
+      - name: Fetch tgz artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: flexdash-${{env.VERSION}}-tgz
+
+      - name: Configure AWS Credentials
+        # See https://docs.github.com/en/actions/deployment/security-hardening-your-deployments/configuring-openid-connect-in-amazon-web-services
+        uses: aws-actions/configure-aws-credentials@master
+        with:
+          role-to-assume: ${{env.AWS_ROLE}}
+          role-session-name: GithubActionsFlexDash
+          aws-region: ${{ env.S3_REGION }}
 
       - name: Upload major.minor package to S3 repo
         run: |
@@ -76,10 +108,9 @@ jobs:
           echo $V
           aws s3 cp --acl public-read flexdash-${{env.VERSION}}.tgz s3://${{env.S3_PATH}}/flexdash-$V.tgz
           aws s3 cp --acl public-read flexdash-${{env.VERSION}}-src.tgz s3://${{env.S3_PATH}}/flexdash-$V-src.tgz
-
-      - name: Create annotation with link to S3
+    
+      - name: Upload dist tree to AWS S3 repo
         run: |
-          S3=s3.amazonaws.com/${{env.S3_PATH}}
-          echo "https://$S3/$GIT_REF/$SG_ZIP"
-          echo "::notice title=FlexDash dist::https://$S3/flexdash-${{env.VERSION}}.tgz "
-          echo "::notice title=FlexDash src::https://$S3/flexdash-${{env.VERSION}}-src.tgz "
+          mkdir dist
+          tar zxf flexdash-${{env.VERSION}}.tgz -C dist
+          aws s3 sync --acl public-read dist s3://${{env.S3_PATH}}/${{env.VERSION}}/
