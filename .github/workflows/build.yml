@@ -80,8 +80,9 @@ jobs:
           echo "::notice title=FlexDash src::https://$S3/flexdash-${{env.VERSION}}-src.tgz "
 
   publish:
-    if: github.repository == 'flexdash/flexdash' && \
-        github.tag.startsWith('refs/tags/v') && \
+    if: >
+        github.repository == 'flexdash/flexdash' &&
+        github.tag.startsWith('refs/tags/v') &&
         github.eventName == 'push'
     runs-on: ubuntu-latest
     needs: build-all
