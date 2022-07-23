@@ -82,7 +82,7 @@ jobs:
   publish:
     if: >
         github.repository == 'flexdash/flexdash' &&
-        github.tag.startsWith('refs/tags/v') &&
+        startsWith(github.tag, 'refs/tags/v') &&
         github.eventName == 'push'
     runs-on: ubuntu-latest
     needs: build-all
