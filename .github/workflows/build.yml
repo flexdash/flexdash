@@ -26,7 +26,7 @@ jobs:
 
       # use branch or tag name in S3 upload path
       - run: |
-          V=$(egrep version.: package.json | sed -E 's/=.*"([0-9]\..*)".*/=\1/')
+          V=$(egrep version.: package.json | sed -E 's/.*"([0-9]\..*)".*/=\1/')
           echo VERSION=$V >>$GITHUB_ENV
 
       - name: npm build
