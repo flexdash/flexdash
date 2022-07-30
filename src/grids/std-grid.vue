@@ -105,7 +105,9 @@ export default {
   computed: {
     // grid config: {id, kind, icon, widgets}
     grid() { return this.$store.gridByID(this.id) },
-    widgets() { return this.grid.widgets.filter(w => this.$config.widgets[w]?.id == w) },
+    widgets() { return this.grid.widgets.filter(w =>
+      !w.startsWith('x') && this.$config.widgets[w]?.id == w
+    )},
     minCols() { return Math.max(this.grid.min_cols || 1, this.maxWidget) },
     maxCols() { return this.grid.max_cols || 20 },
     maxWidget() { // width of widest widget (in columns)

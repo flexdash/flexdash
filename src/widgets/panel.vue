@@ -73,7 +73,9 @@ act only as a fixed arrangement of widgets.`,
   }},
 
   computed: {
-    real_widgets() { return this.widgets.filter(w => this.$config.widgets[w]?.id == w) },
+    real_widgets() { return this.widgets.filter(w =>
+      !w.startsWith('x') && this.$config.widgets[w]?.id == w
+    )},
 
     // editComponent returns the component used to edit a widget: widget-edit or panel-edit
     editComponent() {

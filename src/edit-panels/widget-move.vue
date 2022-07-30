@@ -107,6 +107,7 @@ export default {
 
     // list of available target panels in this grid
     d.panel_list = this.$store.gridByID(d.grid_id).widgets
+      .filter(w => !w.startsWith('x'))
       .map(w_id => this.$store.widgetByID(w_id))
       .filter(w => w.kind == "Panel")
       .map((p, ix) => ({ id: p.id, title: p.static.title ? `'${p.static.title}'` : `#${ix+1}` }))
