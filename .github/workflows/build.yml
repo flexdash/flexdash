@@ -24,7 +24,7 @@ jobs:
           echo repository ${{github.repository}}
           echo tag ${{github.tag}}
           echo eventName ${{github.eventName}}
-          echo ${{toJson(github)}}
+          echo "${{toJson(github)}}""
 
       - name: Checkout
         uses: actions/checkout@v2
