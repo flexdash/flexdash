@@ -19,6 +19,12 @@ jobs:
     outputs:
       version: ${{ env.VERSION }}
     steps:
+      - name: Info
+        run: |
+          echo repository ${{github.repository}}
+          echo tag ${{github.tag}}
+          echo eventName ${{github.eventName}}
+
       - name: Checkout
         uses: actions/checkout@v2
         with:
