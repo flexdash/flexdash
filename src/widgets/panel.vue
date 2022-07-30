@@ -7,8 +7,8 @@
     <widget-menu v-if="global.editMode && !global.noAddDelete" button_class="add-widget"
                  @select="addWidget">
     </widget-menu>
-    <component v-for="(w,ix) in widgets" :key="w" :widget_id="w" :is="editComponent[w]"
-               :edit_active="ix == edit_ix" :no_border="true"
+    <component v-for="(w,ix) in real_widgets" :key="w" :widget_id="w" :is="editComponent[w]"
+               :ix="ix" :edit_active="ix == edit_ix" :no_border="true"
                @edit="toggleEdit(ix, $event)" @move="moveWidget(ix, $event)"
                @teleport="teleportWidget" @delete="deleteWidget(ix)" @clone="cloneWidget(ix)">
     </component>
@@ -38,6 +38,14 @@ import WidgetEdit from '/src/edit-panels/widget-edit.vue'
 import WidgetMenu from '/src/menus/widget-menu.vue'
 import widget_ops from '/src/utils/widget-grid-ops.js'
 
+function filter_object(obj, filter) {
+  let res = {}
+  for (let k in obj) {
+    if (filter(k)) res[k] = obj[k]
+  }
+  return res
+}
+
 export default {
   name: 'Panel',
   help: `Rectangular container to create a custom arrangement of widgets.
@@ -52,7 +60,7 @@ act only as a fixed arrangement of widgets.`,
 
   components: { PanelEdit, WidgetEdit, WidgetMenu },
 
-  inject: ['$store', 'global'],
+  inject: ['$store', '$config', 'global'],
 
   props: {
     id: null, // panel's own widget id
@@ -65,9 +73,11 @@ act only as a fixed arrangement of widgets.`,
   }},
 
   computed: {
+    real_widgets() { return this.widgets.filter(w => this.$config.widgets[w]?.id == w) },
+
     // editComponent returns the component used to edit a widget: widget-edit or panel-edit
     editComponent() {
-      return Object.fromEntries(this.widgets.map(wid =>
+      return Object.fromEntries(this.real_widgets.map(wid =>
         [ wid, this.$store.widgetByID(wid).kind.endsWith("Panel") ? "PanelEdit" : "WidgetEdit" ]
       ))
     },

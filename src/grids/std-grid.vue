@@ -34,7 +34,7 @@
     <!-- Grid of widgets -->
     <div v-if="!rolledup" v-bind:style="gridScale">
       <div class="container g-grid-small pt-0 px-2 pb-2" v-bind:style="gridStyle" ref="grid">
-        <component v-for="(w,ix) in grid.widgets" :key="w" :widget_id="w" :is="editComponent[w]"
+        <component v-for="(w,ix) in widgets" :key="w" :widget_id="w" :is="editComponent[w]"
                   :ix="ix" :edit_active="ix == edit_ix" @edit="toggleEdit(ix, $event)"
                   @move="moveWidget(ix, $event)" @delete="deleteWidget(ix)"
                   @clone="cloneWidget(ix)" @teleport="(src,dst)=>teleportWidget(w, src, dst)">
@@ -105,10 +105,11 @@ export default {
   computed: {
     // grid config: {id, kind, icon, widgets}
     grid() { return this.$store.gridByID(this.id) },
+    widgets() { return this.grid.widgets.filter(w => this.$config.widgets[w]?.id == w) },
     minCols() { return Math.max(this.grid.min_cols || 1, this.maxWidget) },
     maxCols() { return this.grid.max_cols || 20 },
     maxWidget() { // width of widest widget (in columns)
-      return Math.max(1, ...this.grid.widgets.map(id => {
+      return Math.max(1, ...this.widgets.map(id => {
         try { return this.$store.widgetByID(id).cols }
         catch (e) { return 1 }
       }))
@@ -122,7 +123,7 @@ export default {
 
     // editComponent returns the component used to edit a widget: widget-edit or panel-edit
     editComponent() {
-      return Object.fromEntries(this.grid.widgets.map(wid => {
+      return Object.fromEntries(this.widgets.map(wid => {
         if (wid.startsWith('x')) return [wid, "DisabledEdit"]
         if (this.$store.widgetByID(wid).kind.endsWith("Panel")) return [wid, "PanelEdit"]
         return [wid, "WidgetEdit"]
