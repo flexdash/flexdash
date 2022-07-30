@@ -6,12 +6,12 @@
   <!-- without div the v-for in parent gets confused by v-menu -->
   <div class="panel-edit" :style="widgetStyle">
     <!-- Panel proper inside a widget-wrap -->
-    <widget-wrap :config="widget" @edit="toggleEdit" :color="color">
+    <widget-wrap :id="widget_id" :config="widget" @edit="toggleEdit" :color="color">
     </widget-wrap>
     
     <!-- v-overlay is used to display a floating v-card below the component for editing
          We control the activation and deactivation of the menu ourselves, though. -->
-    <v-overlay :model-value="edit_active" width="90%" class="panel-edit"
+    <v-overlay :model-value="edit_active"
                :activator="'#'+widget_id" location-strategy="connected"
                location="bottom" origin="top" offset="4" absolute
                :scrim="false" @click:outside="endEdit">
@@ -40,10 +40,7 @@
 </template>
 
 <style scoped>
-.panel-edit { max-width: 100%; }
-.panel-edit .prop-columns {
-  width: 100%; columns: 340px; column-gap: 1.5em; column-rule: 1px solid #888;
-}
+  .panel-edit { max-width: 100%; }
 </style>
 
 <script scoped>

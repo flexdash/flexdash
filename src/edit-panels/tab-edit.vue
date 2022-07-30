@@ -8,7 +8,7 @@
     <v-icon icon="mdi-pencil" size="small" />
   </v-btn>
 
-  <v-menu v-model="tab_edit" class="mt-1" :activator="activator"
+  <v-menu v-model="tab_edit" class="mt-1 tab-edit-menu" :activator="activator"
           :close-on-content-click="false">
     <v-defaults-provider :defaults="{VTextField:{hideDetails:false}}">
       <!-- Editing panel shown floating below tab -->
@@ -94,7 +94,7 @@
 </template>
 
 <style>
-  .v-overlay__content { max-width: 40ex !important; }
+  .tab-edit-menu .v-overlay__content { max-width: 40ex !important; }
 </style>
 
 <script scoped>
