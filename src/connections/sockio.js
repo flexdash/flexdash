@@ -148,7 +148,7 @@ export default class SockioConnection {
 
   // send a "regular" one-way message to the server with a topic and a payload
   serverSend(topic, payload, kind="msg") {
-    //console.log("serverSend, kind=" + kind)
+    //console.log(`serverSend, kind=${kind} topic=${topic}`)
     if (this.sock) {
       this.sock.emit(kind, topic, payload)
       if (this.sock.sendBuffer.length > 0 && this.checker === null) {
