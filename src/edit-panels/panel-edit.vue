@@ -11,38 +11,39 @@
     
     <!-- v-overlay is used to display a floating v-card below the component for editing
          We control the activation and deactivation of the menu ourselves, though. -->
-    <v-overlay :model-value="edit_active" width="90%" absolute class="panel-edit"
-               allow-overflow :scrim="false" @click:outside="endEdit">
-      <v-defaults-provider :defaults="{global: {density: 'compact'}}">
+    <v-overlay :model-value="edit_active" width="90%" class="panel-edit"
+               :activator="'#'+widget_id" location-strategy="connected"
+               location="bottom" origin="top" offset="4" absolute
+               :scrim="false" @click:outside="endEdit">
 
-        <!-- Editing panel shown floating below panel -->
-        <v-card color="panel" class='mt-1'>
-          <!-- title and close button -->
-          <title-edit what="panel" class="mt-1" :title="widget.static['title']"
-                      @close="endEdit"
-                      @update:title="handleTitleEdit($event)">
-          </title-edit>
+      <!-- Editing panel shown floating below panel -->
+      <v-card color="panel" class='mt-1'>
+        <!-- title and close button -->
+        <title-edit what="panel" class="mt-1" :title="widget.static['title']"
+                    @close="endEdit"
+                    @update:title="handleTitleEdit($event)">
+        </title-edit>
 
-          <!-- Display panel help text -->
-          <help-edit :text="child_help"></help-edit>
+        <!-- Display panel help text -->
+        <help-edit :text="child_help"></help-edit>
 
-          <!-- toolbar with delete move, resize, etc -->
-          <widget-edit-toolbar :widget_id="widget_id" kind="panel"
-                               @delete="$emit('delete')"  @clone="$emit('clone')"
-                               @move="dir=>$emit('move', dir)" @changeSolid="changeSolid"
-                               @teleport="(src, dst)=>$emit('teleport', src, dst)">
-          </widget-edit-toolbar>
+        <!-- toolbar with delete move, resize, etc -->
+        <widget-edit-toolbar :widget_id="widget_id" kind="panel"
+                              @delete="$emit('delete')"  @clone="$emit('clone')"
+                              @move="dir=>$emit('move', dir)" @changeSolid="changeSolid"
+                              @teleport="(src, dst)=>$emit('teleport', src, dst)">
+        </widget-edit-toolbar>
 
-        </v-card>
-      </v-defaults-provider>
+      </v-card>
     </v-overlay>
   </div>
 </template>
 
-<style>
-.xxpanel-edit .w-edit > .v-input__append-outer { margin-left: 4px !important; }
-.xxpanel-edit-dialog .v-input.height100 div { height: 100% !important; }
-div.panel-edit { max-width: 100%; }
+<style scoped>
+.panel-edit { max-width: 100%; }
+.panel-edit .prop-columns {
+  width: 100%; columns: 340px; column-gap: 1.5em; column-rule: 1px solid #888;
+}
 </style>
 
 <script scoped>
@@ -76,6 +77,7 @@ export default {
     // ensure the panel widget has a widgets array property
     const p = this.$store.widgetByID(this.widget_id)
     if (!('widgets' in p.static)) {
+      console.log("widget missing:", JSON.stringify(p))
       this.$store.updateWidgetProp(this.widget_id, 'static', 'widgets', [])
     }
   },
