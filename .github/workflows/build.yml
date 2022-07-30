@@ -22,12 +22,12 @@ jobs:
       - name: Info
         run: |
           echo repository ${{github.repository}}
-          echo tag ${{github.tag}}
-          echo eventName ${{github.eventName}}
-      - name: Dump GitHub context
-        env:
-          GITHUB_CONTEXT: ${{ toJson(github) }}
-        run: echo "$GITHUB_CONTEXT"
+          echo ref ${{github.ref}}
+          echo event_name ${{github.event_name}}
+      # - name: Dump GitHub context
+      #   env:
+      #     GITHUB_CONTEXT: ${{ toJson(github) }}
+      #   run: echo "$GITHUB_CONTEXT"
 
       - name: Checkout
         uses: actions/checkout@v2
@@ -92,8 +92,8 @@ jobs:
   publish:
     if: >
         github.repository == 'flexdash/flexdash' &&
-        startsWith(github.tag, 'refs/tags/v') &&
-        github.eventName == 'push'
+        startsWith(github.ref, 'refs/tags/v') &&
+        github.event_name == 'push'
     runs-on: ubuntu-latest
     needs: build-all
     env:
