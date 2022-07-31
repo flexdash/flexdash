@@ -21,12 +21,10 @@
            grids it contains -->
       <v-window v-if="ready" v-model="tab_ix"> <!-- :class="tabs_items_class"-->
         <v-window-item v-for="(id, ix) in dash_tabs" :key="id" :value="ix">
-          <div v-if="tabs[id].grids">
-            <component v-for="(g, ix) in tabs[id].grids" :key="g" :id="g"
-                      v-bind:is="grids[g].kind in palette.grids ? grids[g].kind : 'div'"
-                      @delete="deleteGrid(id, ix)">
-            </component>
-          </div>
+          <component v-for="(g, ix) in tabs_grids[id]" :key="g" :id="g"
+                     v-bind:is="grids[g].kind in palette.grids ? grids[g].kind : 'div'"
+                     @delete="deleteGrid(id, ix)">
+          </component>
         </v-window-item>
       </v-window>
 
@@ -150,7 +148,10 @@ export default {
     // note: some of the following get evaluated before the config is loaded, the gotEverything
     // guard ensures that they do get re-evaluated when it is loaded despite Vue2 issues...
     dash() { return this.ready ? this.$config.dash : {} },
-    dash_tabs() { return this.dash.tabs.filter(id=>id.startsWith('t')) || [] }, // tabs to show, handling init
+    dash_tabs() { // tabs to show, handling init and handle deleted tabs
+      return (this.dash.tabs||[]).filter(id =>
+        id.startsWith('t') && id in this.$config.tabs && this.$config.tabs[id].id == id
+      )},
     tab() { return this.tab_id ? this.tabs[this.tab_id] : {} },
     tab_id() { return this.tab_ix != null ? this.dash_tabs[this.tab_ix] : "" }, // current tab ID
     tabs() { // make easily accessible in template
@@ -160,6 +161,13 @@ export default {
     grids() { // make easily accessible in template
       //console.log(`Grids: ${JSON.stringify(this.$config.grids)}`)
       return this.ready ? this.$config.grids : {}
+    },
+    // filter grids in each tab to deal with transient states where grids are deleted
+    tabs_grids() {
+      return Object.fromEntries(this.dash_tabs.map(t => [t,
+        (this.tabs[t].grids||[])
+          .filter(id => id in this.grids && this.grids[id].id == id)
+        ]))
     },
     canUndo() { return this.$store.undo.buf.length > 0 },
     title() { return window.flexdash_options.title },
@@ -235,6 +243,17 @@ export default {
   },
 
   methods: {
+
+    // delete event coming up from the grid component
+    deleteGrid(tab_id, grid_ix) {
+      this.$store.deleteGrid(tab_id, grid_ix)
+    },
+
+    changeConfigSrc(ev) {
+      console.log("Change config source: ", ev)
+      this.config_src = ev
+    },
+
     // handle buttons for tab editing
     // addTab(kind) {
     //   const tab_ix = this.$store.addTab(kind)
@@ -244,27 +263,6 @@ export default {
     //   })
     // },
 
-    // delete event coming up from the grid component
-    deleteGrid(tab_id, grid_ix) {
-      this.$store.deleteGrid(tab_id, grid_ix)
-    },
-
-    // force a full re-eval of the rendered stuff - invoked by TabEdit
-    // there's a bug in Vuetify's tab-items that causes the tabs and the content to be mixed-up
-    // reload(tab_ix) {
-    //   this.tab_ix = tab_ix
-    //   this.$forceUpdate()
-    //   /*
-    //   console.log("Trying to force an update")
-    //   const title = this.$config.dash.title
-    //   delete this.$config.dash.title
-    //   this.$nextTick( ()=> { this.$config.dash.title = title; this.tab_ix = tab_ix })*/
-    // },
-
-    changeConfigSrc(ev) {
-      console.log("Change config source: ", ev)
-      this.config_src = ev
-    },
   },
 
 }
