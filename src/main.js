@@ -24,6 +24,7 @@ app.provide('palette', palette)
 
 // Initialize data and configuration store
 const store = new Store(app)
+window.fd_store = store // for debugging in prod mode...
 // Provide the store to all components through the hierarchy
 app.provide('$config', store.config)
 app.provide('$store', store)
