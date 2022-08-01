@@ -66,6 +66,7 @@ export default class SockioConnection {
         this.data.status = 'off'
         this.data.status_txt = "off"
         this.sock = null
+        setTimeout(() => this.start(config), 2000)
       }
     })
 
