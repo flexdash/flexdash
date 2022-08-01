@@ -5,7 +5,7 @@
 -->
 <template>
 <div class="sparkline px-1 pb-1 width100 d-flex flex-grow-1 flex-shrink-1">
-  <v-card-title class="value-over headline pr-2 pb-1">
+  <v-card-title class="value-over headline pr-2 pb-1 d-flex">
     <span class="value ma-auto" :style="valStyle">
       <span class="font-weight-medium" style="font-size: 125%; line-height: 125%;">{{valTxt}}</span>
       <span class="unit">{{unitTxt}}</span>
