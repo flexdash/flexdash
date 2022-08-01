@@ -7,10 +7,9 @@
 -->
 
 <template>
-  <v-card :color="color" :class="full_page ? 'full-page' : undefined"
+  <v-card :color="color"
           :elevation="no_border ? 0 : undefined"
-          :outlined="no_border && canEdit"
-          style="overflow: hidden">
+          :outlined="no_border && canEdit">
 
     <!-- Widget title & buttons shown when the child component does _not_ show the title -->
     <v-card-text v-if="!('title' in child_props) && title"
@@ -48,6 +47,24 @@
                @send="sendData($event)" class="my-auto">
     </component>
 
+    <!-- dialog box to view the widget magnified full-page -->
+    <v-dialog v-model="full_page" class="widget-wrap-full-page">
+      <v-card :color="color">
+        <!-- Widget title & collapse button -->
+        <v-card-text v-if="!('title' in child_props) && title"
+                    class="flex-grow-0 flex-shrink-0 px-0 pt-1 pb-0 mb-n1">
+          <span v-if="title" class="mx-auto text-no-wrap">{{title}}</span>
+          <v-btn density="compact" flat class="full-page-btn" @click="toggleFullPage">
+            <v-icon icon="mdi-arrow-collapse" size="small" />
+          </v-btn>
+        </v-card-text>
+        <!-- actual component, pass in its bindings -->
+        <component :is="widget_kind" :id="config.id" v-bind="bindings" ref="comp"
+                  @send="sendData($event)" class="my-auto">
+        </component>
+      </v-card>
+    </v-dialog>
+
     <!-- dialog box to view the widget's pop-up "help" information full-page -->
     <v-dialog v-model="pup_info" width="80%" max-width="100ex">
       <v-card v-if="pup_info" class="d-flex flex-column height100">
@@ -68,11 +85,11 @@
 </template>
 
 <style scoped>
-.v-card { height: 100%; width: 100% }
+.v-card { height: 100%; width: 100%; overflow: hidden; }
 .v-card { display: flex; flex-direction: column; justify-content: flex-start; align-items: center }
-.v-card.full-page { position: absolute; left: 1%; top: 1%; z-index: 10; width: 98%; height: 98% }
 .v-card .full-page-btn {
   position:absolute; z-index:4; right:0; top:0.5ex;
+
 }
 .v-card .full-page-btn button { padding: 0px 8px; min-width: 0px; }
 
@@ -82,6 +99,10 @@
 .theme--light.v-btn--icon { background-color: rgba(255, 255, 255, 0.6); }
 .theme--dark.v-btn--icon  { background-color: rgba(30, 30, 30, 0.6); }
 </style>
+<style>
+  .widget-wrap-full-page .v-overlay__content { width: calc(100% - 48px); height: 100% }
+</style>
+
 
 <script scoped>
 
