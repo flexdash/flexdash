@@ -61,7 +61,8 @@
 
   <!-- Navigation drawer opening from the left on small devices to show tabs -->
   <v-navigation-drawer v-model="sidebar" app floating v-if="ready && mobile">
-    <v-tabs direction="vertical" color="primary" slider-size="6" v-model="tab_ix">
+    <v-tabs direction="vertical" color="primary" slider-size="6"
+            :modelValue="tab_ix" @update:modelValue="$emit('update:tab_ix', $event); sidebar=false">
       <v-tab v-for="t in dash_tabs" :key="t" class="ml-0 mr-auto px-0" style="min-width: auto">
         <v-icon large class="mx-1" :icon="tabs[t].icon" />
         <span class="mr-1">{{tabs[t].title}}</span>
