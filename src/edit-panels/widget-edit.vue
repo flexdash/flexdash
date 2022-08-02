@@ -19,17 +19,19 @@
 <template>
   <!-- without div the v-for in parent gets confused by v-menu -->
   <div class="widget-edit" :style="widgetStyle">
-    <!-- Widget proper -->
-    <widget-wrap :config="widget" :no_border="no_border" :editable="editable"
-                  @edit="toggleEdit" :color="edit_active?'highlight':''">
-    </widget-wrap>
-    <div v-if="global.editMode" class="ix">#{{ix+1}}</div>
 
     <!-- v-overlay is used to display a floating v-card below the component for editing -->
     <v-overlay :model-value="edit_active" width="90%" class="widget-edit"
-               :activator="'#'+widget_id" location-strategy="connected"
-               location="bottom" origin="top" offset="4"
+               location-strategy="connected" location="bottom" origin="top" offset="4"
                :scrim="false" @click:outside="endEdit">
+
+      <template #activator="{ props }">
+    <!-- Widget proper -->
+        <widget-wrap :config="widget" :no_border="no_border" :editable="editable" v-bind="props"
+                  @edit="toggleEdit" :color="edit_active?'highlight':''">
+    </widget-wrap>
+    <div v-if="global.editMode" class="ix">#{{ix+1}}</div>
+      </template>
 
       <!-- Editing panel shown floating below widget -->
       <v-card color="panel" class='mt-1'>
