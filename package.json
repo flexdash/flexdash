@@ -34,13 +34,13 @@
     "vuetify": "npm:@vuetify/nightly@3.0.0-next-20220729.0"
   },
   "devDependencies": {
-    "@vitejs/plugin-vue": "^2.2.0",
-    "@vue/vue3-jest": "^27.0.0-alpha.4",
-    "vite-plugin-vuetify": "^1.0.0-alpha.13",
-    "jest": "^27.0.0",
+    "@vitejs/plugin-vue": "^3.0.0",
+    "@vue/vue3-jest": "^28.0.0",
+    "vite-plugin-vuetify": "^1.0.0-alpha.14",
+    "jest": "^28.0.0",
     "rollup-plugin-visualizer": "^5.5.2",
     "sass": "^1.38.0",
     "sass-loader": "^10.0.0",
-    "vite": "^2.8.0"
+    "vite": "^3.0.0"
   }
 }
