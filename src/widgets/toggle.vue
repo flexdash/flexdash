@@ -6,7 +6,8 @@
 -->
 <template>
   <div class="d-flex">
-    <v-switch class="ma-auto" v-bind="bindings" @update:modelValue="change($event)"></v-switch>
+    <v-switch class="ma-auto" hide-details
+              v-bind="bindings" @update:modelValue="change($event)"></v-switch>
   </div>
 </template>
 
