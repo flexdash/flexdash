@@ -26,14 +26,20 @@ The range input provides an array of values from which the user can select one b
 clicking on the +/- buttons. The values are typically numeric but may be strings as well, or
 a combination of both.
 
-To facilitate the input of numeric ranges a value of "..." between two numbers is replaced by
-the range between those numbers. A step may be specified after the dots, e.g. "...10". For example,
-the input array \`["off", 20, "...10", 40]\` results in the range: off, 20, 30, 40.`,
+To facilitate the input of numeric ranges a \`range\` value of \`...\` between two numbers
+is replaced by the range between those numbers.
+A step may be specified after the dots, e.g. \`...10\`. For example,
+the input array \`["off", 20, "...10", 50]\` results in the range: "off", 20, 30, 40, 50.
+
+A \`value\` coming in sets the current value being displayed but does not cause any output.
+If the \`value\` is not part of the range, it is displayed, but the next button press on the
++ or - buttons will produce the first value of the range as output.
+`,
 
   props: {
     range: { type: Array, default: ()=>(["off", 10, "...10", 100]),
              tip: "values to select from, use '...<step>' for a range" },
-    value: { type: Number, tip: "current value selected" },
+    value: { tip: "set current value" },
     unit: { type: String, default: "", tip: "unit to show after numeric values" },
     label: { type: String, default: "", tip: "label for control" },
     label_above: { type:Boolean, default:false, tip:"place label above control, else to the left"},
