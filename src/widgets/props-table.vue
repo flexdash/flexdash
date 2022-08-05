@@ -52,6 +52,7 @@
 <style scoped>
   .unit { vertical-align: 15%; margin-left: 0.1em; }
   .title-btn { position: relative; top: -4px; }
+  /* FIXME: .theme--xxx is no longer present in vuetify 3 */
   .theme--light .v-btn--icon { background-color: rgba(255, 255, 255, 0.6); }
   .theme--dark .v-btn--icon  { background-color: rgba(30, 30, 30, 0.6); }
   .theme--light .v-card__text { color: rgba(0, 0, 0, 0.6); }
