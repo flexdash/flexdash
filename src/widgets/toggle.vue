@@ -5,11 +5,17 @@
      Copyright ©2021 Thorsten von Eicken, MIT license, see LICENSE file
 -->
 <template>
-  <div class="d-flex">
+  <div class="d-flex fd-toggle">
     <v-switch class="ma-auto" hide-details
               v-bind="bindings" @update:modelValue="change($event)"></v-switch>
   </div>
 </template>
+
+<style>
+  .fd-toggle .v-switch__thumb {
+    border: 2px solid #888888; /* FIXME: goal is to offset the thumb when OFF in dark theme */
+  }
+</style>
 
 <script scoped>
 export default {
