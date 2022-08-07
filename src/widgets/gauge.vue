@@ -4,7 +4,7 @@
 
 <template>
   <div class="gauge d-flex flex-column justify-top align-center">
-    <svg-gauge v-bind="$props" :color="gaugeColor"></svg-gauge>
+    <svg-gauge v-bind="$props" :color="gaugeColor" :class="svg_class"></svg-gauge>
     <div class="label d-flex flex-column mx-auto" :class="txt_class" :style="txt_style">
       <v-card-text class="value d-flex pa-0 width100">
         <span class="mx-auto">{{valTxt}}<span class="unit">{{unitTxt}}</span></span>
@@ -19,8 +19,11 @@
 <style scoped>
 .gauge { padding: 0.5ex; width:100%; min-height: 20px; position: relative; }
 .gauge svg { width: 100%; }
+.gauge svg.above { margin-bottom: -10%; /* to pull value up */}
 .gauge .label.absolute { z-index: 1; position: absolute; }
-.gauge .label.below { margin-top: -2ex; margin-bottom: -4px; }
+.gauge .label.below {
+  /*margin-top: -2ex; fails for tiny gauges in panels, replace by -10% on svg */
+  margin-bottom: -4px; }
 .unit { vertical-align: 15%; margin-left: 0.1em; font-size: 80%; }
 
 /* need to incorporate this for large gauges
@@ -69,6 +72,7 @@ export default {
       if (this.high_threshold !== null && this.value >= this.high_threshold) return this.high_color
       return this.color
     },
+    svg_class() { return this.arc < 130 ? "above" : "" },
     txt_class() { return this.arc < 130 ? "below" : "absolute" },
     txt_style() {
       if (this.arc < 130) return { }
