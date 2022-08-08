@@ -10,8 +10,10 @@ export default function (uplot) {
   // offsetParent, offsetLeft, etc are null, so that doesn't help us...
   function _init(u) { // , opts, data) {
     // find parent to attach tooltip
-    //let over = u.over;
+    // we attach to an element with class u-tooltip-attach, which is typically the window content,
+    // so tooltips don't get cropped by the border of the plot/widget
     let over = u.over
+    attach = over
     //console.log(over)
 
     let lastParent = null
@@ -41,8 +43,8 @@ export default function (uplot) {
     function hideTips() { ttc.style.display = "none" }
     function showTips() { ttc.style.display = null }
 
-    over.addEventListener("mouseleave", ()=> { if (!u.cursor._lock) hideTips() })
-    over.addEventListener("mouseenter", ()=> showTips() );
+    u.over.addEventListener("mouseleave", ()=> { if (!u.cursor._lock) hideTips() })
+    u.over.addEventListener("mouseenter", ()=> showTips() );
 
     showTips() // hideTips();
   }
@@ -50,20 +52,20 @@ export default function (uplot) {
   function setCursor(u) {
     if (attach === null) _init(u)
     const {left, top, idx} = u.cursor
-    //console.log(`SC: left_off=${left_off} top_off=${top_off}`)
-
+    
     if (idx === null) {
       u.cursortt.innerHTML = ""
       return
     }
-
+    
     const cw = u.over.clientWidth
-    const aw = attach.clientWidth
+    const aw = attach.offsetParent.clientWidth
+    console.log(`SC: left=${left} left_off=${left_off} cw=${cw} aw=${aw}`)
     if (left < cw/2) {
-      u.cursortt.style.left = left_off + (left+20) + "px"
+      u.cursortt.style.left = (left_off + left+20) + "px"
       u.cursortt.style.right = "auto"
     } else {
-      u.cursortt.style.right = (aw - (left_off + left-20)) + "px"
+      u.cursortt.style.right = (aw - left_off - left + 20) + "px"
       u.cursortt.style.left = "auto"
     }
 

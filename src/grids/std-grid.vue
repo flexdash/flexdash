@@ -4,7 +4,7 @@
 -->
 
 <template>
-  <div class="u-tooltip-attach" ref="outer">
+  <div ref="outer">
     <grid-bar kind="StdGrid" :title="grid.title" :has_widgets="grid.widgets.length>0"
               v-model:rolledup="rolledup" @changeTitle="changeTitle"
               @delete="$emit('delete')">
@@ -33,7 +33,8 @@
 
     <!-- Grid of widgets -->
     <div v-if="!rolledup" v-bind:style="gridScale">
-      <div class="container g-grid-small pt-0 px-2 pb-2" v-bind:style="gridStyle" ref="grid">
+      <div class="container g-grid-small pt-0 px-2 pb-2 u-tooltip-attach"
+           v-bind:style="gridStyle" ref="grid">
         <component v-for="(w,ix) in widgets" :key="w" :widget_id="w" :is="editComponent[w]"
                   :ix="ix" :edit_active="ix == edit_ix" @edit="toggleEdit(ix, $event)"
                   @move="moveWidget(ix, $event)" @delete="deleteWidget(ix)"
@@ -62,7 +63,7 @@
   border: 1px solid #888; border-radius: 4px;
 }
 
-.scale {
+.scale { /* applied to "grid scale 1.22x" in lower right corner */
   transform-origin: top right;
   rotate: 90deg;
   position: absolute; bottom: 0px; right: 1px; z-index: 2;
