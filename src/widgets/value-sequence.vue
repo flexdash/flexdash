@@ -104,7 +104,7 @@ If the \`value\` is not part of the range, it is displayed, but the next button 
       if (this.ix > 0) { this.ix -= 1; this.val = this.values[this.ix] }
       this.emit()
     },
-    emit() { this.$emit('send', this.range[this.ix]) },
+    emit() { this.$emit('send', this.val) },
   },
 }
 </script>
