@@ -21,6 +21,7 @@ export default function(app) {
         app.component(name, module[m].default)
         what[name] = module[m].default
         names.push(name)
+        //console.log(`Loaded ${name} from ${m}`)
       } else {
         throw Error(`Loading ${m} resulted in 'undefined'!?`)
       }
