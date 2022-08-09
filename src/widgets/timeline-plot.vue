@@ -64,6 +64,7 @@ The \`labels\` prop is an array of strings that will be used to label the series
       tip: "array of equal-length series, the first series being the X axis"
     },
     colors: { type: Object, default() { return null }, tip: "map of colors for discrete values" },
+    labels: { type: Array, default() { return null }, tip: "array of labels for series" },
     //gradient: { type: Object, default() { return {} } },
   },
 
@@ -100,7 +101,7 @@ The \`labels\` prop is an array of strings that will be used to label the series
       return this.data.map((d,ix) => {
         if (ix == 0) return { label: 'time', value: "{YYYY}-{MM}-{DD} {HH}:{mm}:{ss}" }
         return {
-          label: ix < this.labels?.length ? this.labels[ix-1] : `series ${ix}`,
+          label: ix <= this.labels?.length ? this.labels[ix-1] : `series ${ix}`,
           value: (u,v) => v,
         }
       })
