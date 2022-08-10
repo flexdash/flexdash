@@ -182,7 +182,7 @@ Note that this "row-wise" structure gets transposed to the columnar structure ex
         // auto-size space for Y axes
         if (!('size' in ax)) {
           if (ax.side & 1 || !('side' in ax) && a > 0) {
-            ax.gap = 2 // redcue gap a tad from std 5
+            ax.gap = 2 // reduce gap a tad from std 5
             const tickSize = 10 // uPlot default, we're not setting it
             // size function gets called by uPlot, has to return size in CSS pixels
             // for max(values) + gap + tickSize

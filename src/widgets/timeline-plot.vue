@@ -33,12 +33,7 @@ import UplotWrapper from '/src/components/uplot-wrapper.vue'
 import timeline from '/src/utils/uplot-timeline.js'
 import tooltip from '/src/utils/uplot-tooltip.js'
 import { colors, color_by_name } from '/src/utils/plot-colors.js'
-
-function deepCopy(obj) {
-  if (typeof obj !== 'object') return obj
-  if (Array.isArray(obj)) return obj.map(deepCopy)
-  return Object.fromEntries(Object.entries(obj).map(([k,v])=>[k,deepCopy(v)]))
-}
+import { gradient } from '/src/utils/gradient.js'
 
 export default {
   name: "TimelinePlot",
@@ -65,7 +60,9 @@ The \`labels\` prop is an array of strings that will be used to label the series
     },
     colors: { type: Object, default() { return null }, tip: "map of colors for discrete values" },
     labels: { type: Array, default() { return null }, tip: "array of labels for series" },
-    //gradient: { type: Object, default() { return {} } },
+    gradient: { type: Object, default() { return null },
+      tip: "color gradient for values: kind, low, high, low_color, high_color" },
+    show_values: { default: true, tip: "show values on bars, may be per-series array" },
   },
 
   full_page: true, // can expand to full-page
@@ -73,8 +70,19 @@ The \`labels\` prop is an array of strings that will be used to label the series
   components: { UplotWrapper },
 
   methods: {
+    in_gradient(v) {
+      return this.gradient && typeof v === 'number'
+        && this.gradient.low_color?.startsWith('#')
+        && this.gradient.high_color?.startsWith('#')
+        && v >= this.gradient.low && v <= this.gradient.high
+    },
     value2color(v) {
       if (this.colors_map[v]) return this.colors_map[v]
+      if (this.in_gradient(v)) {
+        const pct = (v - this.gradient.low) / (this.gradient.high - this.gradient.low)
+        let c = gradient(this.gradient.kind, this.gradient.low_color, this.gradient.high_color, pct)
+        if (c) return c
+      }
       return this.is_dark ? '#fff' : '#000'
     },
   },
@@ -105,19 +113,6 @@ The \`labels\` prop is an array of strings that will be used to label the series
           value: (u,v) => v,
         }
       })
-      // fix-up series
-      // for (let s=1; s<opts.series.length; s++) {
-      //   const serie = opts.series[s]
-      //   // if we got a value formatting function we need to 'eval' it
-      //   if (typeof serie.value === 'string') {
-      //     serie.value = new Function('u', 'v', `"use strict";return (${serie.value})`)
-      //     // handle point fill for dark mode
-      //     if (this.is_dark) {
-      //       if (!serie.points) serie.points = {}
-      //       if (!serie.points.fill) serie.points.fill = '#1e1e1e'
-      //     }
-      //   }
-      // }
     },
 
     colors_hex() {
@@ -130,7 +125,7 @@ The \`labels\` prop is an array of strings that will be used to label the series
       let c_num = colors.length
       for (let s=1; s<this.data.length; s++) {
         for (let v of this.data[s]) {
-          if (!c[v]) c[v] = colors[c_num++ % colors.length]
+          if (!c[v] && !this.in_gradient(v)) c[v] = colors[c_num++ % colors.length]
         }
       }
       return c
@@ -141,7 +136,7 @@ The \`labels\` prop is an array of strings that will be used to label the series
       const count = this.data.length-1
       let opts = {
         plugins: [ () => timeline({count, ...opts}), () => tooltip({class: "timeline-plot"}) ],
-        mode: 1, // 1:no splits, 2: splits ???
+        mode: 1, // 1:no splits, 2:splits ???
         series: this.series,
 			  fill: (seriesIdx, dataIdx, value) => this.value2color(value),
 			  stroke: (seriesIdx, dataIdx, value) => this.value2color(value),
@@ -149,18 +144,49 @@ The \`labels\` prop is an array of strings that will be used to label the series
         drawOrder: ["series", "axes"],
         scales: { x: { time: true } },
         axes: [ {}, {} ],
-        padding: [null, 0, null, 0], // FIXME: useless, gets overridden
+        padding: [null, 4, null, null],
+      }
+      // handle not showing values in the bars
+      if (!this.show_values) {
+        opts.series.forEach((s,ix) => { if (ix) s.points = { show: false} })
+      } else if (Array.isArray(this.show_values)) {
+        opts.series.forEach((s,ix) => { if (ix) s.points = { show: this.show_values[ix-1]} })
       }
       // handle grid in dark mode
       // FIXME: actually need to cause a redraw when switching between light&dark
-      for (let a=0; a<opts.axes.length; a++) {
-        const ax = opts.axes[a]
-        if (this.is_dark) {
+      if (this.is_dark) {
+        for (let a=0; a<opts.axes.length; a++) {
+          const ax = opts.axes[a]
           if (!ax.grid) ax.grid = {}
           if (!ax.grid.stroke) ax.grid.stroke = '#444'
           if (!ax.stroke) ax.stroke = '#ccc'
         }
       }
+      // auto-size space for Y axes
+      {
+        const ax = opts.axes[1]
+        ax.ticks = { size: 0 }
+        // size function gets called by uPlot, has to return size in CSS pixels
+        // for max(values) + gap + tickSize
+        ax.size = (u, values, axisIdx, cycleNum) => {
+          console.log("Timeline axis size called", values, axisIdx, cycleNum)
+          const ax = u.axes[axisIdx]
+          if (cycleNum > 1) return u.axes[axisIdx]._size; // bail out, force convergence
+          const dfltSize = 40;
+          if (values == null) {
+            return null
+          } else {
+            // measure the text size of each axis value and take the max
+            u.ctx.font = u.axes[axisIdx].font[0]
+            const sz = Math.max(dfltSize, ...values.map(v=>u.ctx.measureText(v).width))
+            console.log(`Size=${sz} for ${values}, gap=${ax.gap}, tickSize=${ax.ticks.size}`)
+            //console.log(`Font: ${u.ctx.font}`)
+            console.log(`Returning: ${sz/window.devicePixelRatio + ax.gap}`)
+            return sz/window.devicePixelRatio + ax.gap + ax.ticks.size // uPlot wants CSS pixels
+          }
+        }
+      }
+
       opts = Object.assign(opts, this.options)
 
       console.log(`uPlot data: ${this.data.length}x${this.data[0].length} opts:`, JSON.stringify(opts))

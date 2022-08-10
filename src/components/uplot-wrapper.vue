@@ -41,11 +41,11 @@
 import uPlot from 'uplot'
 import 'uplot/dist/uPlot.min.css'
 
-function deepCopy(obj) {
-  if (typeof obj !== 'object') return obj
-  if (Array.isArray(obj)) return obj.map(deepCopy)
-  return Object.fromEntries(Object.entries(obj).map(([k,v])=>[k,deepCopy(v)]))
-}
+// function deepCopy(obj) {
+//   if (typeof obj !== 'object') return obj
+//   if (Array.isArray(obj)) return obj.map(deepCopy)
+//   return Object.fromEntries(Object.entries(obj).map(([k,v])=>[k,deepCopy(v)]))
+// }
 
 export default {
   name: "UplotWrapper",
@@ -166,7 +166,8 @@ export default {
       const opts = Object.assign({}, this.options)
       opts.width = 200
       opts.height= 150
-      opts.padding = [8, null, null, null] // reduce padding at top
+      if (! opts.padding) opts.padding = [8, null, null, null] // reduce padding at top
+      else if (opts.padding[0] !== null) opts.padding[0] = 8
       opts.plugins = this.options.plugins.map(p => p(uPlot))
       this.chart = new uPlot(opts, this.data, this.$el)
       this.$nextTick(() => this.observeSize())

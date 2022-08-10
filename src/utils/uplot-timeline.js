@@ -471,8 +471,8 @@ export default function (opts) {
           return ySplits;
         },
         values: () => Array(count).fill(null).map((v, i) => u.series[i + 1].label),
-        gap: 15,
-        size: 70,
+        gap: 5,
+        //size: 70,
         grid: { show: false },
         ticks: { show: false },
 
@@ -481,15 +481,17 @@ export default function (opts) {
 
       opts.series.forEach((s, i) => {
         if (i > 0) {
-          uPlot.assign(s, {
-            //	width: 0,
-            //	pxAlign: false,
-            //	stroke: "rgba(255,0,0,0.5)",
-            paths: drawPaths,
-            points: {
-              show: drawPoints
-            }
-          });
+          s.paths = drawPaths
+          if (!('points' in s) || s.points.show) s.points = { show: drawPoints }
+          // uPlot.assign(s, {
+          //   //	width: 0,
+          //   //	pxAlign: false,
+          //   //	stroke: "rgba(255,0,0,0.5)",
+          //   paths: drawPaths,
+          //   points: {
+          //     //show: drawPoints
+          //   }
+          // });
         }
       });
     }

@@ -7,7 +7,7 @@ var colors = [
 var color_names = [
 'blue', 'green', 'yellow', 'red', 'cyan', 'purple', 'orange',
 'teal', 'pink', 'lime', 'magenta', 'lavender', 'brown', 'beige',
-'maroon', 'mint', 'olive', 'apricot', 'navy', 'grey', 'from'];
+'maroon', 'mint', 'olive', 'apricot', 'navy', 'grey'];
 
 function color_by_name(name) {
     if (name.startsWith("#")) return name
