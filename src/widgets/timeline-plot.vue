@@ -117,7 +117,7 @@ The \`labels\` prop is an array of strings that will be used to label the series
 
     colors_hex() {
       if (!this.colors) return null
-      return Object.entries(this.colors).map(([k,v])=>[k,color_by_name(v)])
+      return Object.fromEntries(Object.entries(this.colors).map(([k,v])=>[k,color_by_name(v)]))
     },
 
     colors_map() {
