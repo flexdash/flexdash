@@ -48,7 +48,7 @@
     </component>
 
     <!-- dialog box to view the widget magnified full-page -->
-    <v-dialog v-model="full_page" class="widget-wrap-full-page">
+    <v-dialog v-model="full_page" class="widget-wrap-full-page u-tooltip-attach">
       <v-card :color="color">
         <!-- Widget title & collapse button -->
         <v-card-text v-if="!('title' in child_props) && title"
