@@ -70,7 +70,7 @@ export default {
     if (!d.grid_id) {
       outer: for (const g_id in this.$config.grids) {
         const g = this.$config.grids[g_id];
-        for (const p_id of g.widgets) {
+        for (const p_id of g?.widgets) {
           const p = this.$store.widgetByID(p_id)
           //console.log(`Checking ${p.id} ${p.kind} ${this.widget_id} ${p.static.widgets} ${p.kind == "Panel" && p.static.widgets.includes(this.widget_id)}`)
           if (p.kind == "Panel" && p.static.widgets.includes(this.widget_id)) {
@@ -87,7 +87,7 @@ export default {
     let grid_tabs = {}
     this.$config.dash.tabs.forEach((t_id, t_ix) => {
       const tab = this.$config.tabs[t_id]
-      if (!tab.grids) return // iframe doesn't have .grids
+      if (!tab?.grids) return // iframe doesn't have .grids
       tab.grids.forEach((g_id, g_ix) => {
         grid_tabs[g_id] = {
           title: tab.title ? tab.title.toUpperCase() : `#${t_ix+1}`,
