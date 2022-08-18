@@ -224,7 +224,7 @@ Note that this "row-wise" structure gets transposed to the columnar structure ex
     err_msg() {
       // FIXME: uPlot is OK with too much data, it just doesn't show it, prob should briefly show
       // a warning?
-      if (this.opts.series.length > this.chart_data.length) {
+      if (this.opts?.series?.length > this.chart_data?.length) {
         const error_message =
           `uPlot error: options have ${this.opts.series.length} series (` +
           this.opts.series.map(s=>s.label).join(", ") +
