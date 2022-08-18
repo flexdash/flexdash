@@ -5,6 +5,7 @@ import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import vuetify from 'vite-plugin-vuetify'
 import visualizer from 'rollup-plugin-visualizer'
+import * as path from 'path'
 
 // https://vitejs.dev/config/
 export default defineConfig(({mode}) => { return {
@@ -21,6 +22,11 @@ export default defineConfig(({mode}) => { return {
       gzipSize: true,
     }),
   ],
+  resolve: { alias: [
+    // alias vuetify/lib for dev mode, without the use of new Vuetify components in external
+    // modules gets an error that vuetify/lib/components/VXxx is not found
+    { find: 'vuetify/lib', replacement: path.resolve(__dirname, '/node_modules/vuetify/lib') },
+  ]},
   define: {
     // pull-in the FlexDash version from package.json
     'import.meta.env.PACKAGE_VERSION': JSON.stringify(process.env.npm_package_version)
