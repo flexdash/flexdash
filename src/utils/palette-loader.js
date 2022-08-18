@@ -41,7 +41,7 @@ export default function(app) {
         load_into(palette.widgets, {path: m})
         console.log(`Loaded widget ${m.default.name} from ${path}`)
       } catch (e) {
-        console.log("Error loading external widget:" + e.message)
+        console.log(`Error loading external widget from ${path}: ${e.message}`)
       }
     }
   }

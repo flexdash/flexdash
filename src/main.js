@@ -3,7 +3,7 @@
 // Copyright ©2021 Thorsten von Eicken, MIT license, see LICENSE file
 
 import { createApp, reactive } from 'vue'
-import vuetify from './plugins/vuetify'
+import vuetify, { components } from './plugins/vuetify'
 import Dash from './dash.vue'
 import Store from './store'
 import loadPalette from './utils/palette-loader'
@@ -57,6 +57,19 @@ import "@fontsource/roboto/400.css"
 import "@fontsource/roboto/500.css"
 import "@fontsource/roboto/700.css"
 import "@fontsource/roboto/900.css"
+
+// ===== register all Vuetify components so user-added components in other packages can
+// reference them and "they're just there"
+// this doesn't seem to do the trick...
+// const list = []
+// Object.keys(components).forEach(k => {
+//   if (k.startsWith('V')) {
+//     app.component(k, components[k])
+//     list.push(k)
+//   }
+// })
+// console.log("Registered Vuetify components:", list.join(', '))
+
 
 // ===== define some globals which are used by dynamically loaded widgets
 

@@ -1,8 +1,8 @@
 // Styles
 
 //  It would be good to move to the SVG version and drop the -outline icons, then see how
-//  to load on-demand even afer bundling. We only need "all icons" so the user can pick arbitrary
-//  icons for tabs and widgets...
+//  to load on-demand even afer bundling. The only reason we need all icons is so the user can
+// pick arbitrary icons for tabs and widgets...
 import '@mdi/font/css/materialdesignicons.css'
 
 // Vuetify
@@ -10,6 +10,8 @@ import { createVuetify } from 'vuetify'
 import '/src/flexdash.scss'
 import 'vuetify/styles'  // ESM build
 //import 'vuetify/dist/vuetify.css'  // CJS (UMD?) build
+
+export * as components from 'vuetify/components'
 
 const flexdashLight = {
   dark: false,
