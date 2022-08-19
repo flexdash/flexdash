@@ -18,6 +18,18 @@ document.getElementsByTagName('title')[0].innerText = fo.title
 const app = createApp(Dash)
 app.use(vuetify)
 
+// register all Vuetify components so dynamically loaded components can
+// reference them and "they're just there"
+const list = []
+Object.keys(components).forEach(k => {
+  if (k.startsWith('V')) {
+    app.component(k, components[k])
+    list.push(k)
+  }
+})
+console.log("Registered Vuetify components:", list.join(', '))
+
+
 // load widgets and grids and provide them to all components (although just a couple need them)
 const palette = loadPalette(app)
 app.provide('palette', palette)
@@ -58,19 +70,6 @@ import "@fontsource/roboto/500.css"
 import "@fontsource/roboto/700.css"
 import "@fontsource/roboto/900.css"
 
-// ===== register all Vuetify components so user-added components in other packages can
-// reference them and "they're just there"
-// this doesn't seem to do the trick...
-// const list = []
-// Object.keys(components).forEach(k => {
-//   if (k.startsWith('V')) {
-//     app.component(k, components[k])
-//     list.push(k)
-//   }
-// })
-// console.log("Registered Vuetify components:", list.join(', '))
-
-
 // ===== define some globals which are used by dynamically loaded widgets
 
 import * as vue_all from 'vue'
@@ -79,3 +78,4 @@ import * as uplot_all from 'uplot'
 window.Vue = vue_all
 window.Vuetify = vuetify_all
 window.uplot = uplot_all
+window.App = app
