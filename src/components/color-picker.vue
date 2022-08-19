@@ -41,7 +41,8 @@
 
 <script scoped>
 
-import colors from '/src/utils/colors.js'
+//import colors from '/src/utils/colors.js'
+import colors from 'vuetify/lib/util/colors'
 
 export default {
   name: "ColorPicker",
