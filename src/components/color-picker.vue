@@ -7,6 +7,10 @@
     <v-overlay v-model="show_picker" location-strategy="connected" max-width="600px">
       <template #activator="{ props }">
         <!-- color field -->
+        <v-btn variant="flat" :rounded="0" border="1" class="ma-0 pa-0"
+               height="40px" min-width="28px" max-width="28px"
+               :color="modelValue"
+               @click="show_picker=!show_picker">T</v-btn>
         <v-text-field :label="label" :model-value="modelValue" v-bind="{...$attrs, ...props}"
                       append-inner-icon="mdi-palette"
                       @update:modelValue="$emit('input', $event.hex)"
