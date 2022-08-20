@@ -20,8 +20,6 @@ const flexdashLight = {
     surface: '#fffdfd', // widget surfaces
     panel: '#f4f2f2', // editing panel
     primary: '#ad1625', // node-red red
-    // primary_light: '#e5504d',
-    // primary_dark: '#760000',
     error: '#ec7422',
     highlight: '#fff5ce', // selected widget
     notification: '#666666', // background of notification snackbar at top
@@ -35,8 +33,6 @@ const flexdashDark = {
     surface: '#201d1d',
     panel: '#262424',
     primary: '#ad1625', // node-red red
-    // primary_light: '#e5504d',
-    // primary_dark: '#760000',
     error: '#ec7422',
     highlight: '#716741',
     notification: '#cccccc',
