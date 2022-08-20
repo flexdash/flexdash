@@ -29,7 +29,7 @@
       <v-icon icon="mdi-pencil" size="small" />
     </v-btn>
 
-    <!-- Icon to show widget full-page -->
+    <!-- Icon to show widget full-page and icon to show pop-up info -->
     <div v-if="(can_full_page || has_pup_info) && !global.editMode" class="full-page-btn">
         <v-btn density="compact" flat v-if="can_full_page" @click="toggleFullPage"
                class="justify-center align-center mt-n1 px-2">
@@ -135,8 +135,8 @@ export default {
   data() { return {
     watchers: [], // list of watchers used in bindings so we can remove them
     bindings: {}, // mapping of prop_name -> current_value used in v-bind to child
-    full_page: false,
-    pup_info: false,
+    full_page: false, // toggle to show widget full-page
+    pup_info: false, // toggle to show pop-up info
   }},
 
   computed: {
@@ -202,7 +202,7 @@ export default {
     // addDynBinding adds a dynamic binding of store.sd[var_name] -> bindings[key]
     addDynBinding(key, var_name) {
       const self = this
-      if (!var_name) return ()=>{} // empty/null var_name happens during editing
+      if (!var_name || typeof var_name != 'string') return ()=>{} // empty/null var_name happens during editing
       let path = var_name.split('/').filter(t => t.length > 0)
       if (path.length == 0) return null // can't bind to root
       //console.log(`Dyn binding to ${JSON.stringify(path)}`)
@@ -290,7 +290,8 @@ export default {
           val = Number.parseFloat(val.toPrecision(4)) // FIXME: let the user specify precision
 
       } else if (type === String) {
-        if (typeof val === 'number') val = val.toString()
+        if (val === null) ;
+        else if (typeof val === 'number') val = val.toString()
         else if (typeof val !== 'string') val = JSON.stringify(val)
 
       } else if ((type === Array || type === Object) && typeof val === 'string') {
