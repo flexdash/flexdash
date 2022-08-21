@@ -196,6 +196,13 @@ export default {
       deep: true,
       handler(config) { this.genBindings(config) },
     },
+    // The palette is loaded async, this can cause some widgets to be loaded after they are
+    // already instantiated. They end up as UnknownWidget initially and most of the bindings
+    // are skipped 'cause UnknownWidget doesn't have props. So we watch widget_kind and
+    // regenerate bindings when the widget code is loaded and changes from UnknownWidget.
+    widget_kind: {
+      handler(kind) { this.genBindings(this.config) },
+    },
   },
 
   methods: {
