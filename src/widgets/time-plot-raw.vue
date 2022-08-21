@@ -213,7 +213,8 @@ Note that this "row-wise" structure gets transposed to the columnar structure ex
 
       // add tooltip plugin
       opts.plugins = [ ()=>tooltip({class: "time-plot-raw"}) ]
-      opts.legend = { live: false }
+      if (!opts.legend) opts.legend = {}
+      opts.legend.live = false
       //console.log(`uPlot data: ${this.chart_data.length}x${this.chart_data[0].length} options:`,
       //    JSON.stringify(opts))
 

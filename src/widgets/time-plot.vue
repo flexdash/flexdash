@@ -85,8 +85,14 @@ Note that this "row-wise" structure gets transposed to the columnar structure ex
     // generate options for uPlot based on the props
     // this also emits an event as a side-effect (not supposed to do that, oh well...)
     options() {
-      const ns = Math.max(this.labels.length, this.colors.length, this.axes.length,
-          this.widths.length, this.span_gaps.length)
+      const arrays = [ "labels", "colors", "axes", "widths", "span_gaps" ]
+      const ns = Math.max(1, ...arrays.map(a => this[a]?.length))
+      arrays.forEach(a => {
+        if (this[a]?.length > 0 && this[a]?.length != ns) {
+          console.log(`TimePlot: ${a} has ${this[a].length} elements, expected ${ns}`)
+        }
+      })
+      //if (ns == 1 && this.labels?.length != 1) this.labels.push(null)
 
       // declare the series
       let got_r = false
@@ -139,6 +145,7 @@ Note that this "row-wise" structure gets transposed to the columnar structure ex
 
       // put uplot options together
       const opts = { series, axes, scales }
+      if (ns == 1 && !this.labels[0]) opts.legend = { show: false }
       //console.log(`Options for time-plot-raw:`, opts);
       // emit in the next tick in order not to affect the dependency stuff
       this.$nextTick(() => { this.$emit('send', opts) })
