@@ -103,7 +103,7 @@ Note that this "row-wise" structure gets transposed to the columnar structure ex
         const d = r ? this.right_decimals : this.left_decimals
         const u = r ? this.right_unit : this.left_unit
         const serie = {
-          label: this.labels[s] || `series ${s+1}`,
+          label: this.labels[s] || `series ${s+1}`, // see special case below
           stroke: this.colors[s] ? color_by_name(this.colors[s]) : colors[s%colors.length],
           width: this.widths[s] || 2,
           spanGaps: this.span_gaps[s],
@@ -145,7 +145,10 @@ Note that this "row-wise" structure gets transposed to the columnar structure ex
 
       // put uplot options together
       const opts = { series, axes, scales }
-      if (ns == 1 && !this.labels[0]) opts.legend = { show: false }
+      if (ns == 1 && !this.labels[0]) {
+        opts.legend = { show: false }
+        opts.series[1].label = " "
+      }
       //console.log(`Options for time-plot-raw:`, opts);
       // emit in the next tick in order not to affect the dependency stuff
       this.$nextTick(() => { this.$emit('send', opts) })
