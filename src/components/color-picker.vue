@@ -11,9 +11,11 @@
                height="40px" min-width="28px" max-width="28px"
                :color="modelValue"
                @click="show_picker=!show_picker">T</v-btn>
-        <v-text-field :label="label" :model-value="modelValue" v-bind="{...$attrs, ...props}"
+        <!-- props.ref is a workaround so a click in the text field doesn't bring up the picker
+             https://github.com/vuetifyjs/vuetify/issues/15658#issuecomment-1222561611 -->
+        <v-text-field :label="label" :model-value="modelValue" v-bind="{...$attrs, ref: props.ref}"
                       append-inner-icon="mdi-palette"
-                      @update:modelValue="$emit('input', $event.hex)"
+                      @update:modelValue="changeColor($event)"
                       @click:append-inner="show_picker=!show_picker">
         </v-text-field>
       </template>
