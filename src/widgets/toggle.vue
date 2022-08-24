@@ -27,7 +27,7 @@ value input: the toggle will be "on" IF the value is equal to the "on_value" inp
 
 By default clicking the toggle shows a "ripple" effect and outputs a message but does not toggle
 the switch. The switch is only toggled in response to an input change. If no input is received,
-the toggle will "fall back" to its prior state and repeated clicking will send the same output.
+the toggle will "stick" to its prior state and repeated clicking will send the same output.
 
 By setting \`loopback\` to true, the toggle will internally feed the output value to its input
 causing the toggle to immediately change to the new state. Repeated clicking will then alternate
