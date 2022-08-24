@@ -20,6 +20,11 @@
 
 import { colors, color_by_name } from '/src/utils/plot-colors.js'
 
+function deepEqual(obj1, obj2) {
+  return JSON.stringify(obj1) === JSON.stringify(obj2) // yeah...
+}
+
+
 export default {
   name: "TimePlot",
 
@@ -81,10 +86,28 @@ Note that this "row-wise" structure gets transposed to the columnar structure ex
 
   full_page: true, // can expand to full-page
 
+  data() { return { options: null }},
+  watch: {
+    _options: {
+      immediate: true,
+      handler() {
+        if (!deepEqual(this.options, this._options)) {
+          this.options = this._options
+        }
+      }
+    }
+  },
+
   computed: {
+    classes() {
+      return {
+        "reverse-legend": !!this.reverse_legend,
+      }
+    },
+
     // generate options for uPlot based on the props
     // this also emits an event as a side-effect (not supposed to do that, oh well...)
-    options() {
+    _options() {
       const arrays = [ "labels", "colors", "axes", "widths", "span_gaps" ]
       const ns = Math.max(1, ...arrays.map(a => this[a]?.length))
       arrays.forEach(a => {
@@ -151,14 +174,8 @@ Note that this "row-wise" structure gets transposed to the columnar structure ex
       }
       //console.log(`Options for time-plot-raw:`, opts);
       // emit in the next tick in order not to affect the dependency stuff
-      this.$nextTick(() => { this.$emit('send', opts) })
+      //this.$nextTick(() => { this.$emit('send', opts) })
       return opts
-    },
-
-    classes() {
-      return {
-        "reverse-legend": !!this.reverse_legend,
-      }
     },
 
   },
