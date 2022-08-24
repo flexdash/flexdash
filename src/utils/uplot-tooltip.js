@@ -6,9 +6,10 @@ export default function (opts) {
   let left_off = 0, top_off = 0 // offset of u-over WRT .u-tooltip-attach
   let attach = null // element to which we attach the tooltip
 
-  // problem: uplot calls init before the DOM elements are rendered with the result that
-  // offsetParent, offsetLeft, etc are null, so that doesn't help us...
-  function _init(u) {
+  // initialize tooltip, cannot use init callback 'cause uPlot calls it before the DOM elements
+  // are rendered with the result that offsetParent, offsetLeft, etc are null, so that doesn't help us...
+  function ready(u) {
+    if (attach != null) console.log("uplot-tooltip bug? Tooltip already initialized")
     // find parent to attach tooltip
     // we attach to an element with class u-tooltip-attach, which is typically the window content,
     // so tooltips don't get cropped by the border of the plot/widget
@@ -32,27 +33,26 @@ export default function (opts) {
     //console.log(`left_off=${left_off} top_off=${top_off}`)
 
     // create a DOM element in the uPLot overlay to show the cursor tooltip
-    let ttc = u.cursortt = document.createElement("div");
-    let cls = "u-tooltip";
-    if (opts?.class) cls += " " + opts.class;
-    ttc.className = cls;
-    ttc.innerHTML = "(x,y)";
-    ttc.style.pointerEvents = "none";
+    let ttc = u.cursortt = document.createElement("div")
+    let cls = "u-tooltip"
+    if (opts?.class) cls += " " + opts.class
+    ttc.className = cls
+    ttc.style.pointerEvents = "none"
     //ttc.style.position = "absolute";
     //ttc.style.background = "rgba(0,0,255,0.1)";
-    over.appendChild(ttc);
+    over.appendChild(ttc)
 
     function hideTips() { ttc.style.display = "none" }
     function showTips() { ttc.style.display = null }
 
     u.over.addEventListener("mouseleave", ()=> { if (!u.cursor._lock) hideTips() })
-    u.over.addEventListener("mouseenter", ()=> showTips() );
+    u.over.addEventListener("mouseenter", ()=> showTips() )
 
     showTips() // hideTips();
   }
 
   function setCursor(u) {
-    if (attach === null) _init(u)
+    if (attach === null) ready(u) // needed after setSize...
     const {left, top, idx} = u.cursor
     
     if (idx === null) {
@@ -96,15 +96,24 @@ export default function (opts) {
   }
 
   function setSize(u) {
+    if (attach && u.cursortt) attach.removeChild(u.cursortt)
     attach = null // force recalculation of left_off/top_off
   }
 
+  function destroy(u) {
+    if (attach && u.cursortt) attach.removeChild(u.cursortt)
+    u.cursortt = null
+  }
 
   return {
     hooks: {
       //init,
+      ready,
       setCursor,
       setSize,
+      destroy,
+      // draw: (u)=>console.log("uPlot draw", u.cursor.left),
+      // syncRect: ()=>console.log("uPlot syncRect"),
       //setScale: [ (u, key) => { console.log('setScale', key); } ],
       //setSeries: [ (u, idx) => { console.log('setSeries', idx); } ],
     },

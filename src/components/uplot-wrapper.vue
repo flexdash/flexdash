@@ -72,7 +72,6 @@ export default {
   watch: {
 
     options(/*options, prevOptions*/) {
-      //console.log("Time-plot options changed");
       this.destroy()
       this.create()
     },
@@ -111,7 +110,6 @@ export default {
     destroy() {
       if (this.ro) this.ro.disconnect()
       if (this.chart) {
-        //console.log("Destroying uPlot")
         this.chart.destroy()
         this.chart = null
       }
@@ -158,7 +156,6 @@ export default {
     },
 
     create() {
-      //console.log("Creating uPlot")
       if (!this.data || this.data.length === 0) return
       if (!this.options || !this.options.series || this.options.series.length < 2) return
       // start with some size, will be corrected once stuff goes into the DOM, there must be a
