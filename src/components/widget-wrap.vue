@@ -12,7 +12,7 @@
           :outlined="no_border && canEdit">
 
     <!-- Widget title & buttons shown when the child component does _not_ show the title -->
-    <v-card-text v-if="!('title' in child_props) && title"
+    <v-card-text v-if="!has_title && title"
                  class="flex-grow-0 flex-shrink-0 px-0 pt-1 pb-0 mb-n1">
       <!-- title and edit button -->
       <span v-if="title" class="mx-auto text-no-wrap">{{title}}</span>
@@ -43,15 +43,15 @@
     </div>
 
     <!-- actual component, pass in its bindings -->
-    <component :is="widget_kind" :id="config.id" v-bind="bindings" ref="comp"
+    <component :is="widget_kind" :id="config.id" v-bind="final_bindings" ref="comp"
                @send="sendData($event)" class="my-auto">
     </component>
 
     <!-- dialog box to view the widget magnified full-page -->
-    <v-dialog v-model="full_page" class="widget-wrap-full-page u-tooltip-attach">
-      <v-card :color="color">
+    <v-dialog v-model="full_page" class="widget-wrap-full-page">
+      <v-card :color="color" class="u-tooltip-attach">
         <!-- Widget title & collapse button -->
-        <v-card-text v-if="!('title' in child_props) && title"
+        <v-card-text v-if="!has_title && title"
                     class="flex-grow-0 flex-shrink-0 px-0 pt-1 pb-0 mb-n1">
           <span v-if="title" class="mx-auto text-no-wrap">{{title}}</span>
           <v-btn density="compact" flat class="full-page-btn" @click="toggleFullPage">
@@ -59,7 +59,7 @@
           </v-btn>
         </v-card-text>
         <!-- actual component, pass in its bindings -->
-        <component :is="widget_kind" :id="config.id" v-bind="bindings" ref="comp"
+        <component :is="widget_kind" :id="config.id" v-bind="final_bindings" ref="comp"
                   @send="sendData($event)" class="my-auto">
         </component>
       </v-card>
@@ -140,10 +140,22 @@ export default {
   }},
 
   computed: {
-    // title shown by widget wrapper
+    // has_title is true if the widget wants the title prop to be set
+    // unfortunately, title is an html attribute that causes an on-hover tooltip to be shown
+    // so we have to suppress it for widgets that don't have a title prop
+    has_title() { return 'title' in this.child_props },
+
+    // title shown by widget wrapper, special handling for unknown widgets, etc
+    // also see comment for has_title
     title() {
       if (this.widget_kind.startsWith("__")) return this.config.kind
       return this.bindings.title || ""
+    },
+
+    // bindings with only the props actually wanted by the widget, eliminates title if
+    // not wanted
+    final_bindings() {
+      return Object.fromEntries(Object.entries(this.bindings).filter(([k,v]) => k in this.child_props))
     },
 
     canEdit() { return this.global.editMode && this.editable },
@@ -237,7 +249,8 @@ export default {
         if (config.output) this.bindings['output_binding'] = config.output
         Object.keys(config.static||{}).forEach(p => {
           if (this.is_sfc && p == 'source') return // ignore source for sfc widgets
-          const type = this.child_props_plus[p]?.type
+          if (!(p in this.child_props_plus)) return
+          const type = this.child_props[p]?.type
           if (config.static[p] !== undefined && config.dynamic[p] === undefined) {
             try {
               this.bindings[p] = this.typeCast(config.static[p], type)
@@ -248,6 +261,7 @@ export default {
         })
         Object.keys(config.dynamic||{}).forEach(p => {
           if (this.is_sfc && p == 'source') return // ignore source for sfc widgets
+          if (!(p in this.child_props_plus)) return
           if (config.dynamic[p] === true && config.dyn_root) {
             this.watchers.push( this.addDynBinding(p, config.dyn_root + '/' + p) )
           } else if (config.dynamic[p] !== undefined) {
