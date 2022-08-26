@@ -8,7 +8,7 @@
     </tr></thead>
     <tbody>
       <tr v-for="k in row_keys" :key="k">
-        <td class="px-2" v-for="col in col_keys" :key="col">{{data_at(k, col)}}</td>
+        <td class="px-2" v-for="col in col_keys" v-bind="col_attrs" :key="col">{{data_at(k, col)}}</td>
       </tr>
     </tbody>
   </v-table>
@@ -43,6 +43,7 @@ The labels prop determines the labels at the top of the columns.
     data: { default: null, tip: "array of data rows, or map of rows"},
     columns: { type: Array, default: null, tip: "per column key to index into row map"},
     labels: { type: Array, default: null, tip: "array of column labels"},
+    align: { type: Array, default: null, tip: "array of column alignments (left, center, right)"},
   },
 
   computed: {
@@ -62,6 +63,12 @@ The labels prop determines the labels at the top of the columns.
       if (this.labels) return this.labels
       return this.col_keys
     },
+    col_attrs() {
+      if (!this.align) return []
+      if (typeof this.align == 'string') return Array(this.row_keys.length).fill({align:this.align})
+      if (Array.isArray(this.align)) return this.align.map(align => ({align}))
+      return []
+    }
   },
 
   methods: {
