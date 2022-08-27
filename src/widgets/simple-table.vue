@@ -2,13 +2,16 @@
      Copyright ©2021 Thorsten von Eicken, MIT license, see LICENSE file
 -->
 <template>
-  <v-table fixed-header class="simple-table mt-2">
+  <v-table fixed-header class="simple-table mt-2" height="100%">
     <thead><tr>
       <th class="px-2" v-for="col in col_labels" :key="col">{{col}}</th>
     </tr></thead>
     <tbody>
       <tr v-for="k in row_keys" :key="k">
-        <td class="px-2" v-for="col in col_keys" v-bind="col_attrs" :key="col">{{data_at(k, col)}}</td>
+        <td class="px-2" v-for="(col,ix) in col_keys" :key="col"
+            v-bind="col_attrs[ix]" @click="send_click(k, col, ix)">
+          {{data_at(k, col)}}
+        </td>
       </tr>
     </tbody>
   </v-table>
@@ -37,13 +40,21 @@ In the case of a map, the order of the columns is determined by the columns prop
 the key is not displayed, in the case of an array, the columns prop is ignored.
 
 The labels prop determines the labels at the top of the columns.
+
+The click property can be used to make the table or specific columns clickable.
+A click outputs \`{ row: row_key, col: column_key }\`.
+If data is an array the \`row_key\` is the 1-based index.
+If rows are arrays the \`column_key\` is the 1-based index.
 `,
+
+  output: true,
 
   props: {
     data: { default: null, tip: "array of data rows, or map of rows"},
     columns: { type: Array, default: null, tip: "per column key to index into row map"},
     labels: { type: Array, default: null, tip: "array of column labels"},
     align: { type: Array, default: null, tip: "array of column alignments (left, center, right)"},
+    click: { default: null, tip: "boolean or array of columns to make table/columns clickable"},
   },
 
   computed: {
@@ -59,16 +70,32 @@ The labels prop determines the labels at the top of the columns.
       if (Array.isArray(first_row)) return first_row.length
       else return Object.keys(first_row).sort()
     },
+    num_cols() {
+      return Array.isArray(this.col_keys) ? this.col_keys.length : this.col_keys
+    },
     col_labels() { 
       if (this.labels) return this.labels
       return this.col_keys
     },
     col_attrs() {
-      if (!this.align) return []
-      if (typeof this.align == 'string') return Array(this.row_keys.length).fill({align:this.align})
-      if (Array.isArray(this.align)) return this.align.map(align => ({align}))
-      return []
-    }
+      let attrs = Array(this.num_cols).fill(0).map(() => ({}))
+      console.log("attrs", attrs)
+      // handle alignment attribute
+      if (typeof this.align == 'string') {
+        for (let c in attrs) attrs[c].align = this.align
+      } else if (Array.isArray(this.align)) {
+        for (let c in attrs) if (c < this.align.length) attrs[c].align = this.align[c]
+      }
+      // handle click attribute
+      if (this.click === true) {
+        for (let c in attrs) attrs[c].style = { cursor: 'pointer' }
+      } else if (Array.isArray(this.click)) {
+        for (let c in attrs) if (c < this.click.length) {
+          if (this.click[c]) attrs[c].style = { cursor: 'pointer' }
+        }
+      }
+      return attrs
+    },
   },
 
   methods: {
@@ -77,6 +104,13 @@ The labels prop determines the labels at the top of the columns.
       if (Array.isArray(r)) return r[col-1]
       else if (typeof r == 'object') return r[col]
       else return null
+    },
+
+    send_click(row, col, col_ix) {
+      console.log('click', row, col)
+      if (this.click === true || (Array.isArray(this.click) && this.click[col_ix])) {
+        this.$emit('send', { row, col })
+      }
     },
   },
 
