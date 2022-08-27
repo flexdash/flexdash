@@ -26,11 +26,11 @@
                :scrim="false" @click:outside="endEdit">
 
       <template #activator="{ props }">
-    <!-- Widget proper -->
-        <widget-wrap :config="widget" :no_border="no_border" :editable="editable" v-bind="props"
-                  @edit="toggleEdit" :color="edit_active?'highlight':''">
-    </widget-wrap>
-    <div v-if="global.editMode" class="ix">#{{ix+1}}</div>
+        <!-- Widget proper -->
+        <widget-wrap :config="widget" :no_border="no_border" :editable="editable"
+                     :ref="props.ref" @edit="toggleEdit" :color="edit_active?'highlight':''">
+        </widget-wrap>
+        <div v-if="global.editMode" class="ix">#{{ix+1}}</div>
       </template>
 
       <!-- Editing panel shown floating below widget -->
