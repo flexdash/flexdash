@@ -2,7 +2,7 @@
      Copyright ©2021 Thorsten von Eicken, MIT license, see LICENSE file
 -->
 <template>
-  <v-table fixed-header class="simple-table mt-2" height="100%">
+  <v-table fixed-header class="simple-table mt-2 px-1" height="100%">
     <thead><tr>
       <th class="px-2" v-for="col in col_labels" :key="col">{{col}}</th>
     </tr></thead>
@@ -19,10 +19,7 @@
 
 <style scoped>
 .unit { vertical-align: 15%; margin-left: 0.1em; }
-</style>
-
-<style>
-  .simple-table.v-data-table { width: 100%; }
+.v-table { height: 100%; width: 100% } /* need height attr and height style... */
 </style>
 
 <script scoped>
