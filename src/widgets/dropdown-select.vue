@@ -33,7 +33,7 @@ export default {
     choices: { type: Array, default: [], tip: "array of choices" },
     labels: { type: Array, default: [], tip: "array of labels for choices" },
     allow_multiple: { type: Boolean, default: false },
-    //color: { type: String, default: "primary", tip: "background color of button" },
+    color: { type: String, default: "primary", tip: "background color of button" },
   },
  
   output: true,
@@ -56,7 +56,7 @@ export default {
         disabled: !this.enabled,
         multiple: !!this.allow_multiple,
         items: this.items,
-        //color: this.color,
+        bgColor: this.color,
       }
     },
 
