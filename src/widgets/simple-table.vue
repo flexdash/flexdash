@@ -39,9 +39,10 @@ the key is not displayed, in the case of an array, the columns prop is ignored.
 The labels prop determines the labels at the top of the columns.
 
 The click property can be used to make the table or specific columns clickable.
-A click outputs \`{ row: row_key, col: column_key }\`.
+A click outputs \`{ row: row_key, col: column_key, data: row_data }\`.
 If data is an array the \`row_key\` is the 1-based index.
 If rows are arrays the \`column_key\` is the 1-based index.
+\`row_data\` is the data of the clicked row, i.e., \`data[row_key]\`.
 `,
 
   output: true,
@@ -106,7 +107,8 @@ If rows are arrays the \`column_key\` is the 1-based index.
     send_click(row, col, col_ix) {
       console.log('click', row, col)
       if (this.click === true || (Array.isArray(this.click) && this.click[col_ix])) {
-        this.$emit('send', { row, col })
+        const data = Array.isArray(this.data) ? this.data[row-1] : this.data[row]
+        this.$emit('send', { row, col, data })
       }
     },
   },
