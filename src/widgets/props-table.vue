@@ -2,51 +2,49 @@
      Copyright ©2021 Thorsten von Eicken, MIT license, see LICENSE file
 -->
 <template>
-  <div class="mt-0 width100">
-    <!-- title and edit button -->
-    <v-card-text class="d-flex pa-0 pt-1 mb-0">
-      <span v-if="title" class="ml-auto mr-1 text-no-wrap">{{title}}</span>
-      <!-- edit button (when not editing) -->
-      <v-btn icon class="title-btn mr-auto ml-0" v-if="editable && !editing" @click="handleEdit">
-        <v-icon size="small" icon="mdi-pencil" />
-      </v-btn>
-      <!-- save/cancel buttons (when editing) -->
-      <v-btn icon class="title-btn mr-1 ml-0" v-if="editing" @click="handleCancel">
-        <v-icon size="small" icon="mdi-close-thick" />
-      </v-btn>
-      <v-btn small icon class="title-btn mr-auto ml-1" v-if="editing" @click="handleSave">
-        <v-icon size="small" icon="mdi-check-bold" />
-      </v-btn>
-      <span class="mr-auto"></span>
-    </v-card-text>
+  <!-- title and edit button -->
+  <v-card-text class="d-flex pa-0 pt-1">
+    <span v-if="title" class="ml-auto mr-1 mb-1 text-no-wrap">{{title}}</span>
+    <!-- edit button (when not editing) -->
+    <v-btn icon class="title-btn mr-auto ml-0" v-if="editable && !editing" @click="handleEdit">
+      <v-icon size="small" icon="mdi-pencil" />
+    </v-btn>
+    <!-- save/cancel buttons (when editing) -->
+    <v-btn icon class="title-btn mr-1 ml-0" v-if="editing" @click="handleCancel">
+      <v-icon size="small" icon="mdi-close-thick" />
+    </v-btn>
+    <v-btn small icon class="title-btn mr-auto ml-1" v-if="editing" @click="handleSave">
+      <v-icon size="small" icon="mdi-check-bold" />
+    </v-btn>
+    <span class="mr-auto"></span>
+  </v-card-text>
 
-    <!-- table of properties -->
-    <v-table class="props-table">
-      <tbody>
-        <tr v-for="key, ix in keys" :key="ix">
-          <td align="right" class="px-1"><b>{{key}}:</b></td>
-          <!-- non-editing -->
-          <td v-if="!editing" class="px-2">{{value[key]}}</td>
-          <!-- edit string -->
-          <td v-else-if="kind[key]==='string'" class="px-2">
-            <input type="text" :value="value[key]" @input="handleInput(key, $event)"/>
-          </td>
-          <!-- edit number -->
-          <td v-else-if="kind[key]==='number'" class="px-2">
-            <input type="number" :value="value[key]" @input="handleInput(key, $event)"/>
-          </td>
-          <!-- edit boolean -->
-          <td v-else-if="kind[key]==='boolean'" class="px-2">
-            <input type="checkbox" :checked="value[key]" :tada="value[key]" @input="handleInput(key, $event)"/>
-          </td>
-          <!-- other types: not sure.... -->
-          <td v-else class="px-2">
-            <input type="text" :value="value[key]" @input="handleInput(key, $event)"/>
-          </td>
-        </tr>
-      </tbody>
-    </v-table>
-  </div>
+  <!-- table of properties -->
+  <v-table height="100%">
+    <tbody>
+      <tr v-for="key, ix in keys" :key="ix">
+        <td align="right" class="px-1"><b>{{key}}:</b></td>
+        <!-- non-editing -->
+        <td v-if="!editing" class="px-2">{{value[key]}}</td>
+        <!-- edit string -->
+        <td v-else-if="kind[key]==='string'" class="px-2">
+          <input type="text" :value="value[key]" @input="handleInput(key, $event)"/>
+        </td>
+        <!-- edit number -->
+        <td v-else-if="kind[key]==='number'" class="px-2">
+          <input type="number" :value="value[key]" @input="handleInput(key, $event)"/>
+        </td>
+        <!-- edit boolean -->
+        <td v-else-if="kind[key]==='boolean'" class="px-2">
+          <input type="checkbox" :checked="value[key]" :tada="value[key]" @input="handleInput(key, $event)"/>
+        </td>
+        <!-- other types: not sure.... -->
+        <td v-else class="px-2">
+          <input type="text" :value="value[key]" @input="handleInput(key, $event)"/>
+        </td>
+      </tr>
+    </tbody>
+  </v-table>
 </template>
 
 <style scoped>
@@ -63,10 +61,7 @@
     background: none;
     border: 1px solid #888; border-radius: 2px;
   }
-</style>
-
-<style>
-  .props-table.v-data-table { width: 100%; }
+  .v-table { height: 100%; width: 100%}
 </style>
 
 <script scoped>

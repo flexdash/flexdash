@@ -2,7 +2,7 @@
      Copyright ©2021 Thorsten von Eicken, MIT license, see LICENSE file
 -->
 <template>
-  <v-table fixed-header class="simple-table mt-2 px-1" height="100%">
+  <v-table fixed-header class="mt-2 px-1" height="100%">
     <thead><tr>
       <th class="px-2" v-for="col in col_labels" :key="col">{{col}}</th>
     </tr></thead>
