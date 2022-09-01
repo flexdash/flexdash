@@ -14,6 +14,10 @@ export default function (opts) {
     // we attach to an element with class u-tooltip-attach, which is typically the window content,
     // so tooltips don't get cropped by the border of the plot/widget
     let over = u.over
+    if (!over) {
+      console.log(`uplot-tooltip bug? u.over is undefined`)
+      return // odd conditions where uPlot is initialized but DOM not shown??
+    }
     attach = over
     //console.log(over)
 
@@ -27,7 +31,11 @@ export default function (opts) {
         lastParent = over.offsetParent
       }
       over = over.parentElement
-      //console.log(over)
+      if (!over) {
+        console.log(`uplot-tooltip: u.over is not in DOM?`)
+        attach = null // this way ready() gets called again later
+        return
+      }
     }
     attach = over
     //console.log(`left_off=${left_off} top_off=${top_off}`)
