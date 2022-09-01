@@ -17,8 +17,8 @@
   </div>
 
   <!-- Normal-mode title bar, when we have a title -->
-  <v-toolbar flat v-if="rollupMaxi" height=36 color="background"
-              class="d-flex justify-start">
+  <v-toolbar flat v-if="rollupMaxi" height="36px" color="background"
+              class="d-flex justify-start mt-2 mb-1">
     <!-- roll-up/down button -->
     <v-tooltip>
       <template v-slot:activator="{ props }">
@@ -50,7 +50,7 @@
     <v-tooltip>
       <template v-slot:activator="{ props }">
         <v-text-field hide-details label="grid title" class="mr-6 flex-grow-0" style="width: 20ex"
-                      v-bind="props" :value="title" @update:modelValue="$emit('changeTitle', $event)">
+                      v-bind="props" :model-value="title" @update:modelValue="$emit('changeTitle', $event)">
         </v-text-field>
       </template>
       <span>Title to show at top of grid, if empty the grid bar is thinner</span>
