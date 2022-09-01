@@ -16,17 +16,21 @@
                  class="flex-grow-0 flex-shrink-0 px-0 pt-1 pb-0 mb-n1">
       <!-- title and edit button -->
       <span v-if="title" class="mx-auto text-no-wrap">{{title}}</span>
-      <v-btn density="compact" flat class="edit-btn"
-             v-if="canEdit" @click="handleEdit">
+      <v-btn v-if="canEdit" density="compact" flat class="edit-btn" @click="handleEdit">
         <v-icon icon="mdi-pencil" size="small" />
       </v-btn>
     </v-card-text>
 
-    <!-- Widget edit button w/o title when the child component shows the title itself -->
+    <!-- Widget edit button w/o title or when the child component shows the title itself -->
     <!-- we need to make sure we're floating way above the widget content... -->
-    <v-btn density="compact" flat class="edit-btn" style="z-index:5"
-            v-else-if="canEdit" @click="handleEdit">
+    <v-btn v-else-if="canEdit && !isPanel" density="compact" flat class="edit-btn" style="z-index:5"
+           @click="handleEdit">
       <v-icon icon="mdi-pencil" size="small" />
+    </v-btn>
+    <!-- hack to offset edit button for panel -->
+    <v-btn v-else-if="canEdit && isPanel" density="compact" flat class="edit-panel-btn" style="z-index:5"
+           @click="handleEdit">
+      <v-icon icon="mdi-pencil-box-outline" size="large" />
     </v-btn>
 
     <!-- Icon to show widget full-page and icon to show pop-up info -->
@@ -96,6 +100,9 @@
 .v-card .edit-btn {
   position: absolute; right: 0px; top: 0px; padding: 0px; min-width: 0px; z-index: 1;
 }
+.v-card .edit-panel-btn {
+  position: absolute; right: 20px; top: -0px; padding: 0px; min-width: 0px; z-index: 1;
+}
 .theme--light.v-btn--icon { background-color: rgba(255, 255, 255, 0.6); }
 .theme--dark.v-btn--icon  { background-color: rgba(30, 30, 30, 0.6); }
 </style>
@@ -159,6 +166,7 @@ export default {
     },
 
     canEdit() { return this.global.editMode && this.editable },
+    isPanel() { return this.config.kind == "Panel" },
 
     // child_props holds a description of the properties of the child component, this is used to
     // convert types and raise warning messages. (Note that this is not reactive in the component
