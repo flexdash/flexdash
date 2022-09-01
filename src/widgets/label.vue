@@ -20,7 +20,7 @@ thresholds, units and such.`,
     color: { type: String, default: null }, // null -> text color
     align: { type: String, default: "center", tip: "top/center/bottom" },
     justify: { type: String, default: "center", tip: "left/center/right" },
-    weight: { type: String, default: "400", tip: "100..400..700..900" },
+    weight: { type: String, default: "400", tip: "100,200..900" },
     size: { type: String, default: "100%", tip: "any font-size CSS value" },
     padding: { type: String, default: "4px", tip: "CSS padding around label" },
   },
