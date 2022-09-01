@@ -131,7 +131,10 @@ Note that this "row-wise" structure gets transposed to the columnar structure ex
     // transpose from row format coming in to column format required by uPlot
     transpose(data) {
       if (!data || data.length == 0) return []
-      if (!data[0].map) debugger; //eslint-disable-line
+      if (!data[0].map) {
+        console.log("Time-plot-raw: cannot transpose", data)
+        return []
+      }
       let tr = data[0].map(() => Array(data.length))
       data.forEach((d, i) => {
         d.forEach((v, j) => {

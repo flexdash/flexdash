@@ -109,10 +109,15 @@ Note that this "row-wise" structure gets transposed to the columnar structure ex
     // this also emits an event as a side-effect (not supposed to do that, oh well...)
     _options() {
       const arrays = [ "labels", "colors", "axes", "widths", "span_gaps" ]
-      const ns = Math.max(1, ...arrays.map(a => this[a]?.length))
+      // make sure these props are arrays so we don't have to guard umpteen times below
+      const pp = Object.fromEntries(
+        arrays.map(p => [p, Array.isArray(this[p]) ? this[p] : []])
+      )
+      // check that the lengths make sense, warn if not
+      const ns = Math.max(1, ...arrays.map(a => pp[a].length))
       arrays.forEach(a => {
-        if (this[a]?.length > 0 && this[a]?.length != ns) {
-          console.log(`TimePlot: ${a} has ${this[a].length} elements, expected ${ns}`)
+        if (pp[a].length > 0 && pp[a].length != ns) {
+          console.log(`TimePlot: ${a} has ${pp[a].length} elements, expected ${ns}`)
         }
       })
       //if (ns == 1 && this.labels?.length != 1) this.labels.push(null)
@@ -121,15 +126,15 @@ Note that this "row-wise" structure gets transposed to the columnar structure ex
       let got_r = false
       const series = [ { label: "time" } ]
       for (let s=0; s<ns; s++) {
-        const r = this.axes[s] && this.axes[s].match(/^[rR]/)
+        const r = pp.axes[s] && pp.axes[s].match(/^[rR]/)
         got_r = got_r || r
         const d = r ? this.right_decimals : this.left_decimals
         const u = r ? this.right_unit : this.left_unit
         const serie = {
-          label: this.labels[s] || `series ${s+1}`, // see special case below
-          stroke: this.colors[s] ? color_by_name(this.colors[s]) : colors[s%colors.length],
-          width: this.widths[s] || 2,
-          spanGaps: this.span_gaps[s],
+          label: pp.labels[s] || `series ${s+1}`, // see special case below
+          stroke: pp.colors[s] ? color_by_name(pp.colors[s]) : colors[s%colors.length],
+          width: pp.widths[s] || 2,
+          spanGaps: pp.span_gaps[s],
           scale: r ? "R" : "L",
           value: `v.toFixed(${d}) + "${u}"`
         }
@@ -168,7 +173,7 @@ Note that this "row-wise" structure gets transposed to the columnar structure ex
 
       // put uplot options together
       const opts = { series, axes, scales }
-      if (ns == 1 && !this.labels[0]) {
+      if (ns == 1 && !pp.labels[0]) {
         opts.legend = { show: false }
         opts.series[1].label = " "
       }
