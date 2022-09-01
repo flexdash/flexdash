@@ -4,7 +4,9 @@
 <template>
   <v-table fixed-header class="mt-2 px-1" height="100%">
     <thead><tr>
-      <th class="px-2" v-for="col in col_labels" :key="col">{{col}}</th>
+      <th class="px-2 mx-auto" v-for="(col,ix) in col_labels" :key="col" :style="th_style[ix]">
+        {{col}}
+      </th>
     </tr></thead>
     <tbody>
       <tr v-for="k in row_keys" :key="k">
@@ -77,7 +79,6 @@ If rows are arrays the \`column_key\` is the 1-based index.
     },
     col_attrs() {
       let attrs = Array(this.num_cols).fill(0).map(() => ({}))
-      console.log("attrs", attrs)
       // handle alignment attribute
       if (typeof this.align == 'string') {
         for (let c in attrs) attrs[c].align = this.align
@@ -93,6 +94,16 @@ If rows are arrays the \`column_key\` is the 1-based index.
         }
       }
       return attrs
+    },
+    th_style() {
+      let style = Array(this.num_cols).fill(0).map(() => ({}))
+      // handle alignment attribute
+      if (typeof this.align == 'string') {
+        for (let c in style) style[c].textAlign = this.align
+      } else if (Array.isArray(this.align)) {
+        for (let c in style) if (c < this.align.length) style[c].textAlign = this.align[c]
+      }
+      return style
     },
   },
 
