@@ -43,11 +43,24 @@ TimelinePlot displays a time-line chart using uPlot. A timeline plot consists of
 time series, each of which is plotted as a horizontal bar whose color is determined by the
 value along the X time axis.
 
-The data must be provided in the form expected by uPlot, which is an array of equal-length arrays
+The \`data\` must be provided in the form expected by uPlot, which is an array of equal-length arrays
 of data values. The first of the arrays is the X axis, the rest are the series.
 The \`labels\` prop is an array of strings that will be used to label the series.
 
 \`colors\` is a map from discrete values (numbers or strings) to colors.
+
+\`gradient\` may be used to define a color gradient for numerical values between \`low\` and
+\`high\` (inclusive).
+The only \'kind\' supported for now is \`linear\`.
+The \`low_color\` and \`high_color\` must use hex colors, e.g., \`#ff0000\` for red.
+
+Colors are assigned as follows:
+
+1. if a value is a number and a gradient is defined and the number falls within the range of the
+  gradient then the color is determined by the gradient.
+2. if \`colors[value]\` is defined then that color is used.
+3. the next color from the plot color palette is used and assigned to that value.
+
 `,
 
   props: {
