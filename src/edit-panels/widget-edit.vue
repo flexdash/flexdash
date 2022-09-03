@@ -171,11 +171,14 @@ export default {
     // dashboards connected 'cause they all go through this logic and then all send 'corrections'
     // to each other while the original creator may make further edits (for example when cloning
     // a widget)
+
     for (const p in pi) {
       // if the prop definition says it's dynamic and it's completely unset, then set it
-      if (pi[p].dynamic && !(p in w.dynamic) && !(p in w.static)) {
-        w.dynamic[p] = pi[p].dynamic
-      }
+      // FIXME: disabled 'cause not so cool with Node-RED, need a good way to decide whether to
+      // fix this up or not. Maybe push this code into the place we instantiate the widget?
+      // if (pi[p].dynamic && !(p in w.dynamic) && !(p in w.static)) {
+      //   w.dynamic[p] = pi[p].dynamic
+      // }
     }
     // process any widget output binding
     if (w.kind in p && p[w.kind].output) {
