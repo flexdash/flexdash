@@ -29,10 +29,8 @@ export default {
   name: "TimePlot",
 
   help: `Time-series chart with simple options.
-TimePlot uses the TimePlotRaw widget to render a time-series plot and generates
-the uPlot options based on a set of relatively simple inputs. If you need to switch to
-TimePlotRaw for the full uPlot flexibility you can use the widget output to see the options
-it constructs as a starting point.
+TimePlot is a wrapper around the TimePlotRaw widget to make the configuration of typical
+time-series plots easier than using the raw uPlot options, which TimePlotRaw expects.
 
 By default, with all array inputs (labels, colors, axes, ...) empty ([]) a single series
 is plotted without label. If any of the
@@ -55,6 +53,10 @@ it is appended to the current dataset and an old data point may be rotated out.
 (Currently w/2 datapoints are kept where w is the width of the widget in pixels,
 this will be revisited.)
 Note that this "row-wise" structure gets transposed to the columnar structure expected by uPlot.
+
+TimePlot outputs the uPlot options it constructs to the browser console.
+This can be handy as a starting point if you need to switch to TimePlotRaw to get
+the full uPlot flexibility.
 `,
 
   props: {
@@ -157,18 +159,20 @@ Note that this "row-wise" structure gets transposed to the columnar structure ex
 
       // scales, see also https://github.com/leeoniya/uPlot/issues/526
       const scales = { L: { range: { min: {pad:0.1}, max: {pad:0.1} } } }
-      if (got_r) scales.R = { range: { min: {pad:0.1}, max: {pad:0.1} } }
       if (Number.isFinite(this.left_min) || Number.isFinite(this.left_max)) {
         if (Number.isFinite(this.left_min))
           Object.assign(scales.L.range.min, { soft: this.left_min, mode: 1 })
         if (Number.isFinite(this.left_max))
           Object.assign(scales.L.range.max, { soft: this.left_max, mode: 1 })
       }
-      if (Number.isFinite(this.right_min) || Number.isFinite(this.right_max)) {
-        if (Number.isFinite(this.right_min))
-          Object.assign(scales.R.range.min, { soft: this.right_min, mode: 1 })
-        if (Number.isFinite(this.right_max)) 
-          Object.assign(scales.R.range.max, { soft: this.right_max, mode: 1 })
+      if (got_r) {
+        scales.R = { range: { min: {pad:0.1}, max: {pad:0.1} } }
+        if (Number.isFinite(this.right_min) || Number.isFinite(this.right_max)) {
+          if (Number.isFinite(this.right_min))
+            Object.assign(scales.R.range.min, { soft: this.right_min, mode: 1 })
+          if (Number.isFinite(this.right_max)) 
+            Object.assign(scales.R.range.max, { soft: this.right_max, mode: 1 })
+        }
       }
 
       // put uplot options together
