@@ -145,10 +145,9 @@ or it can be a single boolean for all columns.
     },
 
     send_click(row, col, col_ix) {
-      console.log('click', row, col)
       if (this.click === true || (Array.isArray(this.click) && this.click[col_ix])) {
-        row = this.row_keys[row]
         const data = this.data[row]
+        console.log('click', row, col, data)
         this.$emit('send', { row, col, data })
       }
     },
