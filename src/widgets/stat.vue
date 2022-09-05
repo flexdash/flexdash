@@ -29,9 +29,19 @@ export default {
   // the edit card. Successive lines can be expanded in the card and are markdown-formatted.
   help: `Display colored numeric or text status value.
 The Stat widget displays a colored centered numerical or text value. Optionally a unit string
-can be appended and is rendered as a superscript. THree colors can be defined: low, normal, high.
+can be appended and is rendered as a superscript.
+
+Three colors can be defined: low, normal, high.
 The low-color is displayed if the value is below the low-threshold, the high-color if it's above
-the high-threshold. For string values low and high colors are selected using regexps.`,
+the high-threshold. For string values low and high colors are selected using regexps.
+
+The \`iso_prefix\` option can be used to display the value in ISO format with a prefix, e.g.
+if the value is 1200 and the unit 'W' it will display 1.2kW, or if the value is 0.012 and the
+unit 's' the display will be 12ms.
+
+Floating point values are rounded using JavaScript's toPrecision() function, passing it
+the \`precision\` option. Integer values are shown as-is.
+`,
 
   // properties are inputs to the widget, these can be set to static values or bound to dynamic
   // data by topic in the FlexDash UI. The type is used to display the appropriate kind of input
@@ -49,6 +59,7 @@ the high-threshold. For string values low and high colors are selected using reg
     high_regexp: { type: String, default: null, tip: "match produces high_color for non-number value" },
     chip: { type: Boolean, default: false, tip: "display value in a chip/pill" },
     iso_prefix: { type: Boolean, default: true, tip: "display unit with ISO prefix (K, M, G, m, ...)" },
+    precision: { type: Number, default: 3, tip: "number of significant digits to show" },
     zoom: { type: Number, default: 1, tip: "zoom factor for value text" },
   },
 
@@ -69,7 +80,7 @@ the high-threshold. For string values low and high colors are selected using reg
             i++
           }
           if (prefix[i] == "" && Number.isInteger(v))  return [v.toFixed(0), this.unit]
-          return [ v.toFixed(1), prefix[i] + this.unit]
+          return [ v.toPrecision(this.precision), prefix[i] + this.unit]
         } else if (v > 0) {
           let prefix = ["m", "µ", "n", "p", "f", "a", "z", "y"]
           let i = 0
@@ -77,9 +88,9 @@ the high-threshold. For string values low and high colors are selected using reg
             v *= 1000
             i++
           }
-          return [ v.toFixed(1), prefix[i] + this.unit]
+          return [ v.toPrecision(this.precision), prefix[i] + this.unit]
         }
-        return [ v.toFixed(1), this.unit ]
+        return [ v.toPrecision(this.precision), this.unit ]
       } else if (v === null) return [ "--", "" ]
       else return [ v, "" ]
     },
