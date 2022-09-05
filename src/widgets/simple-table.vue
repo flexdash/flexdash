@@ -6,6 +6,12 @@
     <thead><tr>
       <th class="px-2 mx-auto" v-for="(col,ix) in col_labels" :key="col" :style="th_style[ix]">
         {{col}}
+        <v-btn v-if="col_sort[ix]" flat size="small" :color="ix==sort_ix?'primary':'transparent'"
+               class="ml-1 px-0" minWidth="20px" @click="sort(ix)">
+          <v-icon v-if="ix==sort_ix" size="small"
+                  :icon="sort_dir > 0 ? 'mdi-sort-ascending' : 'mdi-sort-descending'" />
+          <v-icon v-else size="small" icon="mdi-sort" />
+        </v-btn>
       </th>
     </tr></thead>
     <tbody>
@@ -29,7 +35,7 @@ export default {
   name: 'SimpleTable',
   // help displayed in the UI: the first line is used in the widgets menu and is always shown in
   // the edit card. Successive lines can be expanded in the card and are markdown-formatted.
-  help: `Display data in simple tabular form.
+  help: `Display unformatted data in tabular form.
 The data can consist of an array of rows, or a map of row-key to row.
 In the case of an array, the rows are displayed in array order, in the case of a map,
 the rows are displayed in sorted-key order, the keys themselves are not displayed.
@@ -45,6 +51,10 @@ A click outputs \`{ row: row_key, col: column_key, data: row_data }\`.
 If data is an array the \`row_key\` is the 1-based index.
 If rows are arrays the \`column_key\` is the 1-based index.
 \`row_data\` is the data of the clicked row, i.e., \`data[row_key]\`.
+
+The sort property determines whether the table can be sorted by clicking in the column
+headings. It can be a per-column array of booleans to enable/disable sorting per column
+or it can be a single boolean for all columns.
 `,
 
   output: true,
@@ -55,27 +65,45 @@ If rows are arrays the \`column_key\` is the 1-based index.
     labels: { type: Array, default: null, tip: "array of column labels"},
     align: { type: Array, default: null, tip: "array of column alignments (left, center, right)"},
     click: { default: null, tip: "boolean or array of columns to make table/columns clickable"},
+    sort: { default: true, tip: "boolean or array of columns to allow sorting by column"},
   },
 
+  data() { return {
+      sort_ix: null, // index of column to sort by
+      sort_dir: 1,  // 1=ascending, -1=descending
+  }},
+
   computed: {
+    // return the row keys (or indices) for the table to display
     row_keys() {
-      if (Array.isArray(this.data)) return this.data.length
-      if (this.data) return Object.keys(this.data).sort()
-      return []
+      if (!this.data) return []
+      const keys = Array.isArray(this.data) ? this.data.map((_,i) => i) : Object.keys(this.data).sort()
+      if (this.sort_ix === null) return keys // original sort order
+      // sorting by explicit column
+      return keys.sort((a,b) => {
+        const av = this.data_at(a, this.col_keys[this.sort_ix])
+        const bv = this.data_at(b, this.col_keys[this.sort_ix])
+        return (av < bv ? -1 : av > bv ? 1 : 0) * this.sort_dir
+      })
     },
+    // return column keys (or indices) based on the columns prop or the first row
     col_keys() { 
       if (this.columns) return this.columns
       if (!this.data) return []
       let first_row = Array.isArray(this.data) ? this.data[0] : this.data[this.row_keys[0]]
-      if (Array.isArray(first_row)) return first_row.length
+      if (Array.isArray(first_row)) return first_row.map((_,i) => i)
       else return Object.keys(first_row).sort()
     },
+    // return number of rows in table
     num_cols() {
       return Array.isArray(this.col_keys) ? this.col_keys.length : this.col_keys
     },
     col_labels() { 
       if (this.labels) return this.labels
       return this.col_keys
+    },
+    col_sort() {
+      if (Array.isArray(this.sort)) return this.sort; else return Array(this.num_cols).fill(!!this.sort)
     },
     col_attrs() {
       let attrs = Array(this.num_cols).fill(0).map(() => ({}))
@@ -109,10 +137,11 @@ If rows are arrays the \`column_key\` is the 1-based index.
 
   methods: {
     data_at(row, col) {
-      let r = Array.isArray(this.data) ? this.data[row-1] : this.data[row]
-      if (Array.isArray(r)) return r[col-1]
-      else if (typeof r == 'object') return r[col]
-      else return null
+      try {
+        return this.data[row][col]
+      } catch (e) {
+        return null
+      }
     },
 
     send_click(row, col, col_ix) {
@@ -120,6 +149,14 @@ If rows are arrays the \`column_key\` is the 1-based index.
       if (this.click === true || (Array.isArray(this.click) && this.click[col_ix])) {
         const data = Array.isArray(this.data) ? this.data[row-1] : this.data[row]
         this.$emit('send', { row, col, data })
+      }
+    },
+
+    sort(ix) {
+      if (this.sort_ix == ix) this.sort_dir = -this.sort_dir // change sort direction
+      else {
+        this.sort_ix = ix
+        this.sort_dir = 1
       }
     },
   },
