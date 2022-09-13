@@ -6,7 +6,8 @@
 -->
 
 <template>
-  <v-dialog contained :model-value="show">
+  <!-- dialog should have 'contained' but then if the page is short it doesn't extend it -->
+  <v-dialog :model-value="show" @click:outside="closeme">
     <v-card class="px-1 pb-2" color="background">
       <v-btn elevation=0 icon class="close-btn mt-2 mr-2" @click="closeme"><v-icon icon="mdi-close" /></v-btn>
       <std-grid :id="id" />
