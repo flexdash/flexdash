@@ -59,11 +59,16 @@ export default {
 
   // return size of widget group, or 1 if non-grouped widget
   groupSize(widgets, ix) {
+    if (widgets[ix].startsWith('x')) return 1 // non-existant/disabled widget
     const w_ix = this.$store.widgetByID(widgets[ix])
     if (! w_ix.group) return 1
     const first = this.firstInGroup(widgets, ix)
     const group = w_ix.group
-    while (ix+1 < widgets.length && this.$store.widgetByID(widgets[ix+1]).group == group) ix++
+    while (ix+1 < widgets.length &&
+        !widgets[ix+1].startsWith('x') &&
+        this.$store.widgetByID(widgets[ix+1]).group == group) {
+      ix++
+    }
     return ix - first + 1
   },
 
