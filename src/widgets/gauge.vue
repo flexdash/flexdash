@@ -4,7 +4,10 @@
 
 <template>
   <div class="gauge d-flex flex-column justify-top align-center">
-    <svg-gauge v-bind="$props" :color="gaugeColor" :class="svg_class"></svg-gauge>
+    <svg-gauge v-bind="$props" :class="svg_class"
+               :color="color2hhex(gaugeColor)"
+               :base_color="color2hhex(base_color)"
+               :needle_color="color2hhex(needle_color)" />
     <div class="label d-flex flex-column mx-auto" :class="txt_class" :style="txt_style">
       <v-card-text class="value d-flex pa-0 width100">
         <span class="mx-auto">{{valTxt}}<span class="unit">{{unitTxt}}</span></span>
@@ -34,6 +37,7 @@
 
 <script scoped>
 import SvgGauge from '/src/components/svg-gauge.vue'
+import { color2hhex } from '/src/utils/colors.js'
 
 export default {
   name: 'Gauge',
@@ -59,11 +63,13 @@ export default {
     high_color: { type: String, default: "pink", tip: "color above high threshold" },
     low_threshold: { type: Number, default: null, tip: "threshold for low_color, null to disable" },
     high_threshold:{ type: Number, default: null, tip: "threshold for high_color, null to disable" },
-    base_color: { type: String, default: 'lightgrey', tip: "color of unfilled segment" },
+    base_color: { type: String, default: 'grey-lighten-3', tip: "color of unfilled segment" },
     needle_color: { type: String, default: 'white', tip: "color of needle" },
     radius: { type: Number, default: 70, tip: "inner radius, outer being 100" },
     stretch: { type: Boolean, default: false, tip: "false: 2:1 aspect ratio, true: stretch" },
   },
+
+  data: () => ({ color2hhex }), // make import available in template
 
   computed: {
     gaugeColor() {

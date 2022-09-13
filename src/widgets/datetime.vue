@@ -21,6 +21,8 @@
 </style>
 
 <script scoped>
+import { color2hhex } from '/src/utils/colors.js'
+
 export default {
   name: 'DateTime',
   // help displayed in the UI: the first line is used in the widgets menu and is always shown in
@@ -86,7 +88,7 @@ export default {
       if (this.high_threshold !== null && dt >= this.high_threshold) return this.high_color
       return this.color
     },
-    dateStyle() { return { color: this.finalColor } },
+    dateStyle() { return { color: color2hhex(this.finalColor) } },
     zoomStyle() { return { fontSize: this.zoom + "%", 'line-height': this.zoom + "%" } },
   },
 

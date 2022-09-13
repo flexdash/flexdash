@@ -8,6 +8,8 @@
 </template>
 
 <script scoped>
+import { color2hhex } from '/src/utils/colors.js'
+
 export default {
   name: 'Label',
   help: `Display a label, useful in panels.
@@ -36,7 +38,7 @@ thresholds, units and such.`,
       "padding": this.padding,
     }},
     text_style() { return {
-      "color": this.color,
+      "color": color2hhex(this.color),
       "font-weight": this.weight,
       "font-size": this.size,
     }},

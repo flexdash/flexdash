@@ -23,6 +23,8 @@
 </style>
 
 <script scoped>
+import { color2hhex } from '/src/utils/colors.js'
+
 export default {
   name: 'Stat',
   // help displayed in the UI: the first line is used in the widgets menu and is always shown in
@@ -69,11 +71,11 @@ the \`precision\` option. Integer values are shown as-is.
     // round values to one decimal (should make that adjustable) and show "--" if the value is
     // null or undefined
     valTxt() { return this.valueUnitISO[0] },
-    valueUnitISO() {
+    valueUnitISO() { // https://www.nist.gov/pml/owm/metric-si-prefixes
       let v = this.value
       if (typeof v == 'number') {
         if (v >= 1 || v == 0) {
-          let prefix = ["", "K", "M", "G", "T", "P", "E", "Z", "Y"]
+          let prefix = ["", "k", "M", "G", "T", "P", "E", "Z", "Y"]
           let i = 0
           while (v >= 1000 && i < prefix.length) {
             v /= 1000
@@ -110,7 +112,10 @@ the \`precision\` option. Integer values are shown as-is.
       if (this.highRegexp && this.highRegexp.test(this.value)) return this.high_color
       return this.color
     },
-    finalColor() { return (typeof this.value === 'number') ? this.numColor : this.textColor },
+    finalColor() {
+      const c = typeof this.value === 'number' ? this.numColor : this.textColor
+      return color2hhex(c)
+    },
     // compute the CSS style for the value
     statStyle() {
       const style = { fontSize: `${this.zoom * 100}%`, lineHeight: `${this.zoom * 100}%` }
