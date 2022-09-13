@@ -83,14 +83,15 @@
 </template>
 
 <style scoped>
-.widget-edit { max-width: 100%; }
+.widget-edit { max-width: 100%; position: relative; } /* rel: to position "ix" */
 .widget-edit .prop-columns {
   width: 100%; columns: 340px; column-gap: 1.5em; column-rule: 1px solid #888;
 }
 .ix {
-  position: relative; left: 0px; bottom: 12px; padding: 0px; z-index: 1;
+  position: absolute; left: 0px; bottom: 0px; padding: 0px; z-index: 1;
   min-width: 0px; max-width: fit-content;
-  color: #888; background-color: rgba(0, 0, 0, 0.8); font-size: 12px;
+  color: #aaa; background-color: rgba(0, 0, 0, 0.8);
+  font-size: 12px; line-height: 12px;
 }
 </style>
 
