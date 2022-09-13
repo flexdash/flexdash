@@ -20,7 +20,7 @@
   </v-card-text>
 
   <!-- table of properties -->
-  <v-table height="100%">
+  <v-table height="auto" style="overflow-y:scroll">
     <tbody>
       <tr v-for="key, ix in keys" :key="ix">
         <td align="right" class="px-1"><b>{{key}}:</b></td>
