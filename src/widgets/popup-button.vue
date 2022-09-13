@@ -1,4 +1,4 @@
-<!-- PushButton - Simple button that sends a message when clicked
+<!-- PopupButton - Button to pop-up a markdown text panel
      Copyright ©2021 Thorsten von Eicken, MIT license, see LICENSE file
 -->
 <template>
@@ -34,8 +34,8 @@ export default {
 
   components: { md },
 
-  help: `Button to pop-up a mardown text panel.
-Pressing the button pops-up a mardown panel, useful for help or other information.
+  help: `Button to pop-up a markdown text panel.
+Pressing the button pops-up a markdown panel, useful for help or other information.
 The button may contain an icon and/or a title string and is centered in the widget.`,
 
   props: {
