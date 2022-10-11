@@ -105,20 +105,23 @@ thereby alter the number of values shown).
   watch: {
     // watch the values coming in, if we get a number, append to array, if we get an array,
     // use that as data
-    value(v) {
-      //console.log(`SparkLine value: ${v.length || 1}`)
-      if (typeof v === 'number' || v === null) {
-        this.data.push(v)
-        while (this.data.length > 20) this.data.shift()
-      } else if (Array.isArray(v)) {
-        this.data = v
-      }
-      if (this.chart) {
-        if (this.data.length == 0) return;
-        const x = Array.from({length: this.data.length}, (v,ix)=>ix)
-        this.chart.setData([x, this.data])
-      } else {
-        this.create()
+    value: {
+      immediate: true,
+      handler(v) {
+        //console.log(`SparkLine value: ${v.length || 1}`)
+        if (typeof v === 'number' || v === null) {
+          this.data.push(v)
+          while (this.data.length > 20) this.data.shift()
+        } else if (Array.isArray(v)) {
+          this.data = v
+        }
+        if (this.chart) {
+          if (this.data.length == 0) return;
+          const x = Array.from({length: this.data.length}, (v,ix)=>ix)
+          this.chart.setData([x, this.data])
+        } else {
+          this.create()
+        }
       }
     },
 
