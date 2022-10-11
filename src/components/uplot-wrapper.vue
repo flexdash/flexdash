@@ -81,6 +81,7 @@ export default {
       handler(data, /*prevData*/) { // FIXME: do we need to check that the data is new?
         if (!data) return // handle init case where data is undefined
         if (this.chart) this.chart.setData(data)
+        else this.create()
       }
     }
   },
