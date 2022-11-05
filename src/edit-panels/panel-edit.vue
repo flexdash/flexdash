@@ -13,12 +13,12 @@
                :scrim="false" @click:outside="endEdit">
       <template #activator="{ props }">
         <!-- Panel proper inside a widget-wrap -->
-        <widget-wrap :config="widget" @edit="toggleEdit" :color="color" v-bind="props">
+        <widget-wrap :config="widget" @edit="toggleEdit" :color="color" :ref="props.ref">
         </widget-wrap>
       </template>
 
       <!-- Editing panel shown floating below panel -->
-      <v-card color="panel" class='mt-1'>
+      <v-card color="panel" class='mt-1 pb-2'>
         <!-- title and close button -->
         <title-edit what="panel" class="mt-1" :title="widget.static['title']"
                     @close="endEdit"
