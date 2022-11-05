@@ -21,8 +21,10 @@
     </v-card-text>
 
     <!-- not editing... -->
-    <v-card-text v-if="!editing" class="pt-1 flex-grow-1 flex-shrink-1 overflow-auto">
-      <pre>{{text}}</pre>
+    <v-card-text v-if="!editing"
+                 class="pt-1 flex-grow-1 flex-shrink-1 overflow-auto d-flex"
+                 :style="scrollStyle">
+      <pre :style="preStyle" ref="scroller">{{text}}</pre>
     </v-card-text>
 
     <!-- editing... -->
@@ -59,8 +61,9 @@ export default {
   props: {
     title: { type: String, default: 'TextView' },
     text: { type: String, default: "" },
-    //autoscroll: { type: Boolean, default: false, tip: "Auto-scroll to bottom" },
     editable: { type: Boolean, default: false, tip: "allow editing of the text"},
+    wrap: { type: Boolean, default: false, tip: "wrap text"},
+    autoscroll: { type: Boolean, default: true, tip: "auto-scroll to bottom of text (incompatible with editable)"},
   },
 
   output: { default: null },
@@ -68,6 +71,44 @@ export default {
   data() { return {
     editing: false,
   }},
+
+  // watch: {
+  //   text: {
+  //     immediate: false,
+  //     handler() {
+  //       console.log("TEXT WATCH")
+  //       if (this.autoscroll && !this.editable) {
+  //         // scroll to bottom
+  //         const el = this.$refs.scroller.parentElement
+  //         console.log("SCROLL", el.scrollHeight, el.clientHeight)
+  //         el.scrollTop = el.scrollHeight - el.clientHeight
+  //       }
+  //     },
+  //   },
+  // },
+
+  // mounted() {
+  //   if (!this.editable) {
+  //     console.log("MOUNT-SCROLLING")
+  //     // scroll to bottom
+  //     const el = this.$refs.scroller.parentElement
+  //     console.log("SCROLL", el.scrollHeight, el.clientHeight)
+  //     el.scrollTop = el.scrollHeight - el.clientHeight
+  //   }
+  // },
+  
+  computed: {
+    preStyle() {
+      return {
+        'overflow-wrap': this.wrap ? 'anywhere' : 'normal',
+        'white-space': this.wrap ? 'pre-wrap' : 'nowrap',
+        'word-break': this.wrap ? 'break-all' : 'inherit',
+      }
+    },
+    scrollStyle() { return {
+      'flex-direction': this.autoscroll ? 'column-reverse' : 'column',
+    }},
+  },
 
   methods: {
     handleEdit() { this.editing = true },
