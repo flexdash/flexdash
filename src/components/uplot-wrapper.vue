@@ -96,7 +96,7 @@ export default {
   },
 
   mounted() {
-    if (this.chart) console.log("Error: uPlot chart created too early")//no resizeObs before mount!
+    if (this.chart) console.log("Warning: uPlot chart created too early")//no resizeObs before mount!
     this.create()
   },
 
