@@ -67,34 +67,16 @@ the \`precision\` option. Integer values are shown as-is.
 
   computed: {
     // don't display a unit if there's no value
-    unitTxt() { return this.valueUnitISO[1] },
+    unitTxt() { return this.valueUnit[1] },
     // round values to one decimal (should make that adjustable) and show "--" if the value is
     // null or undefined
-    valTxt() { return this.valueUnitISO[0] },
-    valueUnitISO() { // https://www.nist.gov/pml/owm/metric-si-prefixes
+    valTxt() { return this.valueUnit[0] },
+    valueUnit () {
       let v = this.value
-      if (typeof v == 'number') {
-        if (v >= 1 || v == 0) {
-          let prefix = ["", "k", "M", "G", "T", "P", "E", "Z", "Y"]
-          let i = 0
-          while (v >= 1000 && i < prefix.length) {
-            v /= 1000
-            i++
-          }
-          if (prefix[i] == "" && Number.isInteger(v))  return [v.toFixed(0), this.unit]
-          return [ v.toPrecision(this.precision), prefix[i] + this.unit]
-        } else if (v > 0) {
-          let prefix = ["m", "µ", "n", "p", "f", "a", "z", "y"]
-          let i = 0
-          while (v < 1 && i < prefix.length) {
-            v *= 1000
-            i++
-          }
-          return [ v.toPrecision(this.precision), prefix[i] + this.unit]
-        }
-        return [ v.toPrecision(this.precision), this.unit ]
-      } else if (v === null) return [ "--", "" ]
-      else return [ v, "" ]
+      if (v === null || v === undefined) return [ "--", "" ]
+      if (typeof v !== "number") return [ v, "" ]
+      if (this.iso_prefix) return this.valueUnitISO(v)
+      return [ v.toFixed(this.precision), this.unit ]
     },
     // compute the color for number values
     numColor() {
@@ -122,6 +104,34 @@ the \`precision\` option. Integer values are shown as-is.
       if (this.finalColor) style.color = this.finalColor
       return style
     },
+  },
+
+  methods: {
+    valueUnitISO(v) { // https://www.nist.gov/pml/owm/metric-si-prefixes
+      const sign = v < 0 ? -1 : 1
+      v = v * sign
+      if (v >= 1 || v == 0) {
+        let prefix = ["", "k", "M", "G", "T", "P", "E", "Z", "Y"]
+        let i = 0
+        while (v >= 1000 && i < prefix.length) {
+          v /= 1000
+          i++
+        }
+        if (prefix[i] == "" && Number.isInteger(v))  return [(sign*v).toFixed(0), this.unit]
+        return [ (sign*v).toPrecision(this.precision), prefix[i] + this.unit]
+      } else if (v > 0) {
+        let prefix = ["m", "µ", "n", "p", "f", "a", "z", "y"]
+        let i = 0
+        v *= 1000
+        while (v < 1 && i < prefix.length) {
+          v *= 1000
+          i++
+        }
+        return [ (sign*v).toPrecision(this.precision), prefix[i] + this.unit]
+      }
+      return [ (sign*v).toPrecision(this.precision), this.unit ]
+    },
+
   },
 
 }
