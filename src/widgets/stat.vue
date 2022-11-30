@@ -24,6 +24,7 @@
 
 <script scoped>
 import { color2hhex } from '/src/utils/colors.js'
+import { toISO } from '/src/utils/formatter.js'
 
 export default {
   name: 'Stat',
@@ -107,29 +108,9 @@ the \`precision\` option. Integer values are shown as-is.
   },
 
   methods: {
-    valueUnitISO(v) { // https://www.nist.gov/pml/owm/metric-si-prefixes
-      const sign = v < 0 ? -1 : 1
-      v = v * sign
-      if (v >= 1 || v == 0) {
-        let prefix = ["", "k", "M", "G", "T", "P", "E", "Z", "Y"]
-        let i = 0
-        while (v >= 1000 && i < prefix.length) {
-          v /= 1000
-          i++
-        }
-        if (prefix[i] == "" && Number.isInteger(v))  return [(sign*v).toFixed(0), this.unit]
-        return [ (sign*v).toPrecision(this.precision), prefix[i] + this.unit]
-      } else if (v > 0) {
-        let prefix = ["m", "µ", "n", "p", "f", "a", "z", "y"]
-        let i = 0
-        v *= 1000
-        while (v < 1 && i < prefix.length) {
-          v *= 1000
-          i++
-        }
-        return [ (sign*v).toPrecision(this.precision), prefix[i] + this.unit]
-      }
-      return [ (sign*v).toPrecision(this.precision), this.unit ]
+    valueUnitISO(v) {
+      const [val, prefix] = toISO(v)
+      return [ val.toPrecision(this.precision), prefix + this.unit]
     },
 
   },
