@@ -61,6 +61,15 @@ window.addEventListener('popstate', () => {
   app.params = sp
 })
 
+// ===== load fonts
+
+import "@fontsource/roboto/100.css"
+import "@fontsource/roboto/300.css"
+import "@fontsource/roboto/400.css"
+import "@fontsource/roboto/500.css"
+import "@fontsource/roboto/700.css"
+import "@fontsource/roboto/900.css"
+
 // ===== define some globals which are used by dynamically loaded widgets
 
 import * as vue_all from 'vue'
