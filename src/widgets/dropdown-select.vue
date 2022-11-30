@@ -76,7 +76,6 @@ export default {
 
   methods: {
     change(ev) {
-      this.currentValue = ev
       this.$emit('send', ev)
     },
   },

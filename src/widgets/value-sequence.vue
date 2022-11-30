@@ -7,7 +7,9 @@
     <div class="d-flex justify-center align-center mx-1">
       <v-defaults-provider :defaults="{global:{density:'compact', size:'small'}}">
         <v-btn icon text @click="dec"><v-icon>mdi-minus</v-icon></v-btn>
-        <v-chip size="default" density="comfortable" class="mx-1">{{val}}<span class="unit">{{unit}}</span></v-chip>
+        <v-chip size="default" density="comfortable" class="mx-1">
+          {{value}}<span class="unit">{{unit}}</span>
+        </v-chip>
         <v-btn icon text @click="inc"><v-icon>mdi-plus</v-icon></v-btn>
       </v-defaults-provider>
     </div>
@@ -47,11 +49,6 @@ If the \`value\` is not part of the range, it is displayed, but the next button 
 
   output: { default: null, tip: "outputs value selected" },
 
-  data() { return {
-    val: this.value,
-    ix: 0, // can't calculate due to values() not having run yet: this.val2ix(this.value),
-  }},
-
   computed: {
     // values to select from, basically this.range with ranges expanded
     values() {
@@ -79,32 +76,31 @@ If the \`value\` is not part of the range, it is displayed, but the next button 
       if (this.label_above) return [ "flex-column", "align-center" ]
       else return [ "flex-row", "align-center" ]
     },
-  },
 
-  watch: {
-    value(v) {
-      this.val = v
-      this.ix = this.val2ix(v)
-    },
-    values() { this.ix = this.val2ix(this.val) },
+    
   },
-
+  
   methods: {
     // find the value in the range sequence to get the index into the sequence
     // FIXME: for numeric values that are not found could return closest ix
-    val2ix(v) {
-      let ix = this.values.findIndex(x => x == v)
+    ix() {
+      if (!this.values) return null
+      let ix = this.values.findIndex(x => x == this.value)
       return ix == -1 ? 0 : ix
     },
+
     inc() {
-      if (this.ix < this.values.length-1) { this.ix += 1; this.val = this.values[this.ix] }
-      this.emit()
+      let ix = this.ix()
+      if (ix == null) return
+      if (ix < this.values.length-1) ix++
+      this.$emit('send', this.values[ix])
     },
     dec() {
-      if (this.ix > 0) { this.ix -= 1; this.val = this.values[this.ix] }
-      this.emit()
+      let ix = this.ix()
+      if (ix == null) return
+      if (ix > 0) ix--
+      this.$emit('send', this.values[ix])
     },
-    emit() { this.$emit('send', this.val) },
   },
 }
 </script>
