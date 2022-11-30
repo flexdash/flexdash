@@ -19,6 +19,8 @@
 <script scoped>
 
 import { colors, color_by_name } from '/src/utils/plot-colors.js'
+import { toISO } from '/src/utils/formatter.js'
+import assign from 'uplot'
 
 function deepEqual(obj1, obj2) {
   return JSON.stringify(obj1) === JSON.stringify(obj2) // yeah...
@@ -73,14 +75,21 @@ the full uPlot flexibility.
     widths: { type: Array, default: ()=>[], tip: "array of stroke widths for series, default is 2" },
     span_gaps: { type: Array, default: ()=>[],
         tip: "array of bool to span over nulls, default is false" },
+    // Note: the following props are all individual props instead of having a left_axis:{} and
+    // right_axis:{} prop because it allows individual props to be changed while that's not readily
+    // possible with an object prop. Also, the individual props are a bit easier to discover.
     left_unit: { type: String, default: "", tip: "unit to label left axis" },
-    right_unit: { type: String, default: "", tip: "unit to label right axis" },
     left_min: { type: Number, default: null, tip: "minimum for left axis" },
     left_max: { type: Number, default: null, tip: "maximum for left axis" },
     left_decimals: { type: Number, default: 1, tip: "decimals on left axis" },
+    left_isoprefix: { type: Boolean, default: false, tip: "use SI prefix on left axis" },
+    left_log: { type: Boolean, default: false, tip: "use log scale on left axis" },
+    right_unit: { type: String, default: "", tip: "unit to label right axis" },
     right_min: { type: Number, default: null, tip: "minimum for right axis" },
     right_max: { type: Number, default: null, tip: "maximum for right axis" },
     right_decimals: { type: Number, default: 1, tip: "decimals on right axis" },
+    right_isoprefix: { type: Boolean, default: false, tip: "use SI prefix on right axis" },
+    right_log: { type: Boolean, default: false, tip: "use log scale on right axis" },
     reverse_legend: { type: Boolean, default: false, tip: "reverse legend order" },
   },
 
@@ -95,6 +104,7 @@ the full uPlot flexibility.
       handler() {
         if (!deepEqual(this.options, this._options)) {
           this.options = this._options
+          console.log(`Options for time-plot-raw: ${(this.labels||[]).join('|')}`, this._options)
         }
       }
     }
@@ -132,13 +142,14 @@ the full uPlot flexibility.
         got_r = got_r || r
         const d = r ? this.right_decimals : this.left_decimals
         const u = r ? this.right_unit : this.left_unit
+        const iso = r ? this.right_isoprefix : this.left_isoprefix
         const serie = {
           label: pp.labels[s] || `series ${s+1}`, // see special case below
           stroke: pp.colors[s] ? color_by_name(pp.colors[s]) : colors[s%colors.length],
           width: pp.widths[s] || 2,
           spanGaps: pp.span_gaps[s],
           scale: r ? "R" : "L",
-          value: `v.toFixed(${d}) + "${u}"`
+          value: iso ? ((_,v) => this.iso_fmt(v, d, u)) : `v && (v.toFixed(${d}) + "${u}")`
         }
         series.push(serie)
       }
@@ -146,33 +157,39 @@ the full uPlot flexibility.
       // axes
       const axes = [ {}, {
         scale: "L",
-        values: `vv.map(v => v + "${this.left_unit}")`,
+        values: this.left_isoprefix
+                ? (_, spl) => this.iso_axis(spl, this.left_decimals, this.left_unit)
+                : `vv.map(v => v && (v + "${this.left_unit}"))`,
       }]
       if (got_r) {
         axes.push({
           scale: "R",
-          values: `vv.map(v => v + "${this.right_unit}")`,
+          values: this.right_isoprefix
+                  ? (_, spl) => this.iso_axis(spl, this.right_decimals, this.right_unit)
+                  : `vv.map(v => v && (v + "${this.right_unit}"))`,
           side: 1,
           grid: {show: false},
         })
       }
 
       // scales, see also https://github.com/leeoniya/uPlot/issues/526
-      const scales = { L: { range: { min: {pad:0.1}, max: {pad:0.1} } } }
-      if (Number.isFinite(this.left_min) || Number.isFinite(this.left_max)) {
-        if (Number.isFinite(this.left_min))
-          Object.assign(scales.L.range.min, { soft: this.left_min, mode: 1 })
-        if (Number.isFinite(this.left_max))
-          Object.assign(scales.L.range.max, { soft: this.left_max, mode: 1 })
+      const scales = { L: { } } // range: { min: {pad:0.1}, max: {pad:0.1} } } }
+      if (Number.isFinite(this.left_min))
+        assign(scales.L, { range: { min: { soft: this.left_min, mode: 1 }}})
+      if (Number.isFinite(this.left_max))
+        assign(scales.L, { range: { max: { soft: this.left_max, mode: 1 }}})
+      if (this.left_log) {
+        scales.L.distr = 3 // 1=linear,2=ordinal,3=log,4=arcsinh
+        axes[1].grid = { width: 1 }
+        axes[1].ticks = { width: 1 }
       }
       if (got_r) {
-        scales.R = { range: { min: {pad:0.1}, max: {pad:0.1} } }
-        if (Number.isFinite(this.right_min) || Number.isFinite(this.right_max)) {
-          if (Number.isFinite(this.right_min))
-            Object.assign(scales.R.range.min, { soft: this.right_min, mode: 1 })
-          if (Number.isFinite(this.right_max)) 
-            Object.assign(scales.R.range.max, { soft: this.right_max, mode: 1 })
-        }
+        scales.R = {  } // { range: { min: {pad:0.1}, max: {pad:0.1} } } }
+        if (Number.isFinite(this.right_min))
+          assign(scales.R, { range: { min: { soft: this.right_min, mode: 1 }}})
+        if (Number.isFinite(this.right_max)) 
+          assign(scales.R, { range: { max: { soft: this.right_max, mode: 1 }}})
+        if (this.right_log) scales.R.distr = 3
       }
 
       // put uplot options together
@@ -181,12 +198,20 @@ the full uPlot flexibility.
         opts.legend = { show: false }
         opts.series[1].label = " "
       }
-      //console.log(`Options for time-plot-raw:`, opts);
-      // emit in the next tick in order not to affect the dependency stuff
-      //this.$nextTick(() => { this.$emit('send', opts) })
       return opts
     },
 
+  },
+
+  methods: {
+    iso_fmt(value, decimals, unit) {
+      if (!value) return ""
+      const [v, pref] = toISO(value)
+      return v.toFixed(decimals) + pref + unit
+    },
+    iso_axis(splits, decimals, units) {
+      return splits.map(s => s && this.iso_fmt(s, decimals, units))
+    },
   },
 }
 </script>
