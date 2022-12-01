@@ -20,7 +20,6 @@
 
 import { colors, color_by_name } from '/src/utils/plot-colors.js'
 import { toISO } from '/src/utils/formatter.js'
-import assign from 'uplot'
 
 function deepEqual(obj1, obj2) {
   return JSON.stringify(obj1) === JSON.stringify(obj2) // yeah...
@@ -174,10 +173,14 @@ the full uPlot flexibility.
 
       // scales, see also https://github.com/leeoniya/uPlot/issues/526
       const scales = { L: { } } // range: { min: {pad:0.1}, max: {pad:0.1} } } }
-      if (Number.isFinite(this.left_min))
-        assign(scales.L, { range: { min: { soft: this.left_min, mode: 1 }}})
-      if (Number.isFinite(this.left_max))
-        assign(scales.L, { range: { max: { soft: this.left_max, mode: 1 }}})
+      if (Number.isFinite(this.left_min)) {
+        scales.L.range ||= {}
+        scales.L.range.min = { soft: this.left_min, mode: 1 }
+      }
+      if (Number.isFinite(this.left_max)) {
+        scales.L.range ||= {}
+        scales.L.range.max = { soft: this.left_max, mode: 1 }
+      }
       if (this.left_log) {
         scales.L.distr = 3 // 1=linear,2=ordinal,3=log,4=arcsinh
         axes[1].grid = { width: 1 }
@@ -185,10 +188,14 @@ the full uPlot flexibility.
       }
       if (got_r) {
         scales.R = {  } // { range: { min: {pad:0.1}, max: {pad:0.1} } } }
-        if (Number.isFinite(this.right_min))
-          assign(scales.R, { range: { min: { soft: this.right_min, mode: 1 }}})
-        if (Number.isFinite(this.right_max)) 
-          assign(scales.R, { range: { max: { soft: this.right_max, mode: 1 }}})
+        if (Number.isFinite(this.right_min)) {
+          scales.R.range ||= {}
+          scales.R.range.min = { soft: this.right_min, mode: 1 }
+        }
+        if (Number.isFinite(this.right_max)) {
+          scales.R.range ||= {}
+          scales.R.range.max = { soft: this.right_max, mode: 1 }
+        }
         if (this.right_log) scales.R.distr = 3
       }
 
