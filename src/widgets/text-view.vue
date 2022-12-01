@@ -101,7 +101,7 @@ export default {
     preStyle() {
       return {
         'overflow-wrap': this.wrap ? 'anywhere' : 'normal',
-        'white-space': this.wrap ? 'pre-wrap' : 'nowrap',
+        'white-space': this.wrap ? 'pre-wrap' : 'pre',
         'word-break': this.wrap ? 'break-all' : 'inherit',
       }
     },
