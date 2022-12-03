@@ -36,7 +36,7 @@ import UplotWrapper from '/src/components/uplot-wrapper.vue'
 import tooltip from '/src/utils/uplot-tooltip.js'
 
 function deepCopy(obj) {
-  if (typeof obj !== 'object') return obj
+  if (typeof obj !== 'object' || obj === null) return obj
   if (Array.isArray(obj)) return obj.map(deepCopy)
   return Object.fromEntries(Object.entries(obj).map(([k,v])=>[k,deepCopy(v)]))
 }
@@ -149,6 +149,7 @@ Note that this "row-wise" structure gets transposed to the columnar structure ex
 
     opts() {
       if (!this.options || !this.options.series || this.options.series.length < 2) return null
+      console.log("TPR options:", this.options)
       let opts = deepCopy(this.options)
 
       // fix-up series
