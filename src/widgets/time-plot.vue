@@ -171,32 +171,37 @@ the full uPlot flexibility.
         })
       }
 
+      // generate the scale definition given the props
+      // for log scale, we have to use hard min/max else uPlot barfs
+      // for linear scale, we use 0.1 pad where no limit is specified, and a soft limit
+      // otherwise, which means that [...]
+      function setScale(log, min, max) {
+        if (log) {
+          const scale = {
+            distr: 3, // 1=linear,2=ordinal,3=log,4=arcsinh
+            range: [null, null], // can't use pad for log scale
+          }
+          if (Number.isFinite(min)) scale.range[0] = min
+          if (Number.isFinite(max)) scale.range[1] = max
+          return scale
+        } else {
+          const scale = { range: { min: {pad:0.1}, max: {pad:0.1} } }
+          if (Number.isFinite(min)) scale.range.min = { soft: min, mode: 1 }
+          if (Number.isFinite(max)) scale.range.max = { soft: max, mode: 1 }
+          return scale
+        }
+      }
+
       // scales, see also https://github.com/leeoniya/uPlot/issues/526
-      const scales = { L: { } } // range: { min: {pad:0.1}, max: {pad:0.1} } } }
-      if (Number.isFinite(this.left_min)) {
-        scales.L.range ||= {}
-        scales.L.range.min = { soft: this.left_min, mode: 1 }
-      }
-      if (Number.isFinite(this.left_max)) {
-        scales.L.range ||= {}
-        scales.L.range.max = { soft: this.left_max, mode: 1 }
-      }
+      const scales = {}
+      scales.L = setScale(this.left_log, this.left_min, this.left_max)
+      if (got_r) scales.R = setScale(this.right_log, this.right_min, this.right_max)
       if (this.left_log) {
-        scales.L.distr = 3 // 1=linear,2=ordinal,3=log,4=arcsinh
         axes[1].grid = { width: 1 }
         axes[1].ticks = { width: 1 }
       }
-      if (got_r) {
-        scales.R = {  } // { range: { min: {pad:0.1}, max: {pad:0.1} } } }
-        if (Number.isFinite(this.right_min)) {
-          scales.R.range ||= {}
-          scales.R.range.min = { soft: this.right_min, mode: 1 }
-        }
-        if (Number.isFinite(this.right_max)) {
-          scales.R.range ||= {}
-          scales.R.range.max = { soft: this.right_max, mode: 1 }
-        }
-        if (this.right_log) scales.R.distr = 3
+      if (got_r && this.right_log) {
+        axes[2].ticks = { width: 1 }
       }
 
       // put uplot options together
