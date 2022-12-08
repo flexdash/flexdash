@@ -13,6 +13,7 @@
       <!-- dialog box to view the error text full-page -->
       <v-dialog v-model="show_error" xxwidth="80%" max-width="100ex">
         <v-card class="d-flex flex-column height100">
+          <!-- title bar with close button -->
           <v-card-title class="d-flex align-baseline width100 pl-6">
             <span>Custom widget import error</span>
             <v-spacer></v-spacer>
@@ -20,6 +21,7 @@
               <v-icon>mdi-close</v-icon>
             </v-btn>
           </v-card-title>
+          <!-- pop-up content with error message and source code -->
           <v-card-text class="flex-grow-1 pt-1">
             <p>Importing <tt>{{(error.fileName||url)}}</tt></p>
             <p>
