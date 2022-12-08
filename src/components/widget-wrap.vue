@@ -344,8 +344,8 @@ export default {
     sendData(data) {
       let o = this.config.output
       if (o) {
-        if (false && !o.startsWith("$demo"))
-          console.log(`Widget ${this.config.kind}[${this.config.id}] sending ${o} <-`, data)
+        // if (!o.startsWith("$demo"))
+        //   console.log(`Widget ${this.config.kind}[${this.config.id}] sending ${o} <-`, data)
         this.$conn.serverSend(o, data)
       }
     },
