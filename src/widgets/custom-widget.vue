@@ -23,11 +23,12 @@
           </v-card-title>
           <!-- pop-up content with error message and source code -->
           <v-card-text class="flex-grow-1 pt-1">
-            <p>Importing <tt>{{(error.fileName||url)}}</tt></p>
+            <p>URL: <tt>{{(error.fileName||url)}}</tt></p>
             <p>
               <span v-if="error.lineNumber">Line {{error.lineNumber}} col {{error.columnNumber}}:</span>
-              {{error.message}}
+              &nbsp;<b>{{error.message}}</b>
             </p>
+            <p class="font-weight-light">The browser console may have additional error messages...</p>
             <p v-if="source" class="pt-2">Source:<br>
               <pre class="pt-1 source">{{source}}</pre>
             </p>
@@ -44,6 +45,7 @@
 <style scoped>
   .loading { color: grey; }
   .source { line-height: 1.0em; }
+  tt { font-size: 80% }
 </style>
 
 <script scoped>
