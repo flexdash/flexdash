@@ -5,7 +5,9 @@ import { reactive } from 'vue'
 
 // use Vite's module glob import to load widgets and grids
 export default function(app) {
-  const palette = reactive({ widgets: {}, grids: {}, count: 0, loaded: false, errors: [] })
+  const palette = reactive(
+    { widgets: {}, grids: {}, components: {}, count: 0, loaded: false, errors: [] }
+  )
 
   function module_list(mm) {
     return Object.keys(mm).map(m => m.replace(/^.*\/(.*)\.vue$/, '$1')).join(' ')
@@ -83,8 +85,16 @@ export default function(app) {
     console.log("Loaded std Grids:", Object.keys(palette.grids).join(' '))
   }
 
+  // load components so they can be used by custom widgets
+  async function load_components() {
+    const components = import.meta.globEager('/src/components/*.vue')
+    load_into(palette.components, components)
+    console.log("Loaded std Components:", Object.keys(palette.components).join(' '))
+  }
+
   load_std().then(() => {
     import.meta.env.PROD ? load_extra_prod() : load_extra_dev()
+    load_components()
   }).then(() => {
     palette.loaded = true
   }).catch(err => {

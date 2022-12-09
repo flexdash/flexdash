@@ -77,5 +77,19 @@ import * as vuetify_all from 'vuetify'
 import * as uplot_all from 'uplot'
 window.Vue = vue_all
 window.Vuetify = vuetify_all
-window.uplot = uplot_all
+window.uPlot = uplot_all
 window.App = app
+window.Palette = palette
+
+// FIXME: loading the utils happens async, which is good, but there's no interlock to make sure
+// some custom widget isn't loaded before the utils are ready.
+window.Utils = {}
+async function loadUtils() {
+  const utils = ['colors', 'formatter', 'gradient', 'plot-colors', 'upload', 'uplot-timeline', 'uplot-tooltip']
+  const modules = import.meta.glob('./utils/*.js')
+  for (const path in modules) {
+    const u = path.split('/').pop().split('.').shift()
+    if (utils.includes(u)) window.Utils[u] = await modules[path]()
+  }
+}
+loadUtils().then(() => console.log("Loaded utils:", Object.keys(window.Utils).join(', ')))
