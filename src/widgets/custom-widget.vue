@@ -2,8 +2,7 @@
      Copyright ©2022 Thorsten von Eicken, MIT license, see LICENSE file
 -->
 <template>
-  <!-- component v-if="component" :is="component" v-bind="bindings" @send="$emit('send', $event)" / -->
-  <component v-if="component" :is="component" v-bind="bindings" @send="sendData($event)" />
+  <component v-if="component" :is="component" v-bind="bindings" @send="$emit('send', $event)" />
   <div v-else style="display: contents">
     <div v-if="error" class="h-100 d-flex align-center justify-center">
       <v-btn variant="elevated" class="ma-auto" max-width="95%" density="default"
@@ -24,7 +23,7 @@
           </v-card-title>
           <!-- pop-up content with error message and source code -->
           <v-card-text class="flex-grow-1 pt-1">
-            <p>URL: <tt>{{(error.fileName||url)}}</tt></p>
+            <p>URL: <code>{{(error.fileName||url)}}</code></p>
             <p>
               <span v-if="error.lineNumber">Line {{error.lineNumber}} col {{error.columnNumber}}:</span>
               &nbsp;<b>{{error.message}}</b>
@@ -46,7 +45,7 @@
 <style scoped>
   .loading { color: grey; }
   .source { line-height: 1.0em; }
-  tt { font-size: 80% }
+  code { font-size: 80% }
 </style>
 
 <script scoped>
@@ -60,15 +59,14 @@ export default {
 
   props: {
     id: { type: String, required: true },
-    styles: { type: String, default: "" },
-    url: { type: String, default: "" },
-    name: { type: String, default: "" },
+    styles: { type: String, default: "" }, // CSS styles to inject in <style> tag
+    url: { type: Array, default: null }, // [URL,hash] for source code
     props: { type: Object, default: () => ({}) },
   },
 
-  emits: ['send'],
 
   output: { default: null },
+  emits: ['send'],
 
   data: () => ({
     component: null,
@@ -81,25 +79,20 @@ export default {
     bindings() { return { ...this.props } },
   },
 
-  methods: {
-    sendData(data) {
-      // console.log(`In CustomWidget ${this.component}: sendData(${data})`)
-      this.$emit('send', data)
-    },
-  },
-
   watch: {
     url: {
       immediate: true,
-      async handler(url) {
-        const name = `w${this.id}`
+      async handler(url_hash) {
+        if (!url_hash || url_hash.length != 2) return
+        const name = `${this.id}-${url_hash[1]}` // name of component
+        const url = `${url_hash[0]}?h=${url_hash[1]}` // URL to fetch component source
         console.log(`CustomWidget ${name} loading ${url}`)
-        if (!url) return
         try {
           const { default: mod } = await import(/*@vite-ignore*/ url)
           delete mod.name // we override with a unique synthetic name
           console.log(`component keys for ${name}:`, Object.keys(mod).join(' '), mod)
-          window.App.component(name, defineComponent(mod))
+          // register if not already reg'd: the hash only changes if source changes
+          if (!window.App.component(name)) window.App.component(name, defineComponent(mod))
           this.component = name
           this.error = null
           this.source = null
