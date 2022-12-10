@@ -7,7 +7,7 @@
       <th class="px-2 mx-auto" v-for="(col,ix) in col_labels" :key="col" :style="th_style[ix]">
         {{col}}
         <v-btn v-if="col_sort[ix]" flat size="small" :color="ix==sort_ix?'primary':'transparent'"
-               class="ml-1 px-0" minWidth="20px" @click="sort(ix)">
+               class="ml-1 px-0" minWidth="20px" @click="sort_table(ix)">
           <v-icon v-if="ix==sort_ix" size="small"
                   :icon="sort_dir > 0 ? 'mdi-sort-ascending' : 'mdi-sort-descending'" />
           <v-icon v-else size="small" icon="mdi-sort" />
@@ -152,7 +152,7 @@ or it can be a single boolean for all columns.
       }
     },
 
-    sort(ix) {
+    sort_table(ix) {
       if (this.sort_ix == ix) this.sort_dir = -this.sort_dir // change sort direction
       else {
         this.sort_ix = ix
