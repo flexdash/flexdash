@@ -51,11 +51,12 @@ The number field sends a message with its contents when the field looses focus (
 
   methods: {
     focusChg(ev) {
-      if (!ev) this.$emit('send', this.vv)
+      if (!ev) this.$emit('send', Number(this.vv))
     },
     submit(ev) {
       document.activeElement.blur() // remove focus from input field
-      this.$emit('send', this.vv)
+      console.log(this.vv, Number(this.vv))
+      this.$emit('send', Number(this.vv))
     },
   },
 
