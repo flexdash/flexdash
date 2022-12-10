@@ -2,7 +2,8 @@
      Copyright ©2022 Thorsten von Eicken, MIT license, see LICENSE file
 -->
 <template>
-  <component v-if="component" :is="component" v-bind="bindings" @send="$emit('send', $event)" />
+  <!-- component v-if="component" :is="component" v-bind="bindings" @send="$emit('send', $event)" / -->
+  <component v-if="component" :is="component" v-bind="bindings" @send="sendData($event)" />
   <div v-else style="display: contents">
     <div v-if="error" class="h-100 d-flex align-center justify-center">
       <v-btn variant="elevated" class="ma-auto" max-width="95%" density="default"
@@ -65,6 +66,8 @@ export default {
     props: { type: Object, default: () => ({}) },
   },
 
+  emits: ['send'],
+
   output: { default: null },
 
   data: () => ({
@@ -76,6 +79,13 @@ export default {
 
   computed: {
     bindings() { return { ...this.props } },
+  },
+
+  methods: {
+    sendData(data) {
+      // console.log(`In CustomWidget ${this.component}: sendData(${data})`)
+      this.$emit('send', data)
+    },
   },
 
   watch: {
