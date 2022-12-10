@@ -49,7 +49,7 @@ the toggle will "stick" to its prior state and repeated clicking will send the s
       color: this.color,
       trueValue: this.on_value,
       falseValue: this.off_value,
-      label: this.show_value ? this.val : undefined,
+      label: this.show_value ? this.value : undefined,
     }},
   },
 
