@@ -6,10 +6,14 @@ export default function (opts) {
   let left_off = 0, top_off = 0 // offset of u-over WRT .u-tooltip-attach
   let attach = null // element to which we attach the tooltip
 
+  // FIXME: it appears that just about any order of read(), setCursor() and DOM munting can
+  // and does occur. So best is to be defensive and roll with the punches. It doesn't feel
+  // good (haha) but I'm not sure it's really fixable.
+
   // initialize tooltip, cannot use init callback 'cause uPlot calls it before the DOM elements
   // are rendered with the result that offsetParent, offsetLeft, etc are null, so that doesn't help us...
   function ready(u) {
-    if (attach != null) console.log("uplot-tooltip bug? Tooltip already initialized")
+    // if (attach != null) console.log("uplot-tooltip bug? Tooltip already initialized")
     // find parent to attach tooltip
     // we attach to an element with class u-tooltip-attach, which is typically the window content,
     // so tooltips don't get cropped by the border of the plot/widget
@@ -32,7 +36,7 @@ export default function (opts) {
       }
       over = over.parentElement
       if (!over) {
-        console.log(`uplot-tooltip: u.over is not in DOM?`)
+        //console.log(`uplot-tooltip: u.over is not in DOM?`)
         attach = null // this way ready() gets called again later
         return
       }
@@ -61,6 +65,7 @@ export default function (opts) {
 
   function setCursor(u) {
     if (attach === null) ready(u) // needed after setSize...
+    if (attach === null) return // still not ready, give up
     const {left, top, idx} = u.cursor
     
     if (idx === null) {

@@ -149,7 +149,7 @@ Note that this "row-wise" structure gets transposed to the columnar structure ex
 
     opts() {
       if (!this.options || !this.options.series || this.options.series.length < 2) return null
-      console.log("TPR options:", this.options)
+      //console.log("TPR options:", this.options)
       let opts = deepCopy(this.options)
 
       // fix-up series

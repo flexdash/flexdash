@@ -182,7 +182,7 @@ Colors are assigned as follows:
         // size function gets called by uPlot, has to return size in CSS pixels
         // for max(values) + gap + tickSize
         ax.size = (u, values, axisIdx, cycleNum) => {
-          console.log("Timeline axis size called", values, axisIdx, cycleNum)
+          //console.log("Timeline axis size called", values, axisIdx, cycleNum)
           const ax = u.axes[axisIdx]
           if (cycleNum > 1) return u.axes[axisIdx]._size; // bail out, force convergence
           const dfltSize = 40;
@@ -192,9 +192,9 @@ Colors are assigned as follows:
             // measure the text size of each axis value and take the max
             u.ctx.font = u.axes[axisIdx].font[0]
             const sz = Math.max(dfltSize, ...values.map(v=>u.ctx.measureText(v).width))
-            console.log(`Size=${sz} for ${values}, gap=${ax.gap}, tickSize=${ax.ticks.size}`)
+            //console.log(`Size=${sz} for ${values}, gap=${ax.gap}, tickSize=${ax.ticks.size}`)
             //console.log(`Font: ${u.ctx.font}`)
-            console.log(`Returning: ${sz/window.devicePixelRatio + ax.gap}`)
+            //console.log(`Returning: ${sz/window.devicePixelRatio + ax.gap}`)
             return sz/window.devicePixelRatio + ax.gap + ax.ticks.size // uPlot wants CSS pixels
           }
         }
