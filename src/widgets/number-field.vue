@@ -5,7 +5,7 @@
     <template>
       <v-text-field variant="plain" density="compact" class="my-auto px-2 w-100 flex-grow-0"
                   hide-details single-line v-bind="bindings" :class="classes" type="number"
-                  v-model="value" @keyup.enter="submit" @update:focused="focusChg">
+                  v-model="vv" @keyup.enter="submit" @update:focused="focusChg">
     </v-text-field>
 </template>
 
@@ -30,6 +30,14 @@ The number field sends a message with its contents when the field looses focus (
     align: { default: "center", tip: 'Number alignment: left, center, right' },
   },
 
+  data: () => ({
+    vv: null,
+  }),
+
+  watch: {
+    value: { immediate: true, handler(val) { this.vv = val } },
+  },
+
   output: { default: null },
 
   computed: {
@@ -43,11 +51,11 @@ The number field sends a message with its contents when the field looses focus (
 
   methods: {
     focusChg(ev) {
-      if (!ev) this.$emit('send', this.value)
+      if (!ev) this.$emit('send', this.vv)
     },
     submit(ev) {
       document.activeElement.blur() // remove focus from input field
-      this.$emit('send', this.value)
+      this.$emit('send', this.vv)
     },
   },
 

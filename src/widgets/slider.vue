@@ -4,7 +4,7 @@
     <template>
       <v-slider density="compact" :class="classes"
                   hide-details single-line v-bind="bindings"
-                  v-model="value" @update:modelValue="updated"
+                  v-model="vv" @update:modelValue="updated"
                   @update:focused="focusChg" @mouseup="send" @keyup.enter="send">
     </v-slider>
 </template>
@@ -33,6 +33,14 @@ or the lider looses focus.`,
     vertical: { type: Boolean, default: false, tip: 'Show vertical slider instead of horizontal' },
   },
 
+  data: () => ({
+    vv: null,
+  }),
+
+  watch: {
+    value: { immediate: true, handler(val) { this.vv = val } },
+  },
+
   output: { default: null },
 
   computed: {
@@ -56,10 +64,10 @@ or the lider looses focus.`,
 
   methods: {
     focusChg(ev) {
-      if (!ev) this.$emit('send', this.value)
+      if (!ev) this.$emit('send', this.vv)
     },
     send(ev) {
-      this.$emit('send', this.value)
+      this.$emit('send', this.vv)
     },
     updated(ev) {
       //this.$emit('send', this.value)
