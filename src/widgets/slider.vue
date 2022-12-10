@@ -24,7 +24,7 @@ or the lider looses focus.`,
   props: {
     enabled: { type: Boolean, default: true },
     color: { type: String, default: "" },
-    value: { type: Number, default: "", tip: 'Value shown in the number field' },
+    value: { type: Number, default: NaN, tip: 'Value shown in the number field' },
     min: { type: Number, default: 0, tip: 'Minimum value' },
     max: { type: Number, default: 100, tip: 'Maximum value' },
     step: { type: Number, default: 1, tip: 'Step size' },
