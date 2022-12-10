@@ -296,7 +296,7 @@ export default {
         val = this.typeCast(val, type)
         this.bindings[prop] = val
       } catch(e) {
-        console.log(`Warning: failed to type-cast prop '${prop}': ${e}`)
+        console.log(`Warning: for ${this.widget_kind} failed to type-cast prop '${prop}': ${e}`)
       }
     },
 
