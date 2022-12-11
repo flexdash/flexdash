@@ -110,7 +110,7 @@ export default {
           this.component = name
           this.import_error = null
           this.source = null
-          if (!isArray(this.errors) || this.errors.length == 0) this.show_error = false
+          if (!Array.isArray(this.errors) || this.errors.length == 0) this.show_error = false
         } catch (err) {
           const msg = `Error importing ${err.fileName}. Line ${err.lineNumber} col ${err.columnNumber}: ${err.message}`
           console.log(msg)
