@@ -85,6 +85,7 @@ export class Store {
   // insertion (except that intermediate path elements that were created in the traversal
   // will not be deleted by this).
   insertData(topic, payload) {
+    const dbg = false
     let tt = topic.split("/") // split levels of hierarchy
     tt = tt.filter(t => t.length > 0) // remove empty components, e.g. leading slash
     if (tt.length == 0) {
@@ -93,7 +94,7 @@ export class Store {
 
     if (topic === "$config") {
       this.config = this.root.$config = payload
-      //console.log("Replaced $config with:", payload)
+      if (dbg) console.log("Replaced $config with:", payload)
       return
     }
 
@@ -111,14 +112,14 @@ export class Store {
           if (payload === undefined) // can't produce a simple undo
             throw new StoreError(`Cannot delete array element '${ix}' in '${topic}'`)
           old = dir[ix]
-          //console.log(`Updated array elt ${topic} with`, payload)
+          if (dbg) console.log(`Updated array elt ${topic} with`, payload)
           // Vue.set(dir, ix, payload)
           dir[ix] = payload
         } else if (ix == dir.length) {
           if (payload === undefined)
             throw new StoreError(`Array index '${ix}' in '${topic}' >= ${dir.length}`)
           old = undefined
-          //console.log(`Appended array elt ${topic} with`, payload)
+          if (dbg) console.log(`Appended array elt ${topic} with`, payload)
           dir.push(payload)
         } else {
           throw new StoreError(`Array index '${ix}' in '${topic}' > ${dir.length}`)
@@ -129,11 +130,11 @@ export class Store {
     } else if (typeof(dir) === 'object') {
       old = dir[t]
       if (payload !== undefined) {
-        //console.log(`Updated ${topic} with:`, payload)
+        if (dbg) console.log(`Updated ${topic} with:`, payload)
         //Vue.set(dir, t, payload) // $set 'cause we may add new props to dir
         dir[t] = payload
       } else {
-        //console.log(`Deleted ${topic}`)
+        if (dbg) console.log(`Deleted ${topic}`)
         // Vue.delete(dir, t)
         delete dir[t]
       }
