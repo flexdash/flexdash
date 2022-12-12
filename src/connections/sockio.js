@@ -18,6 +18,8 @@ export default class SockioConnection {
     this.checker = null // interval timer to check unsent messages
     this.reqId = 100
     this.requests = {}
+    this.clientId = btoa(Array.from(crypto.getRandomValues(new Uint8Array(12))).
+        map(v=>String.fromCharCode(v)).join('')) // 12 bytes -> 16 chars
 
     // data fed into the Vue reactivity system
     this.data = {
@@ -38,7 +40,11 @@ export default class SockioConnection {
     const method = config.tls ? "https" : "http"
 
     // connect
-    const opts = { path: config.path, withCredentials: true} // transports:["polling","websocket"] }
+    const opts = {
+      path: config.path,
+      withCredentials: true,
+      extraHeaders: { 'X-Client-ID': this.clientId },
+     }
     const url = method + '://' + config.hostname + '/' + namespace // not really a url...
     console.log("Socket IO server address:", url)
     console.log("Socket IO options:", JSON.stringify(opts))
@@ -73,6 +79,11 @@ export default class SockioConnection {
     this.sock.on("connect", () => {
       console.log("SIO connected")
       this.setStatus()
+    })
+
+    this.sock.on("client_id", id => {
+      console.log("SIO client id:", id)
+      this.clientId = id
     })
 
     // handle set message
