@@ -41,11 +41,11 @@
 import uPlot from 'uplot'
 import 'uplot/dist/uPlot.min.css'
 
-// function deepCopy(obj) {
-//   if (typeof obj !== 'object') return obj
-//   if (Array.isArray(obj)) return obj.map(deepCopy)
-//   return Object.fromEntries(Object.entries(obj).map(([k,v])=>[k,deepCopy(v)]))
-// }
+function deepCopy(obj) {
+  if (typeof obj !== 'object' || obj === null) return obj
+  if (Array.isArray(obj)) return obj.map(deepCopy)
+  return Object.fromEntries(Object.entries(obj).map(([k,v])=>[k,deepCopy(v)]))
+}
 
 export default {
   name: "UplotWrapper",
@@ -61,12 +61,12 @@ export default {
   },
 
   data() { return {
-    chart: null, // uPlot object instance
     ro: new ResizeObserver(()=>this.onResize()),
     ro_uwrap: null, // element being observed
     width: 40, // width in pixels
     dark_watcher: null, // watcher on $vuetify.theme.dark used to adjust chart colors
     is_dark: false, // true if dark theme is active
+    // chart: null, // uPlot object instance, init'd in created() callback
   }},
 
   watch: {
@@ -78,6 +78,7 @@ export default {
 
     data: {
       immediate: true,
+      deep: true,
       handler(data, /*prevData*/) { // FIXME: do we need to check that the data is new?
         if (!data) return // handle init case where data is undefined
         if (this.chart) this.chart.setData(data)
@@ -87,6 +88,7 @@ export default {
   },
 
   created() {
+    this.chart = null // uPlot object instance (non-reactive)
     // theme switching, there must be an easier way to detect the current theme...
     this.dark_watcher = this.$watch(
       ()  => this.$vuetify.theme.global.current.dark,
@@ -157,18 +159,23 @@ export default {
     },
 
     create() {
-      if (!this.data || this.data.length === 0) return
-      if (!this.options || !this.options.series || this.options.series.length < 2) return
-      // start with some size, will be corrected once stuff goes into the DOM, there must be a
-      // better way...
-      const opts = Object.assign({}, this.options)
-      opts.width = 200
-      opts.height= 150
-      if (! opts.padding) opts.padding = [8, null, null, null] // reduce padding at top
-      else if (opts.padding[0] !== null) opts.padding[0] = 8
-      opts.plugins = this.options.plugins.map(p => p(uPlot))
-      this.chart = new uPlot(opts, this.data, this.$el)
-      this.$nextTick(() => this.observeSize())
+      try {
+        if (!this.data || this.data.length === 0) return
+        if (!this.options || !this.options.series || this.options.series.length < 2) return
+        // start with some size, will be corrected once stuff goes into the DOM, there must be a
+        // better way...
+        const opts = deepCopy(this.options)
+        opts.width = 200
+        opts.height= 150
+        if (! opts.padding) opts.padding = [8, null, null, null] // reduce padding at top
+        else if (opts.padding[0] !== null) opts.padding[0] = 8
+        opts.plugins = this.options.plugins.map(p => p(uPlot))
+        this.chart = new uPlot(opts, this.data, this.$el)
+        this.$nextTick(() => this.observeSize())
+      } catch (e) {
+        console.log("uPlotWrapper create: error creating chart", e)
+        throw(e)
+      }
     },
 
   },
