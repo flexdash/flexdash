@@ -57,8 +57,6 @@ headings. It can be a per-column array of booleans to enable/disable sorting per
 or it can be a single boolean for all columns.
 `,
 
-  output: true,
-
   props: {
     data: { default: null, tip: "array of data rows, or map of rows"},
     columns: { type: Array, default: null, tip: "per column key to index into row map"},
@@ -67,6 +65,9 @@ or it can be a single boolean for all columns.
     click: { default: null, tip: "boolean or array of columns to make table/columns clickable"},
     sort: { default: true, tip: "boolean or array of columns to allow sorting by column"},
   },
+
+  output: true,
+  emits: ['send'],
 
   data() { return {
       sort_ix: null, // index of column to sort by
