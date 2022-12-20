@@ -110,6 +110,13 @@ export default class SockioConnection {
       this.setStatus()
     })
 
+    // handle ctrl message
+    this.sock.on("ctrl", (topic, payload) => {
+      //console.log("SIO rx:", m)
+      this.recvMsg("ctrl", payload)
+      this.setStatus()
+    })
+
     // handle download message
     this.sock.on("download", (url, filename) => {
       if (typeof url !== 'string') {

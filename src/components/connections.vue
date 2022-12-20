@@ -102,7 +102,7 @@ export default {
 
   components: { Masonry, MasonryBrick, DemoSettings, WebsockSettings, SockioSettings },
 
-  emits: [ 'update:src' ],
+  emits: [ 'update:src', 'ctrlMessage' ],
 
   data: ()=> ({
     show_dialog: false, // modal dialog box to configure connections
@@ -307,6 +307,11 @@ export default {
       // handleMsg("unset", topic)
       if (kind === "unset") {
         this.$store.insertData(params[0])
+        return
+      }
+
+      if (kind === 'ctrl') {
+        this.$emit('ctrlMessage', params[0])
         return
       }
 

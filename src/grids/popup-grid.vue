@@ -10,7 +10,7 @@
   <v-dialog :model-value="show" @click:outside="closeme">
     <v-card class="px-1 pb-0 d-flex" color="background">
       <v-btn elevation=0 icon class="close-btn mt-2 mr-2" @click="closeme"><v-icon icon="mdi-close" /></v-btn>
-      <std-grid :id="id" />
+      <std-grid :id="id" noEvents />
     </v-card>
   </v-dialog>
 </template>
@@ -30,22 +30,47 @@ export default {
   name: 'PopupGrid',
 
   components: { StdGrid },
-  inject: [ '$config', '$conn' ],
-
-  data() { return { showme: false }},
+  inject: [ '$config', '$conn', '$bus' ],
 
   props: {
     id: { type: String }, // this grid's ID
   },
 
-  computed: {
-    show() { return this.$config.grids[this.id].show },
+  data() { return {
+    show: false,
+    cause: 'manual',
+  }},
+
+  mounted() {
+    this.$bus.on(this.id, this.ctrlEvent)
+  },
+  unmounted() {
+    if (this.busCB) this.$bus.off(this.id, this.ctrlEvent)
+  },
+
+  watch: {
+    // observe the show variable to send an event message to the server when it is toggled
+    show(v, ov) {
+      const payload = { type: v ? "open grid" : "close grid", cause: this.cause, id: this.id }
+      this.cause = 'manual'
+      if (this.$conn?.serverSend) {
+        this.$conn.serverSend("dashboard", payload, "event")
+      }
+    },
   },
 
   methods: {
     closeme() {
-      this.$config.grids[this.id].show = false
-      this.$conn.serverSend(`nr/${this.id}`, { show: false }) // FIXME: component needs output prop!
+      if (!this.show) return
+      this.cause = 'manual'
+      this.show = false
+    },
+
+    // event called via $bus in response to a ctrl message from the server
+    // allows to open/close the pop-up grid
+    ctrlEvent(ev) {
+      if (ev.action == 'open') { this.cause = 'message'; this.show = true }
+      if (ev.action == 'close') { this.cause = 'message'; this.show = false }
     },
 
   },

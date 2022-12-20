@@ -89,10 +89,11 @@ export default {
   name: 'StdGrid',
 
   components: { GridBar, PanelEdit, WidgetEdit, DisabledEdit, WidgetMenu, MinMaxCols },
-  inject: [ '$store', '$config', 'palette', 'global' ],
+  inject: [ '$store', '$config', '$conn', '$bus', 'palette', 'global' ],
 
   props: {
     id: { type: String }, // this grid's ID
+    noEvents: { type: Boolean, default: false }, // don't send events to server, hack to embed in pop-up grid
   },
 
   data() { return {
@@ -134,9 +135,18 @@ export default {
     },
   },
 
-  created() { this._ro = new ResizeObserver(() => this.scaleGrid()) },
-  mounted() { this._ro.observe(this.$refs.grid); this._ro.observe(this.$refs.outer) },
-  unmounted() { if(this._ro) this._ro.disconnect() },
+  created() {
+    this._ro = new ResizeObserver(() => this.scaleGrid())
+  },
+  mounted() {
+    this._ro.observe(this.$refs.grid)
+    this._ro.observe(this.$refs.outer)
+    this.$bus.on(this.id, this.ctrlEvent)
+  },
+  beforeUnmount() {
+    if(this._ro) this._ro.disconnect()
+    this.$bus.off(this.id, this.ctrlEvent)
+  },
 
   watch: {
     pasting(nv) {
@@ -147,6 +157,12 @@ export default {
         this.$refs.pasteDiv.removeEventListener('paste', this.pasteWidget)
       }
     },
+
+    rolledup(v) {
+      if (this.noEvents) return
+      const payload = { type: v ? "close grid" : "open grid", cause: "manual", id: this.id }
+      if (this.$conn?.serverSend) this.$conn.serverSend("dashboard", payload, "event")
+    },
   },
 
   methods: {
@@ -156,8 +172,16 @@ export default {
 
     changeTitle(ev) { this.$store.updateGrid(this.id, { title: ev }) },
 
+    // event called via $bus in response to a ctrl message from the server
+    // allows to roll-up/down the grid
+    ctrlEvent(ev) {
+      if (ev.action == 'open') this.rolledup = false
+      if (ev.action == 'close') this.rolledup = true
+    },
+
     scaleGrid() {
       let g = this.$refs.grid
+      if (!g) return // el is removed before beforeUnmount is triggered
       let p = g.parentElement
       if (!p.clientWidth || ! g.clientWidth) {
         this.gridScale = ""

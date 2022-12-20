@@ -7,6 +7,7 @@ import vuetify, { components } from './plugins/vuetify'
 import Dash from './dash.vue'
 import Store from './store'
 import loadPalette from './utils/palette-loader'
+import mitt from 'mitt'
 
 // insert a title tag into the HTML head
 if (!window.flexdash_options) window.flexdash_options = {}
@@ -51,6 +52,8 @@ app.provide('global', reactive({
 }))
 // server connection, fields set by the connections component
 app.provide('$conn', {})
+// event bus to deliver events coming from the server to specific components
+app.provide('$bus', mitt())
 
 app.mount('#app')
 

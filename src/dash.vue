@@ -7,7 +7,8 @@
 
     <!-- Top title/navigation bar -->
     <app-bar v-model:tab_ix="tab_ix" v-model:theme="theme" :title="title" :ready="ready"
-             @update:config_src="changeConfigSrc($event)">
+             @update:config_src="changeConfigSrc($event)"
+             @ctrlMessage="handleCtrl">
     </app-bar>
 
     <!-- Main notification snackbar -->
@@ -109,7 +110,7 @@ export default {
   name: 'Dash',
 
   components: { AppBar, TabEdit, Notification },
-  inject: [ '$config', '$store', 'palette', 'global' ],
+  inject: [ '$config', '$store', '$conn', '$bus', 'palette', 'global' ],
 
   setup() {
     const { mobile } = useDisplay()
@@ -130,6 +131,7 @@ export default {
     theme: null, // initialized in beforeMount handler below
 
     config_src: "", // which connection we're getting the dash configuration from
+    cause: 'manual', // tab change cause for events: manual/message
   }),
 
   computed: {
@@ -195,6 +197,10 @@ export default {
         if (t.slot == 'b') this.iframe_b_src = t.url
       }
     }},
+    tab_ix(ix) {
+      this.tabEvent({ type: "change tab", cause: this.cause, ...this.tabEventInfo() })
+      this.cause = 'manual'
+    },
     theme() { this.$vuetify.theme.global.name = this.theme },
   },
 
@@ -220,26 +226,30 @@ export default {
       })
     }
 
+
     // provide a random changing value for demo purposes. It is wired into newly created
     // widgets so they spring to life even before the user customizes them.
     const rs = randomStepper(0, 100)
-    //this.intvl = window.setInterval(()=> this.$store.insertData("$demo_random", rs()), 3000)
 
     //setTimeout(()=>notify("Welcome to FlexDash", "secondary"), 500)
   },
 
-  beforeDestroy() { window.clearInterval(this.intvl) },
+  unmounted() {
+    this.stopVisListener.abort()
+  },
 
-  provide() {
-    const self = this
-    return {
-      // send a "raw" message to the server, should be used primarily to send user input, which
-      // gets mapped into server-data (self.sd) and thus where the nested component knows which
-      // key of self.sd is to be updated.
-      sendSrv(topic, payload) {
-        self.$refs.uib.send({topic: topic, payload: payload})
-      },
-    }
+  mounted() {
+    this.stopVisListener = new AbortController()
+    document.addEventListener('visibilitychange', ()=> {
+      console.log(`Visibility change: ${document.visibilityState} ${document.hidden}`)
+      if (document.visibilityState == 'hidden') {
+        this.tabEvent({ type: "change tab", cause: "hide" })
+      } else {
+        this.tabEvent({ type: "change tab", cause: "expose", ...this.tabEventInfo() })
+      }
+    }, { passive: true, signal: this.stopVisListener.signal })
+    console.log("Added viz listener")
+    this.tabEvent({ type: "change tab", cause: "expose", ...this.tabEventInfo() })
   },
 
   methods: {
@@ -252,6 +262,43 @@ export default {
     changeConfigSrc(ev) {
       console.log("Change config source: ", ev)
       this.config_src = ev
+    },
+
+    // put together the info about the tab to send a change tab event
+    tabEventInfo() {
+      // fetch tab info explciitly 'cause we get called from tab_ix watcher and this.tab may
+      // not yet have updated
+      const tab_id = this.tab_ix != null && this.dash_tabs[this.tab_ix]
+      const tab = tab_id && this.tabs[tab_id]
+      if (!tab) return {}
+      return { id: tab.id, icon: tab.icon }
+    },
+
+    tabEvent(payload) {
+      if (this.$conn?.serverSend) this.$conn.serverSend("dashboard", payload, "event")
+      else console.log("No connection to send tab event", payload)
+    },
+
+    // handle control message coming in from the server
+    handleCtrl(payload) {
+      console.log("Control message", payload)
+      if (payload.action == "open" && payload.id) {
+        if (payload.type == 'tab') {
+          this.dash_tabs.forEach((t,ix)=> {
+            if (ix != this.tab_ix && payload.id == this.tabs[t].id) {
+              console.log(`Changing tab to ${ix} due to control message`)
+              this.cause = 'message'
+              this.tab_ix = ix
+            }
+          })
+        } else if (payload.type == 'grid') {
+          this.$bus.emit(payload.id, payload)
+        }
+      } else if (payload.action == "close" && payload.id) {
+        if (payload.type == 'grid') {
+          this.$bus.emit(payload.id, payload)
+        }
+      }
     },
 
     // handle buttons for tab editing

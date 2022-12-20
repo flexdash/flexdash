@@ -39,7 +39,7 @@
       </v-btn>
     </v-tabs>
 
-    <v-spacer></v-spacer>
+    <v-spacer />
 
     <!-- Undo button -->
     <v-tooltip v-if="global.editMode" :disabled="!canUndo">
@@ -52,11 +52,11 @@
     </v-tooltip>
 
     <!-- Connections icon and menu -->
-    <connections @update:src="$emit('update:config_src', $event)" ></connections>
+    <connections @update:src="$emit('update:config_src', $event)"
+                 @ctrlMessage="$emit('ctrlMessage', $event)" />
 
     <!-- Settings icon and menu at far right -->
-    <settings-menu :theme="theme" @update:theme="$emit('update:theme', $event)" v-if="ready">
-    </settings-menu>
+    <settings-menu :theme="theme" @update:theme="$emit('update:theme', $event)" v-if="ready" />
   </v-app-bar>
 
   <!-- Navigation drawer opening from the left on small devices to show tabs -->
@@ -119,7 +119,7 @@ export default {
     theme: { type: String, default: "" },
   },
 
-  emits: [ 'update:tab_ix', 'update:theme', 'update:config_src' ],
+  emits: [ 'update:tab_ix', 'update:theme', 'update:config_src', 'ctrlMessage' ],
 
   data() { return {
     sidebar: false, // initially disabled
