@@ -42,7 +42,7 @@
         </component>
       </div>
     </div>
-    <div v-if="gridScale && scale != '1.00'" class="scale">grid scale {{ scale }}x</div>
+    <div v-if="scale != '1.00'" class="scale">grid scale {{ scale }}x</div>
   </div>
 </template>
 
@@ -50,9 +50,9 @@
 /* style to make grid happen */
 .g-grid-small {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-  grid-auto-rows: 78px;
-  gap: 8px;
+  grid-template-columns: repeat(auto-fill, minmax(calc(v-bind(colw) * 1px), 1fr));
+  grid-auto-rows: calc(v-bind(colw) * 0.66px);
+  gap: calc(v-bind(gapw) * 1px);
   grid-auto-flow: dense;
 }
 .g-grid-margin { margin: 0.5em; }
@@ -101,7 +101,9 @@ export default {
     rolledup: false, // whether grid is rolled-up
     pasting: false, // controls display of paste div
     gridScale: "", // style to scale grid up to fill width
-    scale: 1, // scale of grid for debug purposes
+    scale: 1, // scale of grid
+    colw: COLW, // width of columns in pixels
+    gapw: GAPW, // const (gap between widgets in pixels)
   }},
 
   computed: {
@@ -120,8 +122,8 @@ export default {
     },
     gridStyle() {
       // min width to fit N widgets is N*COLW, plus gaps: (N-1)*GAPW, plus l/r padding: 2*GAPW
-      let min_width = this.minCols * COLW + (this.minCols + 1) * GAPW
-      let max_width = this.maxCols * COLW + (this.maxCols + 1) * GAPW + (COLW + GAPW - 2)
+      let min_width = this.minCols * this.colw + (this.minCols + 1) * GAPW
+      let max_width = this.maxCols * this.colw + (this.maxCols + 1) * GAPW + (this.colw + GAPW - 2)
       return { minWidth: `${min_width}px`, maxWidth: `${max_width}px` }
     },
 
@@ -187,15 +189,27 @@ export default {
         this.gridScale = ""
         return
       }
-      let scale = p.clientWidth / g.clientWidth
-      if (scale > 1.33) scale = 1.33
-      if (scale < 0.75) scale = 0.75
-      this.scale = scale.toFixed(2)
-      //console.log(`parentWidth=${p.clientWidth} gridWidth=${g.clientWidth} gridHeight=${g.clientHeight} scale=${scale}`)
-      this.gridScale = {
-        'transform-origin': 'top left',
-        transform: `scale(${scale})`,
-        height: `${g.clientHeight*scale}px`,
+      
+      if (true) {
+        // scaling by tweaking the width of columns
+        let maxw = this.maxCols * (COLW+GAPW)
+        let scale = p.clientWidth / maxw
+        if (scale > 1.33) scale = 1.33
+        if (scale < 0.75) scale = 0.75
+        this.scale = scale.toFixed(2)
+        this.colw = COLW * scale
+      } else {
+        // scaling by applying a transform to magnify the grid
+        let scale = p.clientWidth / g.clientWidth
+        console.log(`parentWidth=${p.clientWidth} gridWidth=${g.clientWidth} gridHeight=${g.clientHeight} scale=${scale}`)
+        if (scale > 1.33) scale = 1.33
+        if (scale < 0.75) scale = 0.75
+        this.scale = scale.toFixed(2)
+        this.gridScale = {
+          'transform-origin': 'top left',
+          transform: `scale(${scale})`,
+          height: `${g.clientHeight*scale}px`,
+        }
       }
     },
 
