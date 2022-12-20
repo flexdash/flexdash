@@ -234,6 +234,14 @@ export default function (opts) {
     });
   }
 
+  // given the ix of a box (dataY[ix] has value), find the ix one past the end of the box
+  function boxEndX(ix, dataY) {
+    // dataY[i]==undefined -> box continues, ==null -> box ended (no data), ==value -> next box
+    let nextIx = ix + 1
+    while (nextIx < dataY.length && dataY[nextIx] === undefined) nextIx++
+    return nextIx
+  }
+
   function drawPaths(u, sidx, idx0, idx1) {
     uPlot.orient(u, sidx, (series, dataX, dataY, scaleX, scaleY, valToPosX, valToPosY, xOff, yOff, xDim, yDim, moveTo, lineTo, rect) => {
       let strokeWidth = round((series.width || 0) * pxRatio);
@@ -249,26 +257,16 @@ export default function (opts) {
             if (dataY[ix] != null) {
               let lft = round(valToPosX(dataX[ix], scaleX, xDim, xOff));
 
-              let nextIx = ix;
-              while (dataY[++nextIx] === undefined && nextIx < dataY.length) { }
+              // let nextIx = ix;
+              // while (dataY[++nextIx] === undefined && nextIx < dataY.length) { }
+              const nextIx = boxEndX(ix, dataY);
 
-              // to now (not to end of chart)
-              let rgt = nextIx == dataY.length ? xOff + xDim + strokeWidth : round(valToPosX(dataX[nextIx], scaleX, xDim, xOff));
+              // x coord of right edge of box
+              let rgt = nextIx == dataY.length ? xOff + xDim + strokeWidth
+                                               : round(valToPosX(dataX[nextIx], scaleX, xDim, xOff));
 
-              putBox(
-                u.ctx,
-                rect,
-                xOff,
-                yOff,
-                lft,
-                round(yOff + y0),
-                rgt - lft,
-                round(hgt),
-                strokeWidth,
-                iy,
-                ix,
-                dataY[ix]
-              );
+              putBox(u.ctx, rect, xOff, yOff, lft, round(yOff + y0), rgt - lft, round(hgt),
+                strokeWidth, iy, ix, dataY[ix]);
 
               ix = nextIx - 1;
             }
@@ -286,20 +284,8 @@ export default function (opts) {
               // TODO: all xPos can be pre-computed once for all series in aligned set
               let lft = valToPosX(dataX[ix], scaleX, xDim, xOff);
 
-              putBox(
-                u.ctx,
-                rect,
-                xOff,
-                yOff,
-                round(lft - xShift),
-                round(yOff + y0),
-                barWid,
-                round(hgt),
-                strokeWidth,
-                iy,
-                ix,
-                dataY[ix]
-              );
+              putBox(u.ctx, rect, xOff, yOff, round(lft - xShift), round(yOff + y0), barWid, round(hgt),
+                strokeWidth, iy, ix, dataY[ix]);
             }
           }
         }
@@ -314,6 +300,7 @@ export default function (opts) {
     return null;
   }
 
+  // drawPoints is used to draw the text values inside each of the boxes
   function drawPoints(u, sidx, i0, i1) {
     u.ctx.save();
     u.ctx.rect(u.bbox.left, u.bbox.top, u.bbox.width, u.bbox.height);
@@ -330,12 +317,35 @@ export default function (opts) {
 
       let y = round(yOff + yMids[sidx - 1]);
 
-      for (let ix = 0; ix < dataY.length; ix++) {
+      // draw all but last text values
+      // let last = dataY.length - 1;
+      // while(last > 0 && dataY[last] == null) last--
+      let last = dataY.length;
+      let ix;
+      for (ix = 0; ix < last; ix++) {
         if (dataY[ix] != null) {
           let x = valToPosX(dataX[ix], scaleX, xDim, xOff) + textOffset;
-          u.ctx.fillText(dataY[ix], x, y);
+          const nextIx = boxEndX(ix, dataY);
+          // x coord of right edge of box
+          let rgt = nextIx == dataY.length ? xOff + xDim + strokeWidth
+                                           : round(valToPosX(dataX[nextIx], scaleX, xDim, xOff));
+          const boxWidth = rgt - x;
+          // draw if it fits
+          const metr = u.ctx.measureText(dataY[ix])
+          if (boxWidth >= metr.width) u.ctx.fillText(dataY[ix], x, y)
         }
       }
+      // draw last one right-aligned
+      // right-aligning the last one is tricky because (1) if the value changes at the end of the chart
+      // the last one is off chart and the prev-last should be right-aligned and (2) if the last
+      // segment doesn't reach the end of the chart one can't just draw right-aligned to chart boundary
+      // u.ctx.textAlign = mode == 1 ? "right" : "center";
+      // if (dataY[ix] != null) {
+      //   let x = xOff + xDim - textOffset;
+      //   console.log(`six=${sidx} val=${dataY[ix]} x=${x} xDim=${xDim}`)
+      //   u.ctx.fillText(dataY[ix], x, y);
+      // }
+
     });
 
     u.ctx.restore();
@@ -359,7 +369,6 @@ export default function (opts) {
       },
       drawClear: u => {
         qt = qt || new Quadtree(0, 0, u.bbox.width, u.bbox.height);
-
         qt.clear();
 
         // force-clear the path cache to cause drawBars() to rebuild new quadtree
@@ -369,10 +378,47 @@ export default function (opts) {
       },
       setCursor: u => {
         if (mode == 1) {
-          let val = u.posToVal(u.cursor.left, 'x');
+          //let val = u.posToVal(u.cursor.left, 'x');
           // FIXME: should draw this in the left vertical axis
           //legendTimeValueEl.textContent = u.scales.x.time ? fmtDate(new Date(val * 1e3)) : val.toFixed(2);
         }
+      },
+      ready: u => {
+        if (!opts.onClick) return
+        // handle mouse clicks
+        let clientX, clientY, lastTimeStamp;
+
+        u.over.addEventListener("mousedown", e => {
+          clientX = e.clientX;
+          clientY = e.clientY;
+        });
+
+        u.over.addEventListener("mouseup", e => {
+          // clicked in-place?
+          if (e.clientX == clientX && e.clientY == clientY) {
+            const {left, top, idx} = u.cursor
+            // we get a slew of events (why??) with same timestamp, pass only one
+            if (idx == null || e.timeStamp == lastTimeStamp) return
+            lastTimeStamp = e.timeStamp
+            // canvas coords
+            let cx = round(left * pxRatio)
+            let cy = round(top * pxRatio)
+            if (cx < 0 || cy < 0) return
+            // find box that was clicked
+            let clicked;
+            qt.get(cx, cy, 1, 1, o => {
+              if (pointWithin(cx, cy, o.x, o.y, o.x + o.w, o.y + o.h))
+                clicked = o
+            });
+            if (clicked) {
+              const yVal = u.data[clicked.sidx][clicked.didx]
+              const time = u.posToVal(cx, 'x')
+              console.log(`clicked ser=${clicked.sidx} val=${clicked.didx}=${yVal}`)
+              opts.onClick(clicked.sidx-1, time, yVal)
+            }
+          }
+        });
+
       },
     },
     opts: (u, opts) => {
@@ -380,7 +426,6 @@ export default function (opts) {
         cursor: {
           //	x: false,
           y: false,
-          points: { show: false },
           dataIdx: (u, seriesIdx, closestIdx, xValue) => {
             if (seriesIdx == 0)
               return closestIdx;
