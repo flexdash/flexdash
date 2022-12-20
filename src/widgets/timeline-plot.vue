@@ -68,7 +68,7 @@ Colors are assigned as follows:
     data: {
       type: Array,
       default() { return null },
-      validator(v) { return v===null || (Array.isArray(v) && v.length) },
+      validator(v) { return v===null || (Array.isArray(v)) },
       tip: "array of equal-length series, the first series being the X axis"
     },
     colors: { type: Object, default() { return null }, tip: "map of colors for discrete values" },
@@ -145,7 +145,7 @@ Colors are assigned as follows:
     },
 
     opts() {
-      if (!this.data) return {}
+      if (!this.data || this.data == []) return {}
       const count = this.data.length-1
       let opts = {
         plugins: [ () => timeline({count, ...opts}), () => tooltip({class: "timeline-plot"}) ],
@@ -202,7 +202,8 @@ Colors are assigned as follows:
 
       opts = Object.assign(opts, this.options)
 
-      console.log(`uPlot data: ${this.data.length}x${this.data[0].length} opts:`, JSON.stringify(opts))
+      if (this.data && this.data[0])
+        console.log(`uPlot data: ${this.data.length}x${this.data[0].length} opts:`, JSON.stringify(opts))
       return opts
     },
 
