@@ -61,6 +61,10 @@ Colors are assigned as follows:
 2. if \`colors[value]\` is defined then that color is used.
 3. the next color from the plot color palette is used and assigned to that value.
 
+The click property can be used to make the rows clickable.
+A click outputs \`{ label: row_label, ix: row_index, time: time_point_clicked, value: value_clicked }\`.
+The row_index is zero-based..
+
 `,
 
   props: {
@@ -76,7 +80,11 @@ Colors are assigned as follows:
     gradient: { type: Object, default() { return null },
       tip: "color gradient for values: kind, low, high, low_color, high_color" },
     show_values: { default: true, tip: "show values on bars, may be per-series array" },
+    click: { type: Boolean, default: true, tip: "make rows clickable"},
   },
+
+  output: true,
+  emits: ['send'],
 
   full_page: true, // can expand to full-page
 
@@ -98,6 +106,11 @@ Colors are assigned as follows:
       }
       return this.is_dark ? '#fff' : '#000'
     },
+    on_click(seriesIx, time, dataVal) {
+      const ev = { label: this.labels[seriesIx], ix: seriesIx, time, value: dataVal }
+      console.log("TimelinePlot click:", JSON.stringify(ev))
+      this.$emit('send', ev)
+    }
   },
 
   computed: {
@@ -148,7 +161,10 @@ Colors are assigned as follows:
       if (!this.data || this.data == []) return {}
       const count = this.data.length-1
       let opts = {
-        plugins: [ () => timeline({count, ...opts}), () => tooltip({class: "timeline-plot"}) ],
+        plugins: [
+          () => timeline({count, onClick: this.on_click, ...opts}),
+          () => tooltip({class: "timeline-plot"})
+        ],
         mode: 1, // 1:no splits, 2:splits ???
         series: this.series,
 			  fill: (seriesIdx, dataIdx, value) => this.value2color(value),
