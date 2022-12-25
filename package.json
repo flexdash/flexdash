@@ -27,7 +27,9 @@
   },
   "dependencies": {
     "@fontsource/roboto": "*",
+    "es-module-shims": "^1.6.2",
     "mitt": "^3.0.0",
+    "placement.js": "^1.0.0-beta.5",
     "reconnecting-websocket": "^4.4.0",
     "socket.io-client": "^4.4.0",
     "uplot": "^1.6.17",
@@ -35,14 +37,14 @@
     "vuetify": "^3.0.0"
   },
   "devDependencies": {
+    "@mdi/font": "~6.5.0",
     "@vitejs/plugin-vue": "^3.0.0",
     "@vue/vue3-jest": "^28.0.0",
-    "@mdi/font": "~6.5.0",
-    "vite-plugin-vuetify": "^1.0.0",
     "jest": "^28.0.0",
     "rollup-plugin-visualizer": "^5.5.2",
     "sass": "^1.38.0",
     "sass-loader": "^10.0.0",
-    "vite": "^3.0.0"
+    "vite": "^3.0.0",
+    "vite-plugin-vuetify": "^1.0.0"
   }
 }
