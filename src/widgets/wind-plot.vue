@@ -78,7 +78,7 @@ export default {
   name: "WindPlot",
 
   help: `Wind speed, gust and direction time-series plot
-WindPlot uses the TimePlotRaw widget to render a cmbined wind speed and direction
+WindPlot uses the TimePlotRaw widget to render a combined wind speed and direction
 time-series plot.
 
 The data must be input in the form of "data points" where a data point is an array consisting
