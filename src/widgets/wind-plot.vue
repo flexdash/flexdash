@@ -98,7 +98,7 @@ Note that this "row-wise" structure gets transposed to the columnar structure ex
     data: { // data in row-wise format
       type: Array,
       default: undefined,
-      validator(v) { return Array.isArray(v) },
+      validator(v) { return v == null || Array.isArray(v) },
       tip: "array with unix timestamp, wind direction, speed and gust",
     },
 

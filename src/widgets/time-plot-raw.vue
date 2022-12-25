@@ -69,8 +69,8 @@ Note that this "row-wise" structure gets transposed to the columnar structure ex
     options: { type: Object, default() {return null} }, // options as uPlot expects
     data: { // data in row-wise format
       type: Array,
-      default() { return undefined },
-      validator(v) { return Array.isArray(v) && v.length },
+      default() { return null },
+      validator(v) { return v === null || Array.isArray(v) },
     },
   },
 
@@ -87,29 +87,32 @@ Note that this "row-wise" structure gets transposed to the columnar structure ex
 
   watch: {
 
+    // use a watcher for data because we update chart_data and error_message
     data: {
       immediate: true,
-      handler(data, /*prevData*/) { // FIXME: do we need to check that the data is new?
-        //console.log("Time-plot data changed:", data);
-        if (!data) return // handle init case where data is undefined
-        const replace = Array.isArray(data[0]) // replace entire dataset vs append
+      deep: true,
+      handler(data) {
+        this.error_message = null
 
-        // replace data set
-        if (!this.chart_data || replace) {
-          this.chart_data = this.transpose(replace ? data : [data])
-
-        // we're getting one data point, so append to chart (need to transpose)
-        } else {
-          const num_series = this.chart_data.length
-          for (let i=0; i<num_series; i++)
-            this.chart_data[i].push(data[i])
-          // prune the data when it reaches 1/2 the number of pixels we got in width
-          const max = Math.max(this.width/2, 20)
-          while (this.chart_data[0].length > max) {
-            for (let i=0; i<num_series; i++)
-              this.chart_data[i].shift()
-          }
+        if (!data || data.length == 0) {
+          this.chart_data = null
+          return
         }
+        // sanity checks on the data
+        if (!Array.isArray(data[0]) || data[0].length == 0) {
+          this.error_message = "TimePlotRaw: data must be an array of rows (arrays)"
+          this.chart_data = null
+          return
+        }
+        // check that all rows have the same length
+        const len = data[0].length
+        if (!data.every(row => row.length == len)) {
+          this.error_message = "TimePlotRaw: data rows must all have the same length"
+          this.chart_data = null
+          return
+        }
+
+        this.chart_data = this.transpose(data)
       }
     }
   },
@@ -216,7 +219,8 @@ Note that this "row-wise" structure gets transposed to the columnar structure ex
       })
 
       // add tooltip plugin
-      opts.plugins = [ ()=>tooltip({class: "time-plot-raw"}) ]
+      if (!opts.plugins) opts.plugins = []
+      opts.plugins.push( tooltip({class: "time-plot-raw"}) )
       if (!opts.legend) opts.legend = {}
       opts.legend.live = false
       //console.log(`uPlot data: ${this.chart_data.length}x${this.chart_data[0].length} options:`,
@@ -227,6 +231,7 @@ Note that this "row-wise" structure gets transposed to the columnar structure ex
 
     // check that the data has the right number of series
     err_msg() {
+      if (this.error_message) return this.error_message
       // FIXME: uPlot is OK with too much data, it just doesn't show it, prob should briefly show
       // a warning?
       if (this.opts?.series?.length > this.chart_data?.length) {
@@ -237,7 +242,7 @@ Note that this "row-wise" structure gets transposed to the columnar structure ex
         console.log(this.error_message)
         console.log(`series labels are: ${this.opts.series.map(s=>s.label).join(", ")}`)
         console.log(`first data values are: ${this.chart_data.map(d=>d[0]).join(", ")}`)
-        this.chart_data = null // don't like doing this, but otherwise it won't recover
+        //this.chart_data = [] // don't like doing this, but otherwise it won't recover
         return error_message
       } else {
         return null

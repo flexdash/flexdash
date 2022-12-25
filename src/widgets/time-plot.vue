@@ -63,9 +63,9 @@ the full uPlot flexibility.
   props: {
     data: { // data in row-wise format
       type: Array,
-      default: undefined,
-      validator(v) { return Array.isArray(v) && v.length },
-      tip: "array with unix timestamp followed by a value per series",
+      default() { return null },
+      validator(v) { return v === null || Array.isArray(v) },
+      tip: "array of row-wise data or a single row",
     },
 
     labels: { type: Array, default: ()=>[], tip: "array of labels for series" },
@@ -91,8 +91,6 @@ the full uPlot flexibility.
     right_log: { type: Boolean, default: false, tip: "use log scale on right axis" },
     reverse_legend: { type: Boolean, default: false, tip: "reverse legend order" },
   },
-
-  output: { default: null, tip: "options passed into uPlot" },
 
   full_page: true, // can expand to full-page
 
@@ -121,6 +119,7 @@ the full uPlot flexibility.
     _options() {
       const arrays = [ "labels", "colors", "axes", "widths", "span_gaps" ]
       // make sure these props are arrays so we don't have to guard umpteen times below
+      // e.g. instead of this.labels use pp.labels henceforth
       const pp = Object.fromEntries(
         arrays.map(p => [p, Array.isArray(this[p]) ? this[p] : []])
       )

@@ -162,8 +162,8 @@ The row_index is zero-based..
       const count = this.data.length-1
       let opts = {
         plugins: [
-          () => timeline({count, onClick: this.on_click, ...opts}),
-          () => tooltip({class: "timeline-plot"})
+          timeline({count, onClick: this.on_click, ...opts}),
+          tooltip({class: "timeline-plot"})
         ],
         mode: 1, // 1:no splits, 2:splits ???
         series: this.series,

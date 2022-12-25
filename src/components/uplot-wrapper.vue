@@ -7,22 +7,25 @@
     <div v-if="error_message" class="uplot-message">
       <div class="mx-auto">{{error_message}}</div>
     </div>
-    <!-- uPlot is injected here -->
+    <div v-else style="display:contents" ref="uplot">
+      <!-- uPlot is injected here -->
+    </div>
   </div>
 </template>
 
-<style>
-.uplot {
+<style scoped>
+/* note: scope doesn't work easily with uplot 'cause no uplot elt in template */
+div :deep(.uplot) {
   width: 100%; height: 100%;
   display: flex; flex-flow: column nowrap; justify-content: flex-end; align-items: stretch;
   font-family: Roboto !important;
 }
 /* u-wrap needs to occupy the space not used by the legend, and it needs to be full-width, then
  * the resize observer can track its dimensions and set the canvas size appropriately */
-.uplot .u-wrap { flex: 1 1 100px; min-height: 20px; width: 100% !important}
-.uplot .u-legend { flex: 0 0 auto; }
-.uplot .u-legend .u-marker { width: 1.2ex; height: 1.2ex; }
-.uplot .u-legend * {
+div :deep(.u-wrap) { flex: 1 1 100px; min-height: 20px; width: 100% !important}
+div :deep(.u-legend) { flex: 0 0 auto; }
+div :deep(.u-legend) :deep(.u-marker) { width: 1.2ex; height: 1.2ex; }
+div :deep(.u-legend) * {
   font: 0.75rem Roboto;
   vertical-align: baseline !important;
 }
@@ -54,8 +57,8 @@ export default {
     options: { type: Object, default() {return null} }, // options as uPlot expects
     data: { // data as uPlot expects (array of series)
       type: Array,
-      default() { return undefined },
-      validator(v) { return Array.isArray(v) && v.length },
+      default() { return null },
+      validator(v) { return v == null || Array.isArray(v) },
     },
     error_message: { type: String, default: null },
   },
@@ -80,9 +83,13 @@ export default {
       immediate: true,
       deep: true,
       handler(data, /*prevData*/) { // FIXME: do we need to check that the data is new?
-        if (!data) return // handle init case where data is undefined
-        if (this.chart) this.chart.setData(data)
-        else this.create()
+        if (data == null || data == []) {
+          if (this.chart) this.destroy()
+        } else if (this.chart) {
+          this.chart.setData(data)
+        } else {
+          this.create()
+        }
       }
     }
   },
@@ -169,8 +176,8 @@ export default {
         opts.height= 150
         if (! opts.padding) opts.padding = [8, null, null, null] // reduce padding at top
         else if (opts.padding[0] !== null) opts.padding[0] = 8
-        opts.plugins = this.options.plugins.map(p => p(uPlot))
-        this.chart = new uPlot(opts, this.data, this.$el)
+        opts.plugins = this.options.plugins
+        this.chart = new uPlot(opts, this.data, this.$refs.uplot)
         this.$nextTick(() => this.observeSize())
       } catch (e) {
         console.log("uPlotWrapper create: error creating chart", e)
