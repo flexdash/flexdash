@@ -1,6 +1,8 @@
 // dynamic-import -- Allow bundled libraries to be dynamically imported
 // Copyright ©2022 Thorsten von Eicken, MIT license, see LICENSE file
 
+import 'es-module-shims'
+
 // ===== the following deals with dynamically loaded widgets, specifically, their imports
 // the old method was to define some globals that custom widgets could use, but the new
 // way is to use import maps courtesy of es-module-shims.

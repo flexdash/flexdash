@@ -84,28 +84,6 @@ import "@fontsource/roboto/900.css"
 // The globals should be removed at some point, although we still need to make sure all
 // of Vue and Vuetify is pulled in (no treeshaking optimization for those).
 
-// init es-module-shims
-window.esmsInitOptions = {
-  shimMode: true, // shimMode requird to support multiple dynamic import maps
-  // Skip source analysis of certain URLs for full native passthrough
-  skip: /^https?:.*\/assets\/index\.[a-z0-9]{8}\.js$/, // bundled FlexDash
-  mapOverrides: true, // Permit overrides to import maps (used by custom widget HMR)
-
-  // -- Hooks --
-  // // Module load error
-  // onerror: (e) => { /*...*/ }, // default noop
-  // // Called when polyfill mode first engages
-  // onpolyfill: () => {}, // default logs to the console
-  // // Hook all module resolutions
-  // resolve: (id, parentUrl, resolve) => resolve(id, parentUrl), // default is spec resolution
-  // // Hook source fetch function
-  // fetch: (url, options) => fetch(url, options), // default is native
-  // // Hook import.meta construction
-  // meta: (meta, url) => void, // default is noop
-  // // Hook top-level imports
-  // onimport: (url, options, parentUrl) => void // default is noop
-}
-
 // define some globals which are used by dynamically loaded widgets
 import * as vue_all from 'vue'
 window.Vue = vue_all
