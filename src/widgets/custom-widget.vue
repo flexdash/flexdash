@@ -73,6 +73,7 @@ export default {
     url: { type: Array, default: null }, // [URL,hash] for source code
     errors: { type: Array, default: () => [] },
     props: { type: Object, default: () => ({}) },
+    import_map: { type: Object, default: () => ({}) }, // ES module import map
   },
 
   output: { default: null },
@@ -98,13 +99,14 @@ export default {
           this.import_error = null
           return
         }
+        await window.UtilsPromise
         const name = `${this.id}-${url_hash[1]}` // name of component
         const url = `${url_hash[0]}?h=${url_hash[1]}` // URL to fetch component source
         console.log(`CustomWidget ${name} loading ${url}`)
         try {
-          const { default: mod } = await import(/*@vite-ignore*/ url)
+          //const { default: mod } = await import(/*@vite-ignore*/ url)
+          const { default: mod } = await importShim(url)
           delete mod.name // we override with a unique synthetic name
-          console.log(`component keys for ${name}:`, Object.keys(mod).join(' '), mod)
           // register if not already reg'd: the hash only changes if source changes
           if (!window.App.component(name)) window.App.component(name, defineComponent(mod))
           this.component = name
@@ -118,7 +120,7 @@ export default {
           this.import_error = err
           // fetch source code for display
           try {
-            const resp = await fetch(url)
+            const resp = await fetch(err.fileName.startsWith("blob:") ? err.fileName : url)
             let source = await resp.text()
             source = source.split('\n').map((line, i) => {
               let ln = `${i+1}`
@@ -129,6 +131,23 @@ export default {
           } catch (err) {
             console.log(`Error fetching source from ${url}: ${err}`)
           }
+        }
+      }
+    },
+
+    import_map: {
+      immediate: true,
+      handler(map) {
+        if (map == null || typeof map != 'object' || map == {}) return
+        const imap = {}
+        const cur_map = importShim.getImportMap().imports
+        for (const [key, val] of Object.entries(map)) {
+          if (cur_map[key] != val) imap[key] = val
+        }
+        if (Object.keys(imap).length > 0) {
+          console.log(`CustomWidget ${this.id} updating import map:\n`,
+            Object.entries(imap).map(([k,v]) => `${k} -> ${v}`).join('\n'))
+          importShim.addImportMap({ imports: imap })
         }
       }
     },

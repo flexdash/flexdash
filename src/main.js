@@ -8,6 +8,7 @@ import Dash from './dash.vue'
 import Store from './store'
 import loadPalette from './utils/palette-loader'
 import mitt from 'mitt'
+import mapImport from './utils/map-import.js'
 
 // insert a title tag into the HTML head
 if (!window.flexdash_options) window.flexdash_options = {}
@@ -57,12 +58,16 @@ app.provide('$bus', mitt())
 
 app.mount('#app')
 
-window.addEventListener('popstate', () => {
-  const sp = (new URL(document.location)).searchParams
-  console.log(`POP! hash=${window.location.hash} qstring=${sp}`)
-  app.route = window.location.hash
-  app.params = sp
-})
+// handy globals
+window.App = app
+window.Palette = palette
+
+// window.addEventListener('popstate', () => {
+//   const sp = (new URL(document.location)).searchParams
+//   console.log(`POP! hash=${window.location.hash} qstring=${sp}`)
+//   app.route = window.location.hash
+//   app.params = sp
+// })
 
 // ===== load fonts
 
@@ -73,26 +78,66 @@ import "@fontsource/roboto/500.css"
 import "@fontsource/roboto/700.css"
 import "@fontsource/roboto/900.css"
 
-// ===== define some globals which are used by dynamically loaded widgets
+// ===== the following deals with dynamically loaded widgets, specifically, their imports
+// the old method was to define some globals that custom widgets could use, but the new
+// way is to use import maps courtesy of es-module-shims.
+// The globals should be removed at some point, although we still need to make sure all
+// of Vue and Vuetify is pulled in (no treeshaking optimization for those).
 
+// init es-module-shims
+window.esmsInitOptions = {
+  shimMode: true, // shimMode requird to support multiple dynamic import maps
+  // Skip source analysis of certain URLs for full native passthrough
+  skip: /^https?:.*\/assets\/index\.[a-z0-9]{8}\.js$/, // bundled FlexDash
+  mapOverrides: true, // Permit overrides to import maps (used by custom widget HMR)
+
+  // -- Hooks --
+  // // Module load error
+  // onerror: (e) => { /*...*/ }, // default noop
+  // // Called when polyfill mode first engages
+  // onpolyfill: () => {}, // default logs to the console
+  // // Hook all module resolutions
+  // resolve: (id, parentUrl, resolve) => resolve(id, parentUrl), // default is spec resolution
+  // // Hook source fetch function
+  // fetch: (url, options) => fetch(url, options), // default is native
+  // // Hook import.meta construction
+  // meta: (meta, url) => void, // default is noop
+  // // Hook top-level imports
+  // onimport: (url, options, parentUrl) => void // default is noop
+}
+
+// define some globals which are used by dynamically loaded widgets
 import * as vue_all from 'vue'
-import * as vuetify_all from 'vuetify'
-import * as uplot_all from 'uplot'
 window.Vue = vue_all
+import * as vuetify_all from 'vuetify'
 window.Vuetify = vuetify_all
+import * as uplot_all from 'uplot'
 window.uPlot = uplot_all
-window.App = app
-window.Palette = palette
+import * as placement_all from 'placement.js'
+window.Placement = placement_all
+mapImport({
+  'vue': 'Vue',
+  'vuetify': 'Vuetify',
+  'uplot': 'uPlot',
+  'placement.js': 'Placement',
+})
 
-// FIXME: loading the utils happens async, which is good, but there's no interlock to make sure
-// some custom widget isn't loaded before the utils are ready.
+// utility modules to pull from the utils directory
+const utils = [
+  'clipboard', 'colors', 'formatter', 'gradient', 'plot-colors', 'quadtree', 'upload',
+  'uplot-distr', 'uplot-series-bars', 'uplot-timeline', 'uplot-tooltip',
+]
+
+// loading the utils happens async, custom widget loading needs to wait for this...
 window.Utils = {}
 async function loadUtils() {
-  const utils = ['colors', 'formatter', 'gradient', 'plot-colors', 'upload', 'uplot-timeline', 'uplot-tooltip']
   const modules = import.meta.glob('./utils/*.js')
   for (const path in modules) {
     const u = path.split('/').pop().split('.').shift()
     if (utils.includes(u)) window.Utils[u] = await modules[path]()
   }
 }
-loadUtils().then(() => console.log("Loaded utils:", Object.keys(window.Utils).join(', ')))
+// Additional Utils
+// Log utils to console
+window.UtilsPromise = loadUtils()
+window.UtilsPromise.then(() => console.log("Loaded utils:", Object.keys(window.Utils).join(', ')))
