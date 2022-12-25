@@ -86,29 +86,17 @@ export default class SockioConnection {
       this.clientId = id
     })
 
-    // handle set message
-    this.sock.on("set", (topic, payload) => {
-      //console.log("SIO rx:", topic, payload)
-      if (typeof topic !== 'string') {
-        console.log("SIO rx: message is missing topic", topic)
-        return
-      }
-      //console.log("SIO rx:", m)
-      this.recvMsg("set", topic, payload)
-      this.setStatus()
-    })
-
-    // handle unset (delete) message
-    this.sock.on("unset", topic => {
-      //console.log("SIO rx:", topic, payload)
-      if (typeof topic !== 'string') {
-        console.log("SIO rx: message is missing topic", topic)
-        return
-      }
-      //console.log("SIO rx:", m)
-      this.recvMsg("unset", topic)
-      this.setStatus()
-    })
+    // handle data manipulation message
+    for (const kind of ['set', 'unset', 'push', 'shift']) {
+      this.sock.on(kind, (topic, payload) => {
+        if (typeof topic !== 'string') {
+          console.log(`SIO rx: ${kind} message is missing topic: ${topic}`)
+          return
+        }
+        this.recvMsg(kind, topic, payload)
+        this.setStatus()
+      })
+    }
 
     // handle ctrl message
     this.sock.on("ctrl", (topic, payload) => {

@@ -174,7 +174,7 @@ export default {
 
     changeTitle(ev) { this.$store.updateGrid(this.id, { title: ev }) },
 
-    // event called via $bus in response to a ctrl message from the server
+    // ctrlEvent is called via $bus in response to a ctrl message from the server
     // allows to roll-up/down the grid
     ctrlEvent(ev) {
       if (ev.action == 'open') this.rolledup = false

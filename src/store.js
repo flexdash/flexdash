@@ -74,6 +74,20 @@ export class Store {
     return this
   }
 
+  prepUpdate(topic) {
+    let tt = topic.split("/") // split levels of hierarchy
+    tt = tt.filter(t => t.length > 0) // remove empty components, e.g. leading slash
+    if (tt.length == 0) {
+      throw new StoreError("Cannot replace entire hierarchy")
+    }
+
+    if (tt[0] !== "$config") tt.unshift("sd")
+    const t = tt.pop() // separate off last level
+    const dir = walkTree(this.root, tt) // start at root
+    // now dir[t] is the field to update
+    return {dir, t}
+  }
+
   // insert data from a server message into the store.
   // Interprets the topic string as a hierarchy of object "levels" separated by slashes and
   // mutates the data at the final path element.
@@ -86,11 +100,6 @@ export class Store {
   // will not be deleted by this).
   insertData(topic, payload) {
     const dbg = false
-    let tt = topic.split("/") // split levels of hierarchy
-    tt = tt.filter(t => t.length > 0) // remove empty components, e.g. leading slash
-    if (tt.length == 0) {
-      throw new StoreError("Cannot replace entire hierarchy")
-    }
 
     if (topic === "$config") {
       this.config = this.root.$config = payload
@@ -98,12 +107,8 @@ export class Store {
       return
     }
 
-    if (tt[0] !== "$config") tt.unshift("sd")
-    const t = tt.pop() // separate off last level
-    const dir = walkTree(this.root, tt) // start at root
-    // now dir[t] is the field to update
-
     // perform the update
+    const {dir, t} = this.prepUpdate(topic)
     let old = undefined
     if (Array.isArray(dir)) {
       const ix = parseInt(t, 10)
@@ -142,6 +147,24 @@ export class Store {
       throw new StoreError(`${topic} is neither Array nor Object in server state`)
     }
     return old
+  }
+
+  alterData(op, topic, payload) {
+    const dbg = false
+    const {dir, t} = this.prepUpdate(topic)
+    if (dir[t] == null || dir[t] == {}) dir[t] = []
+    if (!Array.isArray(dir[t])) {
+      throw new StoreError(`Cannot ${op} ${topic} because it is not an array (is ${typeof(dir[t])})`)
+    }
+    if (op === "push") {
+      dir[t].push(payload)
+      if (dbg) console.log(`Pushed ${topic} with:`, payload)
+    } else if (op === "shift") {
+      if (dbg) console.log(`Shifted ${topic}`)
+      dir[t].shift()
+    } else {
+      throw new StoreError(`Unknown op '${op}'`)
+    }
   }
 
   // pushUndo pushes a mutation onto the undo buffer but coalesces consecutive mutations with the

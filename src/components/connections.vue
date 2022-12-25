@@ -310,6 +310,11 @@ export default {
         return
       }
 
+      if (kind === "push" || kind === "shift") {
+        this.$store.alterData(kind, params[0], params[1])
+        return
+      }
+
       if (kind === 'ctrl') {
         this.$emit('ctrlMessage', params[0])
         return
