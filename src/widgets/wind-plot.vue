@@ -87,11 +87,6 @@ wind speed and wind gust speed (using any unit of choice). Null values are OK
 to designate missing data.
 **Important**: each and every data point must have _exactly_ four values, otherwise
 nothing will be plotted.
-
-Each data message may be either an array of data points or a single data point. If an array is
-provided then it replaces the entire dataset being shown. If a single point is provided
-it is appended to the current dataset and an old data point may be rotated out.
-Note that this "row-wise" structure gets transposed to the columnar structure expected by uPlot.
 `,
 
   props: {

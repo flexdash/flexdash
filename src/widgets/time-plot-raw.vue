@@ -58,10 +58,6 @@ and the ultimate reference is https://github.com/leeoniya/uPlot/blob/master/dist
 The data must be input in the form of "data points" where a data point is an array consisting of
 a unix timestamp (seconds since 1970-01-01) followed by a value per series. Null values are OK
 to designate missing data. Note: each and every data point must have one value per series.
-
-Each data message may be either an array of data points or a single data point. If an array is
-provided then it replaces the entire dataset being shown. If a single point is provided
-it is appended to the current dataset and an old data point may be rotated out.
 Note that this "row-wise" structure gets transposed to the columnar structure expected by uPlot.
 `,
 
