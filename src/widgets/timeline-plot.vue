@@ -161,20 +161,20 @@ The row_index is zero-based..
       if (!this.data || this.data == []) return {}
       const count = this.data.length-1
       let opts = {
-        plugins: [
-          timeline({count, onClick: this.on_click, ...opts}),
-          tooltip({class: "timeline-plot"})
-        ],
         mode: 1, // 1:no splits, 2:splits ???
         series: this.series,
-			  fill: (seriesIdx, dataIdx, value) => this.value2color(value),
-			  stroke: (seriesIdx, dataIdx, value) => this.value2color(value),
+        fill: (seriesIdx, dataIdx, value) => this.value2color(value),
+        stroke: (seriesIdx, dataIdx, value) => this.value2color(value),
         legend: { show: false, live: false, markers: { width: 0 } },
         drawOrder: ["series", "axes"],
         scales: { x: { time: true } },
         axes: [ {}, {} ],
         padding: [null, 4, null, null],
       }
+      opts.plugins = [
+        timeline({count, onClick: this.on_click, ...opts}),
+        tooltip({class: "timeline-plot"}),
+      ]
       // handle not showing values in the bars
       if (!this.show_values) {
         opts.series.forEach((s,ix) => { if (ix) s.points = { show: false} })
