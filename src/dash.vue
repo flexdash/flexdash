@@ -6,7 +6,8 @@
   <v-app>
 
     <!-- Top title/navigation bar -->
-    <app-bar v-model:tab_ix="tab_ix" v-model:theme="theme" :title="title" :ready="ready"
+    <app-bar v-model:theme="theme" :title="title" :ready="ready"
+             :tab_ix="tab_ix" @update:tab_ix="changeTab($event)"
              @update:config_src="changeConfigSrc($event)"
              @ctrlMessage="handleCtrl">
     </app-bar>
@@ -187,8 +188,11 @@ export default {
 
   watch: {
     // ensure the current tab exists
-    tabs(tt) {
-      if (this.tab_ix >= tt.length) { this.tab_ix = tt.length-1; console.log("Forcing tab_ix to", this.tab_ix) }
+    dash_tabs(dt) {
+      if (this.tab_ix == null) this.cause = 'expose' // initial load
+      this.implementURL()
+      if (this.tab_ix >= dt.length) { this.changeTab(dt.length-1); console.log("Forcing tab_ix to", this.tab_ix) }
+      if (this.tab_ix == null) { this.changeTab(0); console.log("Init tab_ix to 0") }
     },
     // adjust the iframe url when we display an iframe tab
     tab: { deep: true, immediate: true, handler(t) {
@@ -213,19 +217,18 @@ export default {
     if (this.global.params.has('theme')) theme = this.global.params.get('theme')
     this.theme = theme == "dark" ? "flexdashDark" : "flexdashLight"
 
-    // select tab by index
-    if (this.global.route.match(/^#[0-9]+$/)) {
-      const ix = Number.parseInt(this.global.route.substr(1), 10)
-      if (ix >= 0 && ix < this.dash_tabs.length) this.tab_ix = ix
-    // select tab by name or icon name
-    } else if (this.global.route.startsWith("#")) {
-      const r = this.global.route.substr(1)
-      this.dash_tabs.forEach((t,ix)=> {
-        console.log(`Route match: ix=${ix} title=${this.tabs[t].title} icon=${this.tabs[t].icon}`)
-        if (r == this.tabs[t].title || r == this.tabs[t].icon) this.tab_ix = ix
-      })
-    }
-
+    // // select tab by index
+    // if (this.global.route.match(/^#[0-9]+$/)) {
+    //   const ix = Number.parseInt(this.global.route.substr(1), 10)
+    //   if (ix >= 0 && ix < this.dash_tabs.length) this.tab_ix = ix
+    // // select tab by name or icon name
+    // } else if (this.global.route.startsWith("#")) {
+    //   const r = this.global.route.substr(1)
+    //   this.dash_tabs.forEach((t,ix)=> {
+    //     console.log(`Route match: ix=${ix} title=${this.tabs[t].title} icon=${this.tabs[t].icon}`)
+    //     if (r == this.tabs[t].title || r == this.tabs[t].icon) this.tab_ix = ix
+    //   })
+    // }
 
     // provide a random changing value for demo purposes. It is wired into newly created
     // widgets so they spring to life even before the user customizes them.
@@ -236,6 +239,7 @@ export default {
 
   unmounted() {
     this.stopVisListener.abort()
+    window.removeEventListener('hashchange', this.implementURL)
   },
 
   mounted() {
@@ -249,7 +253,10 @@ export default {
       }
     }, { passive: true, signal: this.stopVisListener.signal })
     console.log("Added viz listener")
-    this.tabEvent({ type: "change tab", cause: "expose", ...this.tabEventInfo() })
+    //this.tabEvent({ type: "change tab", cause: "expose", ...this.tabEventInfo() }) -- too early!
+
+    window.addEventListener('hashchange', this.implementURL)
+    this.implementURL()
   },
 
   methods: {
@@ -266,7 +273,7 @@ export default {
 
     // put together the info about the tab to send a change tab event
     tabEventInfo() {
-      // fetch tab info explciitly 'cause we get called from tab_ix watcher and this.tab may
+      // fetch tab info explicitly 'cause we get called from tab_ix watcher and this.tab may
       // not yet have updated
       const tab_id = this.tab_ix != null && this.dash_tabs[this.tab_ix]
       const tab = tab_id && this.tabs[tab_id]
@@ -277,6 +284,66 @@ export default {
     tabEvent(payload) {
       if (this.$conn?.serverSend) this.$conn.serverSend("dashboard", payload, "event")
       else console.log("No connection to send tab event", payload)
+    },
+
+    // ===== Routing (this should be factored out but right now it lives here...)
+
+    // FIXME: the grid navigation is not fully implemented yet. Setting the URL and causing
+    // grids to flip works, but the URL is not updated when the user opens/closes a grid.
+
+    // look at window.location.hash and set tabs and grids accordingly
+    // interprets hash as #tab/grid, where the IDs can be tab IDs, IXs, titles, icons
+    implementURL() {
+      if (this.dash_tabs == null || this.dash_tabs.length == 0) return
+      const hash_route = window.location.hash
+      const [ rTab, rGrid ] = hash_route.split('/')
+      console.log(`Implementing URL: '${hash_route}' tab=${rTab} grid=${rGrid} #tabs=${this.dash_tabs.length}`)
+      // figure out which tab we're supposed to be on
+      if (rTab && rTab.startsWith('#')) {
+        const ix = this.matchcontainer(rTab.substring(1), this.dash_tabs.map(id=>this.tabs[id]))
+        if (ix == null) return
+        if (this.tab != ix) this.tab_ix = ix
+        // figure out any grids we should open/close
+        if (rGrid) {
+          const tab_id = this.dash_tabs[ix]
+          const grids = this.tabs_grids[tab_id].map(id=>this.grids[id]) // grid objects
+          console.log(`tab_ix=${this.tab_ix} tab_id=${tab_id} grids=${grids.map(g=>g.id).join(',')}`)
+          for (let grid_str of rGrid.split(',')) {
+            // leading '-' signifies to close the grid
+            const open = !grid_str.startsWith('-')
+            if (!open) grid_str = grid_str.substring(1)
+            // find the grid and act on it
+            const ix = this.matchcontainer(grid_str, grids)
+            if (ix == null) continue
+            console.log(`Grid ${grids[ix].id} ${open ? "open" : "close"}`)
+            this.$bus.emit(grids[ix].id, { action: open ? "open" : "close" })
+          }
+        }
+      }
+    },
+
+    // changeTab changes the URL hash to cause navigation to a different tab
+    changeTab(new_ix) {
+      console.log("changeTab(" + new_ix + ")")
+      window.location.hash = `#${new_ix+1}` // 1-based!
+    },
+
+    // matchcontainer tries to match a string to a container (tab or grid) by ID, index, title, or icon
+    matchcontainer(str, containers) { // returns index of match
+      // match ID
+      let ix = containers.findIndex(c => c?.id?.substring(1) == str)
+      if (ix >= 0) return ix
+      // match index (1-based!)
+      ix = Number.parseInt(str, 10)
+      if (ix > 0 && ix <= containers.length) return ix-1 // Fixme: check for trailing letters
+      // match title
+      str = str.toLowerCase()
+      ix = containers.findIndex(c => c?.title?.toLowerCase() == str)
+      if (ix >= 0) return ix
+      // match icon
+      ix = containers.findIndex(c => c?.icon?.toLowerCase() == "mdi-"+str)
+      if (ix >= 0) return ix
+      return null
     },
 
     // handle control message coming in from the server
