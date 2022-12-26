@@ -127,16 +127,12 @@ export default {
 
     observeSize() {
       this.ro.disconnect()
-      const uplot = this.$el.lastElementChild
-      if (!uplot) {
-        console.log("UPW: cannot observe: no uplot")
+      const uwraps = this.$refs.uplot.getElementsByClassName("u-wrap")
+      if (uwraps.length != 1) {
+        console.error("UPW: can't find unique u-wrap", uwraps)
         return { width: 0, height: 0 }
         }
-      const uwrap = uplot.children[0]
-      if (!uwrap) {
-        console.log("UPW: cannot observe: no uwrap")
-        return { width: 0, height: 0 }
-      }
+      const uwrap = uwraps[0]
       this.ro_uwrap = uwrap
 
       //console.log("TPR: observing size")
@@ -176,7 +172,7 @@ export default {
         opts.height= 150
         if (! opts.padding) opts.padding = [8, null, null, null] // reduce padding at top
         else if (opts.padding[0] !== null) opts.padding[0] = 8
-        opts.plugins = this.options.plugins
+        opts.plugins = this.options.plugins.map(p => p instanceof Function ? p(uPlot) : p)
         this.chart = new uPlot(opts, this.data, this.$refs.uplot)
         this.$nextTick(() => this.observeSize())
       } catch (e) {
