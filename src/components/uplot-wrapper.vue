@@ -39,7 +39,7 @@ div :deep(.u-legend) * {
 
 </style>
 
-<script scoped>
+<script>
 
 import uPlot from 'uplot'
 import 'uplot/dist/uPlot.min.css'
@@ -68,8 +68,6 @@ export default {
     ro_uwrap: null, // element being observed
     width: 40, // width in pixels
     dark_watcher: null, // watcher on $vuetify.theme.dark used to adjust chart colors
-    is_dark: false, // true if dark theme is active
-    // chart: null, // uPlot object instance, init'd in created() callback
   }},
 
   watch: {
@@ -99,9 +97,8 @@ export default {
     // theme switching, there must be an easier way to detect the current theme...
     this.dark_watcher = this.$watch(
       ()  => this.$vuetify.theme.global.current.dark,
-      (v) => { this.is_dark = v; this.destroy(); this.create() },
+      (v) => { this.destroy(); this.create() },
       { deep: false })
-    this.is_dark = this.$vuetify.theme.global.current.dark
   },
 
   mounted() {
