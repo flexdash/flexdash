@@ -66,8 +66,8 @@ the full uPlot flexibility.
     colors: { type: Array, default: ()=>[], tip: "array of colors for series, names or #rrggbb" },
     axes: { type: Array, default: ()=>[], tip: "array to assign series to 'left' or 'right' axis" },
     widths: { type: Array, default: ()=>[], tip: "array of stroke widths for series, default is 2" },
-    span_gaps: { type: Array, default: ()=>[],
-        tip: "array of bool to span over nulls, default is false" },
+    points: { type: Array, default: ()=>[], tip: "array of bool to show points on lines" },
+    span_gaps: { type: Array, default: ()=>[], tip: "array of bool to span over nulls, default is false" },
     // Note: the following props are all individual props instead of having a left_axis:{} and
     // right_axis:{} prop because it allows individual props to be changed while that's not readily
     // possible with an object prop. Also, the individual props are a bit easier to discover.
@@ -111,7 +111,7 @@ the full uPlot flexibility.
     // generate options for uPlot based on the props
     // this also emits an event as a side-effect (not supposed to do that, oh well...)
     _options() {
-      const arrays = [ "labels", "colors", "axes", "widths", "span_gaps" ]
+      const arrays = [ "labels", "colors", "axes", "widths", "span_gaps", "points" ]
       // make sure these props are arrays so we don't have to guard umpteen times below
       // e.g. instead of this.labels use pp.labels henceforth
       const pp = Object.fromEntries(
@@ -141,7 +141,8 @@ the full uPlot flexibility.
           width: pp.widths[s] || 2,
           spanGaps: pp.span_gaps[s],
           scale: r ? "R" : "L",
-          value: iso ? ((_,v) => this.iso_fmt(v, d, u)) : `v && (v.toFixed(${d}) + "${u}")`
+          value: iso ? ((_,v) => this.iso_fmt(v, d, u)) : `v && (v.toFixed(${d}) + "${u}")`,
+          points: { show: pp.points[s] },
         }
         series.push(serie)
       }
