@@ -161,6 +161,10 @@ Note that this "row-wise" structure gets transposed to the columnar structure ex
           if (this.is_dark) {
             if (!serie.points) serie.points = {}
             if (!serie.points.fill) serie.points.fill = '#1e1e1e'
+            if (!serie.cursor) serie.cursor = {}
+            if (!serie.cursor.points) serie.cursor.points = {}
+            if (!serie.cursor.points.fill)
+              serie.cursor.points.fill = (u, sidx) => u.series[sidx].fill()
           }
         }
       }
