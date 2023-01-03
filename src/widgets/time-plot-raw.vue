@@ -212,6 +212,14 @@ Note that this "row-wise" structure gets transposed to the columnar structure ex
         }
       }
 
+      // fix-up cursor for dark mode
+      if (this.is_dark) {
+        if (!opts.cursor) opts.cursor = {}
+        if (!opts.cursor.points) opts.cursor.points = {}
+        if (!opts.cursor.points.fill) opts.cursor.points.fill = (u, sidx) => u.series[sidx].fill()
+        if (!opts.cursor.points.size) opts.cursor.points.size = (u, sidx) => u.series[sidx].points.size
+      }
+
       // eval scale range function, if provided
       Object.values(opts.scales||{}).forEach((s) => {
         if (typeof s.range === 'string')
