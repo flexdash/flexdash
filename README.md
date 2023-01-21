@@ -34,7 +34,8 @@ In more detail:
 Getting started
 ---------------
 
-See the live demo at https://tve.github.io/flexdash. The data you see is randomly generated
+~~See the live demo at https://tve.github.io/flexdash~~ (sorry, not functioning anymore as I'm focusing on the Node-RED integration).
+The data you see is randomly generated
 internally, just enough to be able to play around a little. The demo includes help text that
 guides you through the dashboard as well as setting up data connections. Most widgets also include
 help text that becomes visible when editing an instantiation of the widget.
@@ -43,6 +44,9 @@ For info on how to "run" FlexDash more permanently, see the section on Loading F
 
 Concepts
 --------
+
+__Most of the text here refers to FlexDash in isolation. If you're using the Node-RED integration of__
+__FlexDash please refer to https://flexdash.github.io/docs/__
 
 There are a few core concepts in FlexDash that drive its functioning as well as user interface.
 This section explains each of them in some detail. It's probably best to read this after trying out
