@@ -107,7 +107,7 @@ The row_index is zero-based..
       return this.is_dark ? '#fff' : '#000'
     },
     on_click(seriesIx, time, dataVal) {
-      const ev = { label: this.labels[seriesIx], ix: seriesIx, time, value: dataVal }
+      const ev = { label: this.labels?.[seriesIx], ix: seriesIx, time, value: dataVal }
       console.log("TimelinePlot click:", JSON.stringify(ev))
       this.$emit('send', ev)
     }
