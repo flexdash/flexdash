@@ -1,36 +1,46 @@
 // palette-loader -- load widgets and grids dynamically
 // Copyright ©2021 Thorsten von Eicken, MIT license, see LICENSE file
 
-import { shallowReactive } from 'vue'
+import { shallowReactive } from "vue"
 
 // use Vite's module glob import to load widgets and grids
-export default function(app) {
+export default function (app) {
   const palette = {
     widgets: shallowReactive({}),
     grids: shallowReactive({}),
     components: shallowReactive({}),
     count: 0,
     loaded: false,
-    errors: []
+    errors: [],
   }
 
   function module_list(mm) {
-    return Object.keys(mm).map(m => m.replace(/^.*\/(.*)\.vue$/, '$1')).join(' ')
+    return Object.keys(mm)
+      .map(m => m.replace(/^.*\/(.*)\.vue$/, "$1"))
+      .join(" ")
   }
-  
+
   // given a module object, add it to the 'what' map using its proper name, and register
   // with Vue as a component in the app.
   function load_into(what, module) {
     const names = []
     for (const m in module) {
-      const name = module[m].default.name
+      const name = module[m].default?.name
       if (name) {
         app.component(name, module[m].default)
         what[name] = module[m].default
         names.push(name)
         //console.log(`Loaded ${name} from ${m}`)
+      } else if (module[m].default && typeof module[m].default === "object") {
+        throw Error(
+          `Loading ${m}: default export has no name field, it has:`,
+          Object.keys(module[m].default).join(" ")
+        )
       } else {
-        throw Error(`Loading ${m} resulted in 'undefined'!?`)
+        throw Error(
+          `Loading ${m}: default export is missing or not an object, exports:`,
+          Object.keys(module[m]).join(" ")
+        )
       }
     }
     return names
@@ -40,12 +50,12 @@ export default function(app) {
   // This relies on vite's glob-loading feature and there being an 'xtra' directory at the top of
   // the FlexDash source tree that contains symlinks.
   async function load_extra_dev() {
-    const proms = import.meta.globEager('/xtra/*/widgets/*.vue')
+    const proms = import.meta.globEager("/xtra/*/widgets/*.vue")
     //console.log(`***** xtra: ${Object.keys(proms).join(' ')}`)
     for (const path in proms) {
       try {
         const m = await proms[path]
-        load_into(palette.widgets, {path: m})
+        load_into(palette.widgets, { path: m })
         console.log(`Loaded widget ${m.default.name} from ${path}`)
       } catch (e) {
         console.log(`Error loading external widget from ${path}: ${e.message}`)
@@ -58,12 +68,12 @@ export default function(app) {
   async function load_extra_prod() {
     let proms
     try {
-      let index = await fetch('./xtra.json')
+      let index = await fetch("./xtra.json")
       if (!index.ok) throw Error(`'${index.statusText}' fetching ./xtra.json`)
       index = await index.json()
       if (!Array.isArray(index)) throw Error(`./xtra.json does not contain an array`)
       proms = Object.fromEntries(index.map(p => [p, import(/*@vite-ignore*/ `./../xtra/${p}`)]))
-    } catch(e) {
+    } catch (e) {
       console.log(`Warning: can't fetch list of extra widgets: ${e.message}`)
       return
     }
@@ -71,40 +81,43 @@ export default function(app) {
       try {
         const m = await proms[path]
         const names = load_into(palette.widgets, m.default)
-        console.log(`Loaded widgets ${names.join(' ')} from ${path}`)
+        console.log(`Loaded widgets ${names.join(" ")} from ${path}`)
       } catch (e) {
         console.log(`Error loading external widgets from ${path}: ${e.message}`)
       }
     }
   }
-  
+
   // load standard widgets and grids found in the FlexDash source tree.
   // This happens synchronously, which is OK because this stuff is all bundled into one JS
   // file anyway.
   async function load_std() {
-    const widgets = import.meta.globEager('/src/widgets/*.vue')
+    const widgets = import.meta.globEager("/src/widgets/*.vue")
     load_into(palette.widgets, widgets)
-    console.log("Loaded std Widgets:", Object.keys(palette.widgets).join(' '))
-    const grids = import.meta.globEager('/src/grids/*.vue')
+    console.log("Loaded std Widgets:", Object.keys(palette.widgets).join(" "))
+    const grids = import.meta.globEager("/src/grids/*.vue")
     load_into(palette.grids, grids)
-    console.log("Loaded std Grids:", Object.keys(palette.grids).join(' '))
+    console.log("Loaded std Grids:", Object.keys(palette.grids).join(" "))
   }
 
   // load components so they can be used by custom widgets
   async function load_components() {
-    const components = import.meta.globEager('/src/components/*.vue')
+    const components = import.meta.globEager("/src/components/*.vue")
     load_into(palette.components, components)
-    console.log("Loaded std Components:", Object.keys(palette.components).join(' '))
+    console.log("Loaded std Components:", Object.keys(palette.components).join(" "))
   }
 
-  load_std().then(() => {
-    import.meta.env.PROD ? load_extra_prod() : load_extra_dev()
-    load_components()
-  }).then(() => {
-    palette.loaded = true
-  }).catch(err => {
-    console.log("Error loading standard palette components:", err)
-  })
+  load_std()
+    .then(() => {
+      import.meta.env.PROD ? load_extra_prod() : load_extra_dev()
+      load_components()
+    })
+    .then(() => {
+      palette.loaded = true
+    })
+    .catch(err => {
+      console.log("Error loading standard palette components:", err)
+    })
 
   return palette
 }
