@@ -14,8 +14,9 @@
 .md h6 { font-size: 0.875rem; font-weight: 500; margin: 8px 0px 4px; }
 .md { line-height: 1.10rem; padding-top: 0px; padding-bottom: 0px; }
 .md code { padding: 0.2em 0em; }
-.md ul { margin-bottom: 16px; }
-.md ol { margin-bottom: 16px; }
+.md ul { margin: 8px 0px 4px; }
+.md ol { margin: 8px 0px 4px; }
+.md p { margin: 8px 0px 4px; }
 .md img { width: 100%; }
 </style>
 

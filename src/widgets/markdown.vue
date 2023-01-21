@@ -3,7 +3,7 @@
 -->
 <template>
   <div class="d-flex flex-column width100 height100">
-    <v-card-text v-if="title" class="font-weight-bold px-0 pt-1 mb-n1 d-flex">
+    <v-card-text v-if="title" class="px-0 pt-1 mb-n1 d-flex flex-grow-0">
       <span class="mx-auto">{{title}}</span>
     </v-card-text>
     <v-card-text class="pt-0 flex-grow-1 flex-shrink-1 overflow-auto">
