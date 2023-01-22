@@ -58,10 +58,10 @@
         <v-card-text v-if="!has_title && title"
                     class="flex-grow-0 flex-shrink-0 px-0 pt-1 pb-0 mb-n1">
           <span v-if="title" class="mx-auto text-no-wrap">{{title}}</span>
-          <v-btn density="compact" flat class="full-page-btn" @click="toggleFullPage">
-            <v-icon icon="mdi-arrow-collapse" size="small" />
-          </v-btn>
         </v-card-text>
+        <v-btn density="compact" flat class="full-page-btn" @click="toggleFullPage">
+          <v-icon icon="mdi-arrow-collapse" size="small" />
+        </v-btn>
         <!-- actual component, pass in its bindings -->
         <component :is="widget_kind" :id="config.id" v-bind="final_bindings" ref="comp"
                   @send="sendData($event)" class="my-auto">
