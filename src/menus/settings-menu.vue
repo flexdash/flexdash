@@ -10,7 +10,7 @@
     </template>
     <!-- Settings Menu -->
     <v-list density="compact" elevation="4" class="mt-1">
-      <v-list-item>
+      <v-list-item v-if="!global.editDisabled">
         <v-switch v-model="global.editMode" hide-details inset color="primary" label="Edit">
         </v-switch>
       </v-list-item>

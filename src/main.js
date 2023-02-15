@@ -46,6 +46,7 @@ app.provide('$store', store)
 // editMode encodes whether the edit toggle is on/off
 app.provide('global', reactive({
   editMode: !!fo.edit, // variable used "everywhere", initialized from fd options
+  editDisabled: !!fo.edit_disabled, // disables the edit toggle
   noAddDelete: !!fo.no_add_delete, // suppresses add/delete buttons
   noDemo: !!fo.no_demo, // suppresses demo mode
   route: window.location.hash, // #xxx in URL, determines initial tab shown
