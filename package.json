@@ -1,6 +1,6 @@
 {
   "name": "flexdash",
-  "version": "0.4.89",
+  "version": "0.4.90",
   "description": "Flexible self-contained web dashboard for Node-Red and IoT devices",
   "keywords": [
     "node-red",
