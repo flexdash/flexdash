@@ -5,22 +5,22 @@
   <span v-html="md_render" class="md"></span>
 </template>
 
-<style>
-.md h1 { font-size: 1.375rem; font-weight: 900; margin: 12px 0px 12px; }
-.md h2 { font-size: 1.2rem;   font-weight: 700; margin: 12px 0px 8px; }
-.md h3 { font-size: 1.0rem;   font-weight: 700; margin: 12px 0px 8px; }
-.md h4 { font-size: 0.875rem; font-weight: 700; margin: 8px 0px 4px; }
-.md h5 { font-size: 0.875rem; font-weight: 500; margin: 8px 0px 4px; }
-.md h6 { font-size: 0.875rem; font-weight: 500; margin: 8px 0px 4px; }
-.md { line-height: 1.10rem; padding-top: 0px; padding-bottom: 0px; }
-.md code { padding: 0.2em 0em; }
-.md ul { margin: 8px 0px 4px; }
-.md ol { margin: 8px 0px 4px; }
-.md p { margin: 8px 0px 4px; }
-.md img { width: 100%; }
+<style scoped>
+:deep(h1) { font-size: 1.375rem; font-weight: 900; margin: 12px 0px 12px; }
+:deep(h2) { font-size: 1.2rem;   font-weight: 700; margin: 12px 0px 8px; }
+:deep(h3) { font-size: 1.0rem;   font-weight: 700; margin: 12px 0px 8px; }
+:deep(h4) { font-size: 0.875rem; font-weight: 700; margin: 8px 0px 4px; }
+:deep(h5) { font-size: 0.875rem; font-weight: 500; margin: 8px 0px 4px; }
+:deep(h6) { font-size: 0.875rem; font-weight: 500; margin: 8px 0px 4px; }
+:deep(*) { line-height: 1.10rem; padding-top: 0px; padding-bottom: 0px; }
+:deep(code) { padding: 0.2em 0em; }
+:deep(ul) { margin: 8px 0px 4px; }
+:deep(ol) { margin: 8px 0px 4px; }
+:deep(p) { margin: 8px 0px 4px; }
+:deep(img) { width: 100%; }
 </style>
 
-<script scoped>
+<script>
 export default {
   name: 'Md',
 
