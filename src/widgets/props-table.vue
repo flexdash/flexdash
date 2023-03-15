@@ -2,7 +2,7 @@
      Copyright ©2021 Thorsten von Eicken, MIT license, see LICENSE file
 -->
 <template>
-  <div class="mt-0 width100">
+  <div class="mt-0 width100 height100 d-flex flex-column">
     <!-- title and edit button -->
     <v-card-text class="d-flex pa-0 pt-1 mb-0">
       <span v-if="title" class="ml-auto mr-1 text-no-wrap">{{title}}</span>
@@ -21,7 +21,7 @@
     </v-card-text>
 
     <!-- table of properties -->
-    <v-simple-table dense fixed-header class="props-table">
+    <v-simple-table dense fixed-header class="props-table" height="auto" style="overflow-y:scroll">
       <template v-slot:default>
         <tbody>
           <tr v-for="key, ix in keys" :key="ix">

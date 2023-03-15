@@ -2,7 +2,7 @@
      Copyright ©2021 Thorsten von Eicken, MIT license, see LICENSE file
 -->
 <template>
-  <v-simple-table dense fixed-header class="simple-table mt-2">
+  <v-simple-table dense fixed-header class="simple-table mt-2" style="overflow-y:scroll">
     <template v-slot:default>
       <thead><tr>
         <th class="px-2" v-for="col in col_labels" :key="col">{{col}}</th>
@@ -40,14 +40,15 @@ Yadda yadda.`,
 
   computed: {
     row_keys() {
-      if (Array.isArray(this.data)) return this.data.length
+      if (Array.isArray(this.data)) return this.data.map((_,i) => i)
       if (this.data) return Object.keys(this.data).sort()
       return []
     },
     col_keys() { 
-      if (this.columns) return this.columns
+      if (Array.isArray(this.columns) && this.columns.length) return this.columns
       if (!this.data) return []
-      return Object.keys(this.data[this.keys[0]]).sort()
+      if (Array.isArray(this.data)) return Object.keys(this.data[0])
+      return Object.keys(this.data[this.row_keys[0]]).sort()
     },
     col_labels() { 
       if (this.labels) return this.labels
@@ -57,7 +58,7 @@ Yadda yadda.`,
 
   methods: {
     data_at(row, col) {
-      if (Array.isArray(this.data)) return this.data[row-1][col]
+      if (Array.isArray(this.data)) return this.data[row][col]
       return this.data[row] ? this.data[row][col] : null },
   },
 
