@@ -15,7 +15,7 @@
 
     <!-- connections pop-up dialog, rendered eagerly 'cause we want those components to
          do work for us from the get-go -->
-    <v-dialog eager v-model="show_dialog">
+    <v-dialog eager v-model="show_dialog" :width="dwidth">
       <!-- prioritize showing the authentication dialog -->
       <v-component v-if="show_auth" :is="show_auth" :config="auth_config" @change="authDone($event)">
       </v-component>
@@ -138,6 +138,8 @@ export default {
     sockio_config() { return this.$config.conn ? this.$config.conn.sockio : undefined },
 
     config_source_name() { return this.config_source || "none" },
+
+    dwidth() { return this.show_auth ? "70ex" : "auto" },
   },
 
   inject: [ '$store', '$config' ],
