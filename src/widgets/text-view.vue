@@ -21,7 +21,7 @@
     </v-card-text>
 
     <!-- not editing... -->
-    <v-card-text v-if="!editing" class="pt-1 flex-grow-1 flex-shrink-1 flex-column-reverse overflow-auto">
+    <v-card-text v-if="!editing" class="pt-1 d-flex flex-grow-1 flex-shrink-1 flex-column-reverse overflow-auto">
       <pre>{{text}}</pre>
     </v-card-text>
 
