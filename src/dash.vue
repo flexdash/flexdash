@@ -27,10 +27,11 @@
                        style="font-variant: small-caps;">
         {{ title }}
       </v-toolbar-title>
-      <div class="version d-flex">alpha v{{version}}</div>
+      <!--div class="version d-flex">alpha v{{version}}</div-->
+      <div class="version d-flex">{{datetime}}</div>
 
       <!-- Tabs -->
-      <v-tabs v-model=tab_ix icons-and-text center-active class="hidden-xs-only" v-if="gotEverything">
+      <v-tabs v-model=tab_ix icons-and-text center-active class="hidden-xs-only" v-if="gotEverything && !one_page">
         <v-tab v-for="(tid, ix) in dash_tabs" :key="tid+ix" :id="'tab-'+tid"
                :class="{'is-active': ix == tab_ix}">
                <!-- set class above as work-around for vuetify issue #11405-->
@@ -67,13 +68,13 @@
       </v-tooltip>
 
       <!-- Connection icon -->
-      <connections @src="config_src=$event" ></connections>
+      <connections @src="config_src=$event"></connections>
 
       <!-- Settings menu at far right -->
       <v-menu offset-y min-width="10em" v-model="settings_menu">
         <!-- Menu activator, i.e. the button -->
         <template v-slot:activator="{ on, attrs }">
-          <v-btn icon v-bind="attrs" v-on="on"><v-icon>mdi-cog</v-icon></v-btn>
+          <v-btn icon v-bind="attrs" v-on="on" class="mt-2"><v-icon>mdi-cog</v-icon></v-btn>
         </template>
         <!-- Settings Menu -->
         <v-list dense>
@@ -82,6 +83,9 @@
           </v-list-item>
           <v-list-item>
             <v-switch v-model="$vuetify.theme.dark" inset label="Dark"></v-switch>
+          </v-list-item>
+          <v-list-item>
+            <v-switch v-model="one_page" inset label="1Page"></v-switch>
           </v-list-item>
         </v-list>
       </v-menu>
@@ -104,34 +108,54 @@
     <!-- main area of the page with content -->
     <v-main :style="{ backgroundColor: $vuetify.theme.themes[theme].background}">
       <!-- "normal" tabs with grids and widgets -->
-      <v-tabs-items v-if="gotEverything" :value="tab_ix" :class="tabs_items_class">
-        <v-tab-item v-for="(id) in dash_tabs" :key="id" :ref="id"
-                    :style="{ backgroundColor: $vuetify.theme.themes[theme].background}"
-                    :class="{'is-active': id == tab_id}">
-                    <!-- set class above as work-around for vuetify issue #11405-->
-          <!-- key={{id}} grids:{{tabs[id].grids}}
-          <div v-for="(g, ix) in tabs[id].grids" :key="g">
-            Grid {{g}} kind {{grids[g].kind}} palette {{palette.grids}</div -->
-          <!-- "normal" tab with grids with widgets -->
-          <div v-if="tabs[id].grids">
+      <div v-if="gotEverything" style="display: contents;">
+        <!-- all tabs on one page -->
+        <div v-if="one_page" style="display: contents;">
+          <div v-for="(id, ix) in dash_tabs" :key="id" :ref="id"
+                        :style="{ backgroundColor: $vuetify.theme.themes[theme].background}"
+                        :class="{'is-active': id == tab_id}">
+            <div v-if="ix>0" class="surface tab-title-bar py-2 text-h4 primary--text">
+              <v-icon :large="!tabs[id].title" color="primary" class="mb-0">mdi-{{tabs[id].icon}}</v-icon>
+              {{tabs[id].title}}
+            </div>
             <component v-for="(g, ix) in tabs[id].grids" :key="g" :id="g"
                       v-bind:is="grids[g].kind in palette.grids ? grids[g].kind : 'div'"
                       @delete="deleteGrid(id, ix)">
             </component>
           </div>
-        </v-tab-item>
-      </v-tabs-items>
-      <!-- iframe tabs, we have two "slots" where content can persist -->
-      <div v-if="gotEverything" :class="iframe_a_class">
-        <iframe v-if="iframe_a_src" :src="iframe_a_src"
-                frameborder="0" marginheight="0" marginwidth="0"></iframe>
-      </div>
-      <div v-if="gotEverything" :class="iframe_b_class">
-        <iframe v-if="iframe_b_src" :src="iframe_b_src"
-                frameborder="0" marginheight="0" marginwidth="0"></iframe>
+        </div>
+        <!-- normal tabbed layout -->
+        <div v-else style="display: contents;">
+          <v-tabs-items :value="tab_ix" :class="tabs_items_class">
+            <v-tab-item v-for="(id) in dash_tabs" :key="id" :ref="id"
+                        :style="{ backgroundColor: $vuetify.theme.themes[theme].background}"
+                        :class="{'is-active': id == tab_id}">
+                        <!-- set class above as work-around for vuetify issue #11405-->
+              <!-- key={{id}} grids:{{tabs[id].grids}}
+              <div v-for="(g, ix) in tabs[id].grids" :key="g">
+                Grid {{g}} kind {{grids[g].kind}} palette {{palette.grids}</div -->
+              <!-- "normal" tab with grids with widgets -->
+              <div v-if="tabs[id].grids">
+                <component v-for="(g, ix) in tabs[id].grids" :key="g" :id="g"
+                          v-bind:is="grids[g].kind in palette.grids ? grids[g].kind : 'div'"
+                          @delete="deleteGrid(id, ix)">
+                </component>
+              </div>
+            </v-tab-item>
+          </v-tabs-items>
+          <!-- iframe tabs, we have two "slots" where content can persist -->
+          <div :class="iframe_a_class">
+            <iframe v-if="iframe_a_src" :src="iframe_a_src"
+                    frameborder="0" marginheight="0" marginwidth="0"></iframe>
+          </div>
+          <div :class="iframe_b_class">
+            <iframe v-if="iframe_b_src" :src="iframe_b_src"
+                    frameborder="0" marginheight="0" marginwidth="0"></iframe>
+          </div>
+        </div>
       </div>
       <!-- loading... -->
-      <div v-if="!gotEverything">
+      <div v-else>
         <v-container style="min-height: 400px;" class="d-flex flex-column justify-start align-center">
           <div class="text-subtitle-1 text-center my-4" v-if="!gotConfig">
               Loading configuration from<br>{{config_src}}...
@@ -174,6 +198,7 @@ export default {
     tab_ix: null, // which tab we're on
     tab_edit: false, // turns tab editing drawer on/off
     tab_add: false, // turns add-a-tab menu on/off
+    one_page: false, // display all tabs on one long page
 
     iframe_a_src: null, // src URL for iframe
     iframe_b_src: null, // src URL for iframe
@@ -186,6 +211,7 @@ export default {
 
     config_src: "",
     version: import.meta.env.PACKAGE_VERSION,
+    datetime: new Date().toLocaleString().replace(',', ''),
   }),
 
   computed: {
@@ -262,7 +288,10 @@ export default {
     // provide a random changing value for demo purposes. It is wired into newly created
     // widgets so they spring to life even before the user customizes them.
     const rs = randomStepper(0, 100)
-    this.intvl = window.setInterval(()=> this.$store.insertData("$demo_random", rs()), 3000)
+    this.intvl = window.setInterval(()=> {
+      this.$store.insertData("$demo_random", rs())
+      this.datetime = new Date().toLocaleString().replace(',', '')
+    }, 3000)
   },
 
   beforeDestroy() { window.clearInterval(this.intvl) },
@@ -353,8 +382,14 @@ export default {
 
 <style scoped>
 .version {
-  position: absolute; top: 0px; right: 14px; z-index: 2;
+  position: absolute; top: 2px; right: 10px; z-index: 2;
   font-size: 9pt; font-weight: 700; color: #e5504d;
   line-height: 10pt;
 }
+
+.tab-title-bar {
+  width:100%; margin-top:16px;
+  display:flex; justify-content:center;
+}
+.tab-title-bar > i { margin-right: 8px; }
 </style>

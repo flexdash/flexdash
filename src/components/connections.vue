@@ -3,7 +3,7 @@
 -->
 
 <template>
-  <div class="mx-2">
+  <div class="mx-2 mt-2">
     <v-tooltip bottom>
       <template v-slot:activator="{on}">
         <v-btn small icon :color="icon_color" v-on="{click:showDialog, ...on}">
