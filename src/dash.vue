@@ -116,7 +116,7 @@
                         :class="{'is-active': id == tab_id}">
             <div v-if="ix>0" class="surface tab-title-bar py-2 text-h4 primary--text">
               <v-icon :large="!tabs[id].title" color="primary" class="mb-0">mdi-{{tabs[id].icon}}</v-icon>
-              {{tabs[id].title}}
+              {{tabs[id].title.toUpperCase()}}
             </div>
             <component v-for="(g, ix) in tabs[id].grids" :key="g" :id="g"
                       v-bind:is="grids[g].kind in palette.grids ? grids[g].kind : 'div'"
