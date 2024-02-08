@@ -211,7 +211,7 @@ export default {
 
     config_src: "",
     version: import.meta.env.PACKAGE_VERSION,
-    datetime: new Date().toLocaleString().replace(',', ''),
+    datetime: new Date().toISOString().replace('T', ' ').replace(/\..*/, ' UTC'),
   }),
 
   computed: {
@@ -290,7 +290,7 @@ export default {
     const rs = randomStepper(0, 100)
     this.intvl = window.setInterval(()=> {
       this.$store.insertData("$demo_random", rs())
-      this.datetime = new Date().toLocaleString().replace(',', '')
+      this.datetime = new Date().toISOString().replace('T', ' ').replace(/\..*/, ' UTC')
     }, 3000)
   },
 
